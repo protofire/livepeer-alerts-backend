@@ -1,0 +1,143 @@
+{
+	"info": {
+		"_postman_id": "399c2f0e-25f4-4687-9590-e385043a9599",
+		"name": "livepeer-alerts-backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[GET] - /api/subscribers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/subscribers/:id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/5c19480a2f355c41dc502218",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"5c19480a2f355c41dc502218"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[POST] - /api/subscribers",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n\t\"address\": \"0x4d3F9184Fc32A43BAD2641b1536B52a076FBBDcE\",\n\t\"frequency\": \"weekly\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[PUT] - /api/subscribers/:id",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n\t\"address\": \"0x4d3F9184Fc32A43BAD2641b1536B52a076FBBDcE\",\n\t\"frequency\": \"weekly\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/5c193ba53b14ff381ee0a63a",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"5c193ba53b14ff381ee0a63a"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[DELETE] - /api/subscribers/:id",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Fernando\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/5c19480a2f355c41dc502218",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"5c19480a2f355c41dc502218"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
