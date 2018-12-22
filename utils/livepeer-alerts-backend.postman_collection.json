@@ -37,14 +37,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c19480a2f355c41dc502218",
+					"raw": "{{host}}/api/subscribers/5c1c0f38d4d5ac732fc0c074",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c19480a2f355c41dc502218"
+						"5c1c0f38d4d5ac732fc0c074"
 					]
 				}
 			},
@@ -64,7 +64,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n\t\"address\": \"0x4d3F9184Fc32A43BAD2641b1536B52a076FBBDcE\",\n\t\"frequency\": \"weekly\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero+4661430089640456002205@altoros.com\",\n\t\"address\": \"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064\",\n\t\"frequency\": \"weekly\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",
@@ -93,17 +93,17 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n\t\"address\": \"0x4d3F9184Fc32A43BAD2641b1536B52a076FBBDcE\",\n\t\"frequency\": \"weekly\"\n}"
+					"raw": "{\n    \"activated\": 0,\n    \"_id\": \"5c1cf5c0bc851f164a28da0c\",\n    \"email\": \"mariano.aguero+4661430089640456000005@altoros.com\",\n    \"address\": \"asdas\",\n    \"frequency\": \"weekly\",\n    \"activatedCode\": \"513866267420361360000\",\n    \"createdAt\": \"2018-12-21T14:16:32.501Z\",\n    \"__v\": 0\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c193ba53b14ff381ee0a63a",
+					"raw": "{{host}}/api/subscribers/5c1cf5c0bc851f164a28da0c",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c193ba53b14ff381ee0a63a"
+						"5c1cf5c0bc851f164a28da0c"
 					]
 				}
 			},
@@ -126,14 +126,78 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c19480a2f355c41dc502218",
+					"raw": "{{host}}/api/subscribers/5c1a44159a4faa31adcde266",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c19480a2f355c41dc502218"
+						"5c1a44159a4faa31adcde266"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[POST] - /api/subscribers/activate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"activatedCode\": \"510625349508512500000\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/activate",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"activate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/subscribers/summary/:address",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/summary/0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"summary",
+						"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064"
 					]
 				}
 			},

@@ -17,7 +17,26 @@ const envVarsSchema = Joi.object({
   MONGO_HOST: Joi.string()
     .required()
     .description('Mongo DB host url'),
-  MONGO_PORT: Joi.number().default(27017)
+  MONGO_PORT: Joi.number().default(27017),
+  SENDGRID_API_KEY: Joi.string()
+    .required()
+    .description('Sendgrid API KEY'),
+  FROM_EMAIL: Joi.string()
+    .email()
+    .required()
+    .description('From email'),
+  FRONTEND_URL: Joi.string()
+    .required()
+    .description('Frontend URL'),
+  ACTIVATION_EMAIL_URL: Joi.string()
+    .required()
+    .description('URL to activate email subscription'),
+  UNSUBSCRIBE_EMAIL_URL: Joi.string()
+    .required()
+    .description('Unsubscribe email URL'),
+  TERMS_OF_SERVICE_URL: Joi.string()
+    .required()
+    .description('Terms of service URL')
 })
   .unknown()
   .required()
@@ -34,7 +53,13 @@ const config = {
   mongo: {
     host: envVars.MONGO_HOST,
     port: envVars.MONGO_PORT
-  }
+  },
+  sendgridAPIKEY: envVars.SENDGRID_API_KEY,
+  fromEmail: envVars.FROM_EMAIL,
+  frontendUrl: envVars.FRONTEND_URL,
+  activationEmailUrl: envVars.ACTIVATION_EMAIL_URL,
+  unsubscribeEmailUrl: envVars.UNSUBSCRIBE_EMAIL_URL,
+  termsOfServiceUrl: envVars.TERMS_OF_SERVICE_URL
 }
 
 module.exports = config

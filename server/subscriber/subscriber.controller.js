@@ -1,10 +1,24 @@
 const Subscriber = require('./subscriber.model')
+const { sendActivationEmail } = require('../helpers/sendEmail')
+const { getLivepeerDelegatorAccount } = require('../helpers/livepeerAPI')
 
 /**
  * Load subscriber and append to req.
  */
-function load(req, res, next, id) {
-  Subscriber.get(id)
+function loadBySubscriberId(req, res, next, subscriberId) {
+  Subscriber.get(subscriberId)
+    .then(subscriber => {
+      req.subscriber = subscriber // eslint-disable-line no-param-reassign
+      return next()
+    })
+    .catch(e => next(e))
+}
+
+/**
+ * Load subscriber by address and append to req.
+ */
+function loadByAddress(req, res, next, address) {
+  Subscriber.getByAddress(address)
     .then(subscriber => {
       req.subscriber = subscriber // eslint-disable-line no-param-reassign
       return next()
@@ -34,7 +48,10 @@ function create(req, res, next) {
 
   subscriber
     .save()
-    .then(savedSubscriber => res.json(savedSubscriber))
+    .then(savedSubscriber => {
+      sendActivationEmail(savedSubscriber.email)
+      return res.json(savedSubscriber)
+    })
     .catch(e => next(e))
 }
 
@@ -45,13 +62,31 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   const subscriber = req.subscriber
+
+  // Email is different, so we set the activated field to zero
+  const differentEmail = req.body.email !== subscriber.email
+  let options
+  if (differentEmail) {
+    subscriber.activated = 0
+  } else {
+    // Disable email validation
+    options = { validateBeforeSave: false }
+  }
+
+  // Set subscriber properties
   subscriber.email = req.body.email
   subscriber.address = req.body.address
   subscriber.frequency = req.body.frequency
 
   subscriber
-    .save()
-    .then(savedSubscriber => res.json(savedSubscriber))
+    .save(options)
+    .then(savedSubscriber => {
+      if (differentEmail) {
+        sendActivationEmail(savedSubscriber.email)
+      }
+
+      res.json(savedSubscriber)
+    })
     .catch(e => next(e))
 }
 
@@ -80,4 +115,41 @@ function remove(req, res, next) {
     .catch(e => next(e))
 }
 
-module.exports = { load, get, create, update, list, remove }
+/**
+ * Activate subscriber.
+ * @returns {Subscriber}
+ */
+function activate(req, res, next) {
+  const activatedCode = req.body.activatedCode
+  Subscriber.getByActivatedCode(activatedCode)
+    .then(subscriber => {
+      subscriber.activated = 1
+      subscriber.save({ validateBeforeSave: false }).then(savedSubscriber => {
+        res.json(savedSubscriber)
+      })
+    })
+    .catch(e => next(e))
+}
+
+/**
+ * Summary information
+ * @returns {Array}
+ */
+function summary(req, res, next) {
+  const subscriber = req.subscriber
+  getLivepeerDelegatorAccount(subscriber.address)
+    .then(summary => res.json(summary))
+    .catch(e => next(e))
+}
+
+module.exports = {
+  loadBySubscriberId,
+  loadByAddress,
+  get,
+  create,
+  update,
+  list,
+  remove,
+  activate,
+  summary
+}

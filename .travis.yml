@@ -9,6 +9,6 @@ cache:
 git:
   depth: 3
 script:
-  - npm run test:check-coverage
+  - npm run test:coverage
 after_script:
   - npm run report-coverage

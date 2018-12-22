@@ -14,6 +14,18 @@ router
   .post(validate(paramValidation.createSubscriber), subscriberController.create)
 
 router
+  .route('/activate')
+
+  /** POST /api/subscribers/activate - Activate new subscriber */
+  .post(validate(paramValidation.activateSubscriber), subscriberController.activate)
+
+router
+  .route('/summary/:address')
+
+  /** GET /api/subscribers/summary/:address - Get summary by address */
+  .get(validate(paramValidation.getSummary), subscriberController.summary)
+
+router
   .route('/:subscriberId')
   /** GET /api/subscribers/:subscriberId - Get subscriber */
   .get(validate(paramValidation.getSubscriber), subscriberController.get)
@@ -25,6 +37,9 @@ router
   .delete(subscriberController.remove)
 
 /** Load subscriber when API with subscriberId route parameter is hit */
-router.param('subscriberId', subscriberController.load)
+router.param('subscriberId', subscriberController.loadBySubscriberId)
+
+/** Load subscriber when API with address route parameter is hit */
+router.param('address', subscriberController.loadByAddress)
 
 module.exports = router
