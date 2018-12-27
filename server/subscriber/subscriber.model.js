@@ -2,6 +2,8 @@ const Promise = require('bluebird')
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
 const APIError = require('../helpers/APIError')
+const { getLivepeerDelegatorAccount, getLivepeerCurrentRound } = require('../helpers/livepeerAPI')
+const Earning = require('../earning/earning.model')
 
 /**
  * Subscriber Schema
@@ -32,6 +34,9 @@ const SubscriberSchema = new mongoose.Schema({
       return Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     }
   },
+  lastEmailSent: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -53,6 +58,29 @@ SubscriberSchema.path('email').validate(function(value, done) {
       throw err
     })
 }, 'Email already exists')
+
+/**
+ * Post save hook
+ */
+SubscriberSchema.post('save', async function(subscriber) {
+  try {
+    let [delegatorAccount, currentRound] = await Promise.all([
+      getLivepeerDelegatorAccount(subscriber.address),
+      getLivepeerCurrentRound()
+    ])
+
+    const earning = new Earning({
+      email: subscriber.email,
+      address: subscriber.address,
+      earning: delegatorAccount.fees,
+      round: currentRound
+    })
+
+    await earning.save()
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 /**
  * Add your
@@ -122,23 +150,6 @@ SubscriberSchema.statics = {
   },
 
   /**
-   * Get subscriber by address
-   * @param {ObjectId} address - The objectId of subscriber.
-   * @returns {Promise<Subscriber, APIError>}
-   */
-  getByAddress(address) {
-    return this.findOne({ address: address })
-      .exec()
-      .then(subscriber => {
-        if (subscriber) {
-          return subscriber
-        }
-        const err = new APIError('No such subscriber exists!', httpStatus.NOT_FOUND)
-        return Promise.reject(err)
-      })
-  },
-
-  /**
    * List subscribers in descending order of 'createdAt' timestamp.
    * @param {number} skip - Number of subscribers to be skipped.
    * @param {number} limit - Limit number of subscribers to be returned.
@@ -163,6 +174,17 @@ SubscriberSchema.statics = {
       .exec()
       .then(subscribers => {
         return subscribers
+      })
+  },
+
+  removeAll() {
+    return this.remove({})
+      .exec()
+      .then(results => {
+        if (results) {
+          return results
+        }
+        return Promise.reject(new Error('Cant remove subscribers'))
       })
   }
 }

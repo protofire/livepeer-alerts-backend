@@ -12,7 +12,14 @@ const getLivepeerDelegatorAccount = async address => {
   return await rpc.getDelegator(address)
 }
 
+const getLivepeerCurrentRound = async () => {
+  const livepeerSdk = await LivepeerSDK.default()
+  const { rpc } = livepeerSdk
+  return await rpc.getCurrentRound()
+}
+
 module.exports = {
   getLivepeerTranscoders,
-  getLivepeerDelegatorAccount
+  getLivepeerDelegatorAccount,
+  getLivepeerCurrentRound
 }

@@ -37,14 +37,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c1c0f38d4d5ac732fc0c074",
+					"raw": "{{host}}/api/subscribers/5c23a020f090fa1abdff4a81",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c1c0f38d4d5ac732fc0c074"
+						"5c23a020f090fa1abdff4a81"
 					]
 				}
 			},
@@ -64,7 +64,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero+4661430089640456002205@altoros.com\",\n\t\"address\": \"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064\",\n\t\"frequency\": \"weekly\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero+58@altoros.com\",\n\t\"address\": \"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064\",\n\t\"frequency\": \"weekly\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",
@@ -153,7 +153,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"activatedCode\": \"510625349508512500000\"\n}"
+					"raw": "{\n\t\"activatedCode\": \"196379028242075900000\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers/activate",
@@ -198,6 +198,38 @@
 						"subscribers",
 						"summary",
 						"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/earnings",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/earnings",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"earnings"
 					]
 				}
 			},

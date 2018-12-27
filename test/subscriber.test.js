@@ -25,7 +25,7 @@ describe('## Subscriber APIs', function() {
     const id = Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     let subscriber = {
       email: `mariano.aguero+${id}@altoros.com`,
-      address: 'address',
+      address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
 
@@ -102,12 +102,12 @@ describe('## Subscriber APIs', function() {
 
     let subscriberToActivate1 = {
       email: `mariano.aguero+${id1}@altoros.com`,
-      address: 'test',
+      address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
     let subscriberToActivate2 = {
       email: `mariano.aguero+${id2}@altoros.com`,
-      address: 'test',
+      address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
 
@@ -172,7 +172,7 @@ describe('## Subscriber APIs', function() {
 
     let subscriber = {
       email: `mariano.aguero+${id}@altoros.com`,
-      address: 'test',
+      address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
 
@@ -218,7 +218,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let emailToUpdate = `mariano.aguero+${id2}@altoros.com`
@@ -255,7 +255,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let emailToUpdate = `mariano.aguero`
@@ -292,7 +292,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let emailToUpdate = ``
@@ -330,7 +330,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
 
@@ -366,7 +366,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let addressToUpdate = 111
@@ -403,7 +403,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let addressToUpdate = ``
@@ -439,7 +439,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
 
@@ -475,7 +475,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let frequencyToUpdate = 'asdas'
@@ -514,7 +514,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id1}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
       let frequencyToUpdate = ``
@@ -579,7 +579,7 @@ describe('## Subscriber APIs', function() {
 
       let subscriber = {
         email: `mariano.aguero+${id}@altoros.com`,
-        address: 'test',
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
 
@@ -628,7 +628,6 @@ describe('## Subscriber APIs', function() {
 
           request(app)
             .get(`/api/subscribers/summary/${subscriber.address}`)
-            .timeout(100000)
             .expect(httpStatus.OK)
             .then(res => {
               expect(res.body).to.have.property('address')
@@ -645,6 +644,6 @@ describe('## Subscriber APIs', function() {
             })
             .catch(done)
         })
-    }).timeout(20000)
+    })
   })
 })

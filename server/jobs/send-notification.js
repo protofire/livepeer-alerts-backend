@@ -16,20 +16,32 @@ if (!validFrequencies.includes(frequency)) {
 
 // Get subscribers
 let exitSendNotificationJob = false
-const subscribers = Subscriber.getSubscribers(frequency)
-subscribers.then(subscribers => {
-  subscribers.forEach(subscriber => {
-    sendNotificationEmail(subscriber.email)
+
+Subscriber.find({ frequency: frequency, activated: 1 })
+  .exec()
+  .then(async subscribers => {
+    let emailsToSend = []
+    subscribers.forEach(subscriber => {
+      emailsToSend.push(sendNotificationEmail(subscriber))
+    })
+    try {
+      await Promise.all(emailsToSend)
+      exitSendNotificationJob = true
+    } catch (error) {
+      console.error(error)
+    }
+    return subscribers
   })
-  exitSendNotificationJob = true
-})
+  .catch(function(err) {
+    throw err
+  })
 
 // Wait until stack was empty
 function wait() {
   if (!exitSendNotificationJob) {
     setTimeout(wait, 1000)
   } else {
-    process.exit()
+    process.exit(1)
   }
 }
 wait()

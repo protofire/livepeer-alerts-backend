@@ -3,8 +3,25 @@
         <title>This is a Livepeer Alert Notification for TokenHolders.</title>
     </head>
     <body>
-        <h3>Summary information:</h3>
-        <p>{{data}}</p>
+        <h3>LPT earned from inflation:</h3>
+        <tr>
+            <td>Earnings from {{fromRound}} round to {{toRound}} round: {{earnedFromInflation}} LPT</td>
+            <td>Actual round: {{currentRound}}</td>
+        </tr>
+        <h3>Summary information about transcoders:</h3>
+        {{#each transcoders}}
+            <tr>
+                <td>Transcoder Address: {{address}}
+                    <ul>
+                        {{#details}}
+                            <li>Is active: {{active}}</li>
+                            <li>Last round that the transcoder called reward: {{lastRewardRound}}</li>
+                        {{/details}}
+                    </ul>
+                </td>
+            </tr>
+        {{/each}}
+
         <p><a href="{{unsubscribeEmailUrl}}">To unsubscribe click here</a></p>
         <p>Best regards</p>
     </body>
