@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
 const sgMail = require('@sendgrid/mail')
+const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const {
   getLivepeerDelegatorAccount,
@@ -19,6 +20,33 @@ const {
   termsOfServiceUrl
 } = config
 
+Handlebars.registerHelper('ifCond', function(v1, operator, v2, options) {
+  switch (operator) {
+    case '==':
+      return v1 == v2 ? options.fn(this) : options.inverse(this)
+    case '===':
+      return v1 === v2 ? options.fn(this) : options.inverse(this)
+    case '!=':
+      return v1 != v2 ? options.fn(this) : options.inverse(this)
+    case '!==':
+      return v1 !== v2 ? options.fn(this) : options.inverse(this)
+    case '<':
+      return v1 < v2 ? options.fn(this) : options.inverse(this)
+    case '<=':
+      return v1 <= v2 ? options.fn(this) : options.inverse(this)
+    case '>':
+      return v1 > v2 ? options.fn(this) : options.inverse(this)
+    case '>=':
+      return v1 >= v2 ? options.fn(this) : options.inverse(this)
+    case '&&':
+      return v1 && v2 ? options.fn(this) : options.inverse(this)
+    case '||':
+      return v1 || v2 ? options.fn(this) : options.inverse(this)
+    default:
+      return options.inverse(this)
+  }
+})
+
 const sendEmail = (toEmail, subject, body) => {
   sgMail.setApiKey(sendgridAPIKEY)
 
@@ -30,8 +58,10 @@ const sendEmail = (toEmail, subject, body) => {
     html: body
   }
 
-  if (!['test', 'development'].includes(config.env)) {
-    sgMail.send(msg)
+  if (!['test'].includes(config.env)) {
+    sgMail.send(msg).then(() => {
+      console.log(`Email sended to ${toEmail} successfully`)
+    })
   }
 }
 
@@ -44,11 +74,19 @@ const sendNotificationEmail = async subscriber => {
   const template = Handlebars.compile(source)
 
   // Obtain information for template
-  const [delegatorAccount, transcoders, currentRound] = await Promise.all([
-    getLivepeerDelegatorAccount(subscriber.address),
-    getLivepeerTranscoders(),
-    getLivepeerCurrentRound()
-  ])
+  let delegatorAccount, transcoders, currentRound
+  await promiseRetry(async retry => {
+    try {
+      ;[delegatorAccount, transcoders, currentRound] = await Promise.all([
+        getLivepeerDelegatorAccount(subscriber.address),
+        getLivepeerTranscoders(),
+        getLivepeerCurrentRound()
+      ])
+    } catch (err) {}
+    if (!delegatorAccount && !transcoders && !currentRound) {
+      retry()
+    }
+  })
 
   // Save status earning by subscriber
   const earning = new Earning({
@@ -70,11 +108,17 @@ const sendNotificationEmail = async subscriber => {
   const earnedFromInflation =
     earnings && earnings.length > 0 ? earnings[0].earning - earnings[1].earning : 0
 
-  const body = template({ transcoders, currentRound, fromRound, toRound, earnedFromInflation })
+  const body = template({
+    transcoders,
+    currentRound,
+    fromRound,
+    toRound,
+    earnedFromInflation,
+    unsubscribeEmailUrl
+  })
   const subject = 'Livepeer alert notification for Tokenholders'
 
   // Send email
-  console.log(`Send email notification to ${subscriber.email}`)
   sendEmail(subscriber.email, subject, body)
 
   // Save last email sent

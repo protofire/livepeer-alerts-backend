@@ -5,24 +5,36 @@
     <body>
         <h3>LPT earned from inflation:</h3>
         <tr>
-            <td>Earnings from {{fromRound}} round to {{toRound}} round: {{earnedFromInflation}} LPT</td>
-            <td>Actual round: {{currentRound}}</td>
+            {{#ifCond fromRound '==' toRound}}
+                <td>
+                    <ul>
+                        <li>Earnings from round {{fromRound}}: {{earnedFromInflation}} LPT</li>
+                        <li>Actual round: {{currentRound}}</li>
+                    </ul>
+                </td>
+            {{else}}
+                <td>
+                    <ul>
+                        <li>Earnings from round {{fromRound}} to round {{toRound}}: {{earnedFromInflation}} LPT</li>
+                        <li>Actual round: {{currentRound}}</li>
+                    </ul>
+                </td>
+            {{/ifCond}}
+
         </tr>
         <h3>Summary information about transcoders:</h3>
         {{#each transcoders}}
             <tr>
                 <td>Transcoder Address: {{address}}
                     <ul>
-                        {{#details}}
-                            <li>Is active: {{active}}</li>
-                            <li>Last round that the transcoder called reward: {{lastRewardRound}}</li>
-                        {{/details}}
+                        <li>Is active: {{active}}</li>
+                        <li>Last round that the transcoder called reward: {{lastRewardRound}}</li>
                     </ul>
                 </td>
             </tr>
         {{/each}}
 
-        <p><a href="{{unsubscribeEmailUrl}}">To unsubscribe click here</a></p>
+        <p>To unsubscribe click <a href="{{unsubscribeEmailUrl}}">here</a></p>
         <p>Best regards</p>
     </body>
 </html>
