@@ -51,6 +51,30 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/subscribers/address/:address",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/address/0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"address",
+						"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[POST] - /api/subscribers",
 			"request": {
 				"method": "POST",

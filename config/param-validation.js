@@ -48,6 +48,13 @@ module.exports = {
     }
   },
 
+  // GET /api/subscribers/address/:address
+  getByAddress: {
+    params: {
+      address: Joi.string().required()
+    }
+  },
+
   // POST /api/subscribers/activate
   activateSubscriber: {
     body: {

@@ -142,6 +142,14 @@ function summary(req, res, next) {
     .catch(e => next(e))
 }
 
+/**
+ * Subscriber by address
+ * @returns {Array}
+ */
+function getByAddress(req, res, next) {
+  return res.json(req.subscriber)
+}
+
 module.exports = {
   loadBySubscriberId,
   loadByAddress,
@@ -151,5 +159,6 @@ module.exports = {
   list,
   remove,
   activate,
-  summary
+  summary,
+  getByAddress
 }

@@ -26,6 +26,12 @@ router
   .get(validate(paramValidation.getSummary), subscriberController.summary)
 
 router
+  .route('/address/:address')
+
+  /** GET /api/subscribers/address/:address - Get subscriber by address */
+  .get(validate(paramValidation.getByAddress), subscriberController.getByAddress)
+
+router
   .route('/:subscriberId')
   /** GET /api/subscribers/:subscriberId - Get subscriber */
   .get(validate(paramValidation.getSubscriber), subscriberController.get)
