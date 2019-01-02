@@ -13,7 +13,7 @@ const getLivepeerDelegatorAccount = async address => {
   const summary = await rpc.getDelegator(address)
 
   // Add total stake
-  const { bondedAmount = '', pendingStake = '' } = summary
+  const { bondedAmount = 0, pendingStake = 0 } = summary
   const totalStake = MathBN.max(bondedAmount, pendingStake)
 
   summary.totalStake = totalStake
