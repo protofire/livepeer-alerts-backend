@@ -47,7 +47,7 @@ const SubscriberSchema = new mongoose.Schema({
 SubscriberSchema.path('email').validate(function(value, done) {
   return mongoose
     .model('Subscriber')
-    .countDocuments({ email: value })
+    .countDocuments({ email: this.email, address: this.address })
     .exec()
     .then(function(count) {
       return !count
@@ -55,7 +55,7 @@ SubscriberSchema.path('email').validate(function(value, done) {
     .catch(function(err) {
       throw err
     })
-}, 'Email already exists')
+}, `Email related to the address ${this.address} already subscribed`)
 
 /**
  * Methods
