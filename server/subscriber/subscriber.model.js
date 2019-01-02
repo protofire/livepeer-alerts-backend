@@ -2,8 +2,6 @@ const Promise = require('bluebird')
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
 const APIError = require('../helpers/APIError')
-const { getLivepeerDelegatorAccount, getLivepeerCurrentRound } = require('../helpers/livepeerAPI')
-const Earning = require('../earning/earning.model')
 
 /**
  * Subscriber Schema
@@ -26,7 +24,7 @@ const SubscriberSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 1,
-    default: 0
+    default: 1 // Activated
   },
   activatedCode: {
     type: String,
@@ -58,36 +56,6 @@ SubscriberSchema.path('email').validate(function(value, done) {
       throw err
     })
 }, 'Email already exists')
-
-/**
- * Post save hook
- */
-SubscriberSchema.post('save', async function(subscriber) {
-  try {
-    let [delegatorAccount, currentRound] = await Promise.all([
-      getLivepeerDelegatorAccount(subscriber.address),
-      getLivepeerCurrentRound()
-    ])
-
-    const earning = new Earning({
-      email: subscriber.email,
-      address: subscriber.address,
-      earning: delegatorAccount.fees,
-      round: currentRound
-    })
-
-    await earning.save()
-  } catch (error) {
-    console.error(error)
-  }
-})
-
-/**
- * Add your
- * - pre-save hooks
- * - validations
- * - virtuals
- */
 
 /**
  * Methods

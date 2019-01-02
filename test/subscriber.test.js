@@ -19,7 +19,7 @@ after(done => {
 })
 
 describe('## Subscriber APIs', function() {
-  let activatedTest = 0
+  let activatedTest = 1
 
   describe('# POST /api/subscribers', () => {
     const id = Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
@@ -630,16 +630,18 @@ describe('## Subscriber APIs', function() {
             .get(`/api/subscribers/summary/${subscriber.address}`)
             .expect(httpStatus.OK)
             .then(res => {
-              expect(res.body).to.have.property('address')
-              expect(res.body).to.have.property('bondedAmount')
-              expect(res.body).to.have.property('delegateAddress')
-              expect(res.body).to.have.property('delegatedAmount')
-              expect(res.body).to.have.property('fees')
-              expect(res.body).to.have.property('lastClaimRound')
-              expect(res.body).to.have.property('startRound')
-              expect(res.body).to.have.property('status')
-              expect(res.body).to.have.property('withdrawRound')
-              expect(res.body.address).to.equal('0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064')
+              expect(res.body.summary).to.have.property('address')
+              expect(res.body.summary).to.have.property('bondedAmount')
+              expect(res.body.summary).to.have.property('delegateAddress')
+              expect(res.body.summary).to.have.property('delegatedAmount')
+              expect(res.body.summary).to.have.property('fees')
+              expect(res.body.summary).to.have.property('lastClaimRound')
+              expect(res.body.summary).to.have.property('startRound')
+              expect(res.body.summary).to.have.property('status')
+              expect(res.body.summary).to.have.property('withdrawRound')
+              expect(res.body.summary.address).to.equal(
+                '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064'
+              )
               done()
             })
             .catch(done)

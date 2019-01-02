@@ -31,7 +31,9 @@
   "dependencies": {
     "@livepeer/sdk": "^1.0.0-alpha.5",
     "@sendgrid/mail": "^6.3.1",
+    "big.js": "^5.2.2",
     "bluebird": "3.5.1",
+    "bn.js": "^4.11.8",
     "body-parser": "1.18.2",
     "compression": "1.7.2",
     "cookie-parser": "1.4.3",
@@ -47,6 +49,7 @@
     "joi": "10.6.0",
     "method-override": "^2.3.10",
     "minimist": "^1.2.0",
+    "moment": "^2.23.0",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
     "promise-retry": "^1.1.1",

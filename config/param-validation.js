@@ -44,7 +44,7 @@ module.exports = {
   // GET /api/subscribers/summary/:address
   getSummary: {
     params: {
-      address: Joi.string().required()
+      addressWithoutSubscriber: Joi.string().required()
     }
   },
 

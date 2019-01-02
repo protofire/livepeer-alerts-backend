@@ -5,9 +5,10 @@ const Handlebars = require('handlebars')
 const sgMail = require('@sendgrid/mail')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
+const moment = require('moment')
 const {
   getLivepeerDelegatorAccount,
-  getLivepeerTranscoders,
+  getLivepeerTranscoderAccount,
   getLivepeerCurrentRound
 } = require('./livepeerAPI')
 const Earning = require('../earning/earning.model')
@@ -47,7 +48,7 @@ Handlebars.registerHelper('ifCond', function(v1, operator, v2, options) {
   }
 })
 
-const sendEmail = (toEmail, subject, body) => {
+const sendEmail = async (toEmail, subject, body) => {
   sgMail.setApiKey(sendgridAPIKEY)
 
   const msg = {
@@ -59,67 +60,138 @@ const sendEmail = (toEmail, subject, body) => {
   }
 
   if (!['test'].includes(config.env)) {
-    sgMail.send(msg).then(() => {
+    try {
+      await sgMail.send(msg)
       console.log(`Email sended to ${toEmail} successfully`)
-    })
+    } catch (err) {
+      console.log(err)
+    }
   }
 }
 
-const sendNotificationEmail = async subscriber => {
+const getEmailBody = async subscriber => {
+  let delegatorAccount, transcoderAccount, currentRound
+  await promiseRetry(async retry => {
+    // Get delegator Account
+    try {
+      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
+      if (delegatorAccount && delegatorAccount.status == 'Bonded') {
+        // Get transcoder account
+        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
+        currentRound = await getLivepeerCurrentRound()
+      }
+    } catch (err) {
+      retry()
+    }
+  })
+  if (!delegatorAccount || !transcoderAccount || !currentRound) {
+    throw new Error('There is no email to send')
+  }
+
+  // Check if call reward
+  const callReward = transcoderAccount.lastRewardRound === currentRound
+
+  // Calculate fees, fromRound, toRound, earnedFromInflation
+  const earnings = await Earning.aggregate([
+    {
+      $group: {
+        _id: {
+          round: '$round',
+          email: '$email',
+          address: '$address',
+          earning: '$earning'
+        }
+      }
+    },
+    {
+      $sort: { round: -1 }
+    },
+    {
+      $limit: 2
+    }
+  ]).exec()
+
+  const roundFrom = earnings && earnings.length > 0 ? earnings[0]._id.round : 0
+  const roundTo = earnings && earnings.length > 1 ? earnings[1]._id.round : roundFrom
+  const earningFromRound = earnings && earnings.length > 0 ? earnings[0]._id.earning : 0
+  const earningToRound = earnings && earnings.length > 1 ? earnings[1]._id.earning : 0
+  let lptEarned = 0
+  if (earningFromRound && earningToRound) {
+    lptEarned = earningFromRound - earningToRound
+  }
+  const dateYesterday = moment()
+    .subtract(1, 'days')
+    .startOf('day')
+    .format('dddd DD, YYYY hh:mm A')
+
+  return {
+    dateYesterday,
+    lptEarned,
+    roundFrom,
+    roundTo,
+    callReward,
+    totalStake: delegatorAccount.totalStake,
+    currentRound,
+    delegateAddress: delegatorAccount.delegateAddress
+  }
+}
+
+const createEarning = async data => {
+  const { subscriber, totalStake, currentRound } = data
+  // Save status earning by subscriber
+  const earning = new Earning({
+    email: subscriber.email,
+    address: subscriber.address,
+    earning: totalStake,
+    round: currentRound
+  })
+  return await earning.save()
+}
+
+const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
+  // Get email body
+  const {
+    dateYesterday,
+    lptEarned,
+    roundFrom,
+    roundTo,
+    callReward,
+    totalStake,
+    currentRound,
+    delegateAddress
+  } = await getEmailBody(subscriber)
+
   // Open template file
-  const fileTemplate = path.join(__dirname, '../emails/templates/notification.hbs')
+  const filename = callReward
+    ? '../emails/templates/notification_success.hbs'
+    : '../emails/templates/notification_warning.hbs'
+  const fileTemplate = path.join(__dirname, filename)
   const source = fs.readFileSync(fileTemplate, 'utf8')
 
   // Create email generator
   const template = Handlebars.compile(source)
 
-  // Obtain information for template
-  let delegatorAccount, transcoders, currentRound
-  await promiseRetry(async retry => {
-    try {
-      ;[delegatorAccount, transcoders, currentRound] = await Promise.all([
-        getLivepeerDelegatorAccount(subscriber.address),
-        getLivepeerTranscoders(),
-        getLivepeerCurrentRound()
-      ])
-    } catch (err) {}
-    if (!delegatorAccount && !transcoders && !currentRound) {
-      retry()
-    }
-  })
-
-  // Save status earning by subscriber
-  const earning = new Earning({
-    email: subscriber.email,
-    address: subscriber.address,
-    earning: delegatorAccount.fees,
-    round: currentRound
-  })
-  await earning.save()
-
-  // Calculate fees, fromRound, toRound, earnedFromInflation
-  const earnings = await Earning.find()
-    .sort({ createdAt: -1 })
-    .skip(0)
-    .limit(2)
-    .exec()
-  const fromRound = earnings && earnings.length > 0 ? earnings[1].round : 0
-  const toRound = earnings && earnings.length > 0 ? earnings[0].round : 0
-  const earnedFromInflation =
-    earnings && earnings.length > 0 ? earnings[0].earning - earnings[1].earning : 0
-
   const body = template({
-    transcoders,
-    currentRound,
-    fromRound,
-    toRound,
-    earnedFromInflation,
-    unsubscribeEmailUrl
+    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}`,
+    transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
+    dateYesterday: dateYesterday,
+    roundFrom: roundFrom,
+    roundTo: roundTo,
+    lptEarned: lptEarned,
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
   })
-  const subject = 'Livepeer alert notification for Tokenholders'
+
+  const subject = callReward
+    ? `Livepeer staking alert - All good`
+    : `Livepeer staking alert - Pay attention`
+
+  // Create earning
+  if (createEarningOnSend) {
+    await createEarning({ subscriber, totalStake, currentRound })
+  }
 
   // Send email
-  sendEmail(subscriber.email, subject, body)
+  await sendEmail(subscriber.email, subject, body)
 
   // Save last email sent
   subscriber.lastEmailSent = Date.now()

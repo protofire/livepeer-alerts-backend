@@ -20,7 +20,7 @@ router
   .post(validate(paramValidation.activateSubscriber), subscriberController.activate)
 
 router
-  .route('/summary/:address')
+  .route('/summary/:addressWithoutSubscriber')
 
   /** GET /api/subscribers/summary/:address - Get summary by address */
   .get(validate(paramValidation.getSummary), subscriberController.summary)

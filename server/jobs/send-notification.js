@@ -22,14 +22,14 @@ Subscriber.find({ frequency: frequency, activated: 1 })
   .then(async subscribers => {
     let emailsToSend = []
     subscribers.forEach(subscriber => {
-      emailsToSend.push(sendNotificationEmail(subscriber))
+      emailsToSend.push(sendNotificationEmail(subscriber, true))
     })
     try {
       await Promise.all(emailsToSend)
-      exitSendNotificationJob = true
     } catch (error) {
       console.error(error)
     }
+    exitSendNotificationJob = true
     return subscribers
   })
   .catch(function(err) {
