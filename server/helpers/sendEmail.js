@@ -172,7 +172,7 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
   const template = Handlebars.compile(source)
 
   const body = template({
-    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}`,
+    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
     transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
     dateYesterday: dateYesterday,
     roundFrom: roundFrom,
