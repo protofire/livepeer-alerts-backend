@@ -8,20 +8,18 @@
 [Live Version](https://livepeer-alerts-backend.herokuapp.com/)
 
 ## Installation
-
-TODO
+- Node >=8.10.0
+- NPM  >=5.6.0
+- MongoDB v4.0.4
+- Sendgrid API KEY 
 
 ## Usage
-
-TODO
+- To run server, simply execute ```$ npm run start```
+- To run tests, simply execute ```$ npm run test```
 
 ## Configuration
+- Copy env example file to run in dev mode: ```$ cp .env.example .env ```
 
-TODO
-
-## Documentation
-
-TODO
 
 ## Licence
 
