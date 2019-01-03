@@ -54,7 +54,7 @@ SubscriberSchema.path('email').validate(function(value, done) {
     .catch(function(err) {
       throw err
     })
-}, `Email related to the address ${this.address} already subscribed`)
+}, `Email related to that address already subscribed`)
 
 /**
  * Methods

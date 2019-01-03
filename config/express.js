@@ -59,6 +59,15 @@ app.use((err, req, res, next) => {
     const error = new APIError(unifiedErrorMessage, err.status, true)
     return next(error)
   } else if (!(err instanceof APIError)) {
+    if (
+      err &&
+      err.name == 'ValidationError' &&
+      err.errors !== null &&
+      typeof err.errors === 'object'
+    ) {
+      err.status = err.status || 422
+      err.isPublic = err.isPublic || true
+    }
     const apiError = new APIError(err.message, err.status, err.isPublic)
     return next(apiError)
   }
