@@ -2,52 +2,42 @@ const LivepeerSDK = require('@livepeer/sdk')
 const { MathBN } = require('./utils')
 
 const getLivepeerTranscoders = async () => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   return await rpc.getTranscoders()
 }
 
 const getLivepeerDelegatorAccount = async address => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   const summary = await rpc.getDelegator(address)
 
-  // Add total stake
-  const { bondedAmount = 0, pendingStake = 0 } = summary
-  const totalStake = MathBN.max(bondedAmount, pendingStake)
-
-  summary.totalStake = totalStake
+  summary.totalStake = getTotalStakeFromSummary(summary)
   return summary
 }
 
 const getLivepeerTranscoderAccount = async address => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   return await rpc.getTranscoder(address)
 }
 
 const getLivepeerCurrentRound = async () => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   return await rpc.getCurrentRound()
 }
 
 const getLivepeerDelegatorTokenBalance = async address => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   return await rpc.getTokenBalance(address)
 }
 
 const getLivepeerDelegatorStake = async address => {
-  const livepeerSdk = await LivepeerSDK.default()
-  const { rpc } = livepeerSdk
+  const { rpc } = await LivepeerSDK.default()
   const summary = await rpc.getDelegator(address)
+  return getTotalStakeFromSummary(summary)
+}
 
-  // Add total stake
+const getTotalStakeFromSummary = summary => {
   const { bondedAmount = 0, pendingStake = 0 } = summary
-  const totalStake = MathBN.max(bondedAmount, pendingStake)
-
-  return totalStake
+  return MathBN.max(bondedAmount, pendingStake)
 }
 
 module.exports = {

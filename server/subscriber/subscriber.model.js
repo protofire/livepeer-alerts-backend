@@ -9,8 +9,7 @@ const APIError = require('../helpers/APIError')
 const SubscriberSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
-    index: { unique: true }
+    required: true
   },
   address: {
     type: String,
