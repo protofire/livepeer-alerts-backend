@@ -159,4 +159,9 @@ SubscriberSchema.statics = {
 /**
  * @typedef Subscriber
  */
-module.exports = mongoose.model('Subscriber', SubscriberSchema)
+const subscriber = mongoose.model('Subscriber', SubscriberSchema)
+
+// Dropping an old Index in MongoDB
+subscriber.collection.dropIndex('email_1', function(err, result) {})
+
+module.exports = subscriber
