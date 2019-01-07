@@ -18,13 +18,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 In order to develop livepeer-alerts-backend, you'll need:
-```
+
 - [Git](https://git-scm.com/) 
 - [Node.js](https://nodejs.org/) >= 8.10.0
 - [NPM](https://www.npmjs.com/) >= 5.6.0
 - [MongoDB](https://www.mongodb.com/download-center/community) v4.0.4
 - [Sendgrid API KEY] 
-```
+
 
 
 ## Get Started
