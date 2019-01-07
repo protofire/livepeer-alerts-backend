@@ -3,6 +3,7 @@ The following section details the Livepeer notifications API's function signatur
 
 #### Table of Contents
 
+- [Postman Client](https://www.getpostman.com/)
 - [Postman File](https://github.com/protofire/livepeer-alerts-backend/blob/master/utils/livepeer-alerts-backend.postman_collection.json)
 - List of functions
     - [getSubscribers](#getSubscribers)

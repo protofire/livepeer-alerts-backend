@@ -1,5 +1,3 @@
-/* eslint no-use-before-define: 0 */  // --> OFF
-
 # Livepeer Backend Notifications
 
 Provide pro-active alert notifications that will help LPT token holders to be updated and understand how the transcoders they are delegating the tokens to are performing in near real time
