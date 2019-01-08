@@ -71,4 +71,4 @@ Please read [CONTRIBUTING.md](https://github.com/protofire/livepeer-alerts-backe
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/protofire/livepeer-alerts-backend/blob/master/LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/protofire/livepeer-alerts-backend/blob/master/LICENSE) file for details
