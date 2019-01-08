@@ -92,29 +92,33 @@ const getEmailBody = async subscriber => {
   const callReward = transcoderAccount.lastRewardRound === currentRound
 
   // Calculate fees, fromRound, toRound, earnedFromInflation
-  const earnings = await Earning.aggregate([
-    {
-      $group: {
-        _id: {
-          round: '$round',
-          email: '$email',
-          address: '$address',
-          earning: '$earning'
-        }
-      }
-    },
-    {
-      $sort: { round: -1 }
-    },
-    {
-      $limit: 2
-    }
-  ]).exec()
+  let earnings = await Earning.find({ address: subscriber.address }).exec()
 
-  const roundFrom = earnings && earnings.length > 0 ? earnings[0]._id.round : 0
-  const roundTo = earnings && earnings.length > 1 ? earnings[1]._id.round : roundFrom
-  const earningFromRound = earnings && earnings.length > 0 ? earnings[0]._id.earning : 0
-  const earningToRound = earnings && earnings.length > 1 ? earnings[1]._id.earning : 0
+  // Sort earnings
+  earnings.sort(function compare(a, b) {
+    const dateA = new Date(a.createdAt)
+    const dateB = new Date(b.createdAt)
+    return dateB - dateA
+  })
+
+  // Reduce to obtain last two rounds
+  earnings = earnings.reduce(function(r, a) {
+    r[a.round] = r[a.round] || []
+    r[a.round] = a
+    return r
+  }, Object.create(null))
+
+  // Calculate rounds and earnings
+  const earningFromValue =
+    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
+  const earningToValue =
+    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
+
+  const roundFrom = earningFromValue ? earningFromValue.round : 0
+  const roundTo = earningToValue ? earningToValue.round : roundFrom
+  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
+  const earningToRound = earningToValue ? earningToValue.earning : 0
+
   let lptEarned = 0
   if (earningFromRound && earningToRound) {
     lptEarned = earningFromRound - earningToRound
@@ -124,15 +128,37 @@ const getEmailBody = async subscriber => {
     .startOf('day')
     .format('dddd DD, YYYY hh:mm A')
 
+  // Open template file
+  const filename = callReward
+    ? '../emails/templates/notification_success.hbs'
+    : '../emails/templates/notification_warning.hbs'
+  const fileTemplate = path.join(__dirname, filename)
+  const source = fs.readFileSync(fileTemplate, 'utf8')
+
+  const { delegateAddress, totalStake } = delegatorAccount
+
+  // Create email generator
+  const template = Handlebars.compile(source)
+  const body = template({
+    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
+    transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
+    dateYesterday: dateYesterday,
+    roundFrom: roundFrom,
+    roundTo: roundTo,
+    lptEarned: lptEarned,
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+  })
+
   return {
     dateYesterday,
     lptEarned,
     roundFrom,
     roundTo,
     callReward,
-    totalStake: delegatorAccount.totalStake,
+    totalStake,
     currentRound,
-    delegateAddress: delegatorAccount.delegateAddress
+    body,
+    delegateAddress
   }
 }
 
@@ -151,36 +177,7 @@ const createEarning = async data => {
 const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
   try {
     // Get email body
-    const {
-      dateYesterday,
-      lptEarned,
-      roundFrom,
-      roundTo,
-      callReward,
-      totalStake,
-      currentRound,
-      delegateAddress
-    } = await getEmailBody(subscriber)
-
-    // Open template file
-    const filename = callReward
-      ? '../emails/templates/notification_success.hbs'
-      : '../emails/templates/notification_warning.hbs'
-    const fileTemplate = path.join(__dirname, filename)
-    const source = fs.readFileSync(fileTemplate, 'utf8')
-
-    // Create email generator
-    const template = Handlebars.compile(source)
-
-    const body = template({
-      transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
-      transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
-      dateYesterday: dateYesterday,
-      roundFrom: roundFrom,
-      roundTo: roundTo,
-      lptEarned: lptEarned,
-      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
-    })
+    const { callReward, totalStake, currentRound, body } = await getEmailBody(subscriber)
 
     const subject = callReward
       ? `Livepeer staking alert - All good`
