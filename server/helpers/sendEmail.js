@@ -149,53 +149,57 @@ const createEarning = async data => {
 }
 
 const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
-  // Get email body
-  const {
-    dateYesterday,
-    lptEarned,
-    roundFrom,
-    roundTo,
-    callReward,
-    totalStake,
-    currentRound,
-    delegateAddress
-  } = await getEmailBody(subscriber)
+  try {
+    // Get email body
+    const {
+      dateYesterday,
+      lptEarned,
+      roundFrom,
+      roundTo,
+      callReward,
+      totalStake,
+      currentRound,
+      delegateAddress
+    } = await getEmailBody(subscriber)
 
-  // Open template file
-  const filename = callReward
-    ? '../emails/templates/notification_success.hbs'
-    : '../emails/templates/notification_warning.hbs'
-  const fileTemplate = path.join(__dirname, filename)
-  const source = fs.readFileSync(fileTemplate, 'utf8')
+    // Open template file
+    const filename = callReward
+      ? '../emails/templates/notification_success.hbs'
+      : '../emails/templates/notification_warning.hbs'
+    const fileTemplate = path.join(__dirname, filename)
+    const source = fs.readFileSync(fileTemplate, 'utf8')
 
-  // Create email generator
-  const template = Handlebars.compile(source)
+    // Create email generator
+    const template = Handlebars.compile(source)
 
-  const body = template({
-    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
-    transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
-    dateYesterday: dateYesterday,
-    roundFrom: roundFrom,
-    roundTo: roundTo,
-    lptEarned: lptEarned,
-    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
-  })
+    const body = template({
+      transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
+      transcoderAddress: `${delegateAddress.slice(0, 8)}...`,
+      dateYesterday: dateYesterday,
+      roundFrom: roundFrom,
+      roundTo: roundTo,
+      lptEarned: lptEarned,
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+    })
 
-  const subject = callReward
-    ? `Livepeer staking alert - All good`
-    : `Livepeer staking alert - Pay attention`
+    const subject = callReward
+      ? `Livepeer staking alert - All good`
+      : `Livepeer staking alert - Pay attention`
 
-  // Create earning
-  if (createEarningOnSend) {
-    await createEarning({ subscriber, totalStake, currentRound })
+    // Create earning
+    if (createEarningOnSend) {
+      await createEarning({ subscriber, totalStake, currentRound })
+    }
+
+    // Send email
+    await sendEmail(subscriber.email, subject, body)
+
+    // Save last email sent
+    subscriber.lastEmailSent = Date.now()
+    return await subscriber.save({ validateBeforeSave: false })
+  } catch (e) {
+    return
   }
-
-  // Send email
-  await sendEmail(subscriber.email, subject, body)
-
-  // Save last email sent
-  subscriber.lastEmailSent = Date.now()
-  return await subscriber.save({ validateBeforeSave: false })
 }
 
 const sendActivationEmail = toEmail => {
