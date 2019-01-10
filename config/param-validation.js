@@ -10,7 +10,8 @@ module.exports = {
       address: Joi.string().required(),
       frequency: Joi.string()
         .valid('monthly', 'weekly', 'daily', 'hourly')
-        .required()
+        .required(),
+      telegramChatId: Joi.string()
     }
   },
 
@@ -23,7 +24,8 @@ module.exports = {
       address: Joi.string().required(),
       frequency: Joi.string()
         .valid('monthly', 'weekly', 'daily', 'hourly')
-        .required()
+        .required(),
+      telegramChatId: Joi.string()
     },
     params: {
       subscriberId: Joi.string()

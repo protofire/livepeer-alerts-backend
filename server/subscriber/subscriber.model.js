@@ -9,7 +9,8 @@ const APIError = require('../helpers/APIError')
 const SubscriberSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true
+    required: false,
+    default: null
   },
   address: {
     type: String,
@@ -18,6 +19,11 @@ const SubscriberSchema = new mongoose.Schema({
   frequency: {
     type: String,
     required: true
+  },
+  telegramChatId: {
+    type: String,
+    required: false,
+    default: null
   },
   activated: {
     type: Number,
@@ -32,29 +38,18 @@ const SubscriberSchema = new mongoose.Schema({
     }
   },
   lastEmailSent: {
-    type: Date
+    type: Date,
+    default: null
+  },
+  lastTelegramSent: {
+    type: Date,
+    default: null
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
 })
-
-/**
- * Unique validator for email
- */
-SubscriberSchema.path('email').validate(function(value, done) {
-  return mongoose
-    .model('Subscriber')
-    .countDocuments({ email: this.email, address: this.address })
-    .exec()
-    .then(function(count) {
-      return !count
-    })
-    .catch(function(err) {
-      throw err
-    })
-}, `Email related to that address already subscribed`)
 
 /**
  * Methods
