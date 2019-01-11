@@ -651,4 +651,36 @@ describe('## Subscriber APIs', function() {
         })
     })
   })
+
+  describe('# GET /api/subscribers/address/:addresss', function() {
+    it('should get subscribers data by address ', function(done) {
+      const id = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
+
+      let subscriber = {
+        email: `mariano.aguero+${id}@altoros.com`,
+        address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
+        frequency: 'weekly'
+      }
+
+      request(app)
+        .post('/api/subscribers')
+        .send(subscriber)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.email).to.equal(subscriber.email)
+          expect(res.body.address).to.equal(subscriber.address)
+          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.activated).to.equal(activatedTest)
+
+          request(app)
+            .get(`/api/subscribers/address/${subscriber.address}`)
+            .expect(httpStatus.OK)
+            .then(res => {
+              expect(res.body.address).to.equal(subscriber.address)
+              done()
+            })
+            .catch(done)
+        })
+    })
+  })
 })
