@@ -1,8 +1,8 @@
+const TelegramBot = require('node-telegram-bot-api')
 const stripTags = require('striptags')
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
-const sgMail = require('@sendgrid/mail')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
@@ -13,31 +13,31 @@ const {
   getLivepeerCurrentRound
 } = require('./livepeerAPI')
 const Earning = require('../earning/earning.model')
-const { createEarning, truncateStringInTheMiddle } = require('./utils')
-const {
-  sendgridAPIKEY,
-  fromEmail,
-  activationEmailUrl,
-  frontendUrl,
-  unsubscribeEmailUrl,
-  termsOfServiceUrl
-} = config
+const { createEarning, getButtonsBySubscriptor, truncateStringInTheMiddle } = require('./utils')
+const { telegramBotKey } = config
 
-const sendEmail = async (toEmail, subject, body) => {
-  sgMail.setApiKey(sendgridAPIKEY)
+const sendTelegram = async data => {
+  const { chatId, address, body } = data
 
-  const msg = {
-    to: toEmail,
-    from: fromEmail,
-    subject: subject,
-    text: stripTags(body),
-    html: body
-  }
+  // Create a bot that uses 'polling' to fetch new updates
+  const bot = new TelegramBot(telegramBotKey, { polling: true })
 
   if (!['test'].includes(config.env)) {
     try {
-      await sgMail.send(msg)
-      console.log(`Email sended to ${toEmail} successfully`)
+      const { buttons, welcomeText } = await getButtonsBySubscriptor({ address, chatId })
+      await bot.sendMessage(
+        chatId,
+        `${body}
+
+${welcomeText}`,
+        {
+          reply_markup: {
+            keyboard: buttons
+          },
+          parse_mode: 'HTML'
+        }
+      )
+      console.log(`Telegram sended to chatId ${chatId} successfully`)
     } catch (err) {
       console.log(err)
     }
@@ -45,7 +45,7 @@ const sendEmail = async (toEmail, subject, body) => {
   return
 }
 
-const getEmailBody = async subscriber => {
+const getTelegramBody = async subscriber => {
   let delegatorAccount, transcoderAccount, currentRound
   await promiseRetry(async retry => {
     // Get delegator Account
@@ -61,7 +61,7 @@ const getEmailBody = async subscriber => {
     }
   })
   if (!delegatorAccount || !transcoderAccount || !currentRound) {
-    throw new Error('There is no email to send')
+    throw new Error('There is no telegram to send')
   }
 
   // Check if call reward
@@ -106,14 +106,14 @@ const getEmailBody = async subscriber => {
 
   // Open template file
   const filename = callReward
-    ? '../notifications/emails/templates/notification_success.hbs'
-    : '../notifications/emails/templates/notification_warning.hbs'
+    ? '../notifications/telegram/templates/notification_success.hbs'
+    : '../notifications/telegram/templates/notification_warning.hbs'
   const fileTemplate = path.join(__dirname, filename)
   const source = fs.readFileSync(fileTemplate, 'utf8')
 
   const { delegateAddress, totalStake } = delegatorAccount
 
-  // Create email generator
+  // Create telegram generator
   const template = Handlebars.compile(source)
   const body = template({
     transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
@@ -138,43 +138,29 @@ const getEmailBody = async subscriber => {
   }
 }
 
-const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
+const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
   try {
-    // Get email body
-    const { callReward, totalStake, currentRound, body } = await getEmailBody(subscriber)
-
-    const subject = callReward
-      ? `Livepeer staking alert - All good`
-      : `Livepeer staking alert - Pay attention`
+    // Get telegram body
+    const { callReward, totalStake, currentRound, body } = await getTelegramBody(subscriber)
 
     // Create earning
     if (createEarningOnSend) {
       await createEarning({ subscriber, totalStake, currentRound })
     }
 
-    // Send email
-    await sendEmail(subscriber.email, subject, body)
+    // Send telegram
+    await sendTelegram({
+      chatId: subscriber.telegramChatId,
+      address: subscriber.address,
+      body: body
+    })
 
-    // Save last email sent
-    subscriber.lastEmailSent = Date.now()
+    // Save last telegram sent
+    subscriber.lastTelegramSent = Date.now()
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     return
   }
 }
 
-const sendActivationEmail = toEmail => {
-  // Open template file
-  const fileTemplate = path.join(__dirname, '../notifications/emails/templates/activation.hbs')
-  const source = fs.readFileSync(fileTemplate, 'utf8')
-
-  // Create email generator
-  const template = Handlebars.compile(source)
-  const body = template({ unsubscribeEmailUrl, activationEmailUrl, termsOfServiceUrl })
-  const subject = 'Livepeer alert notification - Please confirm your email address'
-
-  // Send activation email
-  sendEmail(toEmail, subject, body)
-}
-
-module.exports = { sendNotificationEmail, sendActivationEmail }
+module.exports = { sendNotificationTelegram, getTelegramBody }

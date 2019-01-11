@@ -53,6 +53,7 @@
     "moment": "^2.23.0",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
+    "node-telegram-bot-api": "^0.30.0",
     "promise-retry": "^1.1.1",
     "striptags": "^3.1.1",
     "web3": "github:ethereum/web3.js",
@@ -79,7 +80,6 @@
   "license": "MIT",
   "husky": {
     "hooks": {
-      "pre-commit": "npm test",
       "pre-push": "npm test"
     }
   }

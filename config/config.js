@@ -36,7 +36,10 @@ const envVarsSchema = Joi.object({
     .description('Unsubscribe email URL'),
   TERMS_OF_SERVICE_URL: Joi.string()
     .required()
-    .description('Terms of service URL')
+    .description('Terms of service URL'),
+  TELEGRAM_BOT_KEY: Joi.string()
+    .required()
+    .description('Telegram bot key')
 })
   .unknown()
   .required()
@@ -59,7 +62,8 @@ const config = {
   frontendUrl: envVars.FRONTEND_URL,
   activationEmailUrl: envVars.ACTIVATION_EMAIL_URL,
   unsubscribeEmailUrl: envVars.UNSUBSCRIBE_EMAIL_URL,
-  termsOfServiceUrl: envVars.TERMS_OF_SERVICE_URL
+  termsOfServiceUrl: envVars.TERMS_OF_SERVICE_URL,
+  telegramBotKey: envVars.TELEGRAM_BOT_KEY
 }
 
 module.exports = config
