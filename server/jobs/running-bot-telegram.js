@@ -53,11 +53,17 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
     const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
     // Buttons setup for telegram
-    bot.sendMessage(msg.chat.id, welcomeText, {
-      reply_markup: {
-        keyboard: buttons
-      }
-    })
+    bot
+      .sendMessage(msg.chat.id, welcomeText, {
+        reply_markup: {
+          keyboard: buttons
+        }
+      })
+      .catch(function(error) {
+        if (error.response && error.response.statusCode === 403) {
+          console.log(`BOT blocked by the user with chatId ${msg.chat.id}`)
+        }
+      })
   } catch (e) {
     bot.sendMessage(msg.chat.id, e.message)
   }
