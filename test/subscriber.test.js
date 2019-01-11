@@ -235,10 +235,13 @@ describe('## Subscriber APIs', function() {
           subscriber = res.body
 
           // Update email
-          subscriber.email = emailToUpdate
           request(app)
             .put(`/api/subscribers/${subscriber._id}`)
-            .send(subscriber)
+            .send({
+              email: emailToUpdate,
+              address: subscriber.address,
+              frequency: subscriber.frequency
+            })
             .expect(httpStatus.OK)
             .then(res => {
               expect(res.body.email).to.equal(emailToUpdate)
