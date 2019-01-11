@@ -11,7 +11,7 @@ module.exports = {
       frequency: Joi.string()
         .valid('monthly', 'weekly', 'daily', 'hourly')
         .required(),
-      telegramChatId: Joi.string()
+      telegramChatId: [Joi.string().optional(), Joi.allow(null)]
     }
   },
 
@@ -25,7 +25,7 @@ module.exports = {
       frequency: Joi.string()
         .valid('monthly', 'weekly', 'daily', 'hourly')
         .required(),
-      telegramChatId: Joi.string()
+      telegramChatId: [Joi.string().optional(), Joi.allow(null)]
     },
     params: {
       subscriberId: Joi.string()
