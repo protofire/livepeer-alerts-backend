@@ -56,7 +56,9 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
     bot
       .sendMessage(msg.chat.id, welcomeText, {
         reply_markup: {
-          keyboard: buttons
+          keyboard: buttons,
+          resize_keyboard: true,
+          one_time_keyboard: true
         }
       })
       .catch(function(error) {
@@ -92,7 +94,9 @@ bot.on('message', async msg => {
 ${welcomeText}`,
         {
           reply_markup: {
-            keyboard: buttons
+            keyboard: buttons,
+            resize_keyboard: true,
+            one_time_keyboard: true
           }
         }
       )
@@ -122,7 +126,9 @@ ${welcomeText}`,
 ${welcomeText}`,
         {
           reply_markup: {
-            keyboard: buttons
+            keyboard: buttons,
+            resize_keyboard: true,
+            one_time_keyboard: true
           }
         }
       )
@@ -154,12 +160,15 @@ ${welcomeText}`,
 ${welcomeText}`,
         {
           reply_markup: {
-            keyboard: buttons
+            keyboard: buttons,
+            resize_keyboard: true,
+            one_time_keyboard: true
           },
           parse_mode: 'HTML'
         }
       )
     } catch (e) {
+      console.log(e)
       bot.sendMessage(msg.chat.id, e.message)
     }
   }
