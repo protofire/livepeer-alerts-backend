@@ -168,7 +168,7 @@ ${welcomeText}`,
         }
       )
     } catch (e) {
-      console.log(e)
+      console.log(JSON.stringify(e))
       bot.sendMessage(msg.chat.id, e.message)
     }
   }
