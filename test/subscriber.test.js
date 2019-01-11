@@ -214,7 +214,7 @@ describe('## Subscriber APIs', () => {
     })
   })
 
-  describe('# PUT /api/subscribers/:subscriberId', () => {
+  describe('# PUT /api/subscribers/:subscriberId I', () => {
     it('should update subscriber email details', done => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
@@ -354,7 +354,9 @@ describe('## Subscriber APIs', () => {
         })
         .catch(done)
     })
+  })
 
+  describe('# PUT /api/subscribers/:subscriberId II', () => {
     it('should update subscriber with wrong address and get an error', done => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,

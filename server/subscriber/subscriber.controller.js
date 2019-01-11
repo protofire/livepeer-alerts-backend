@@ -107,10 +107,18 @@ const update = async (req, res, next) => {
     }
 
     // Set subscriber properties
-    subscriber.email = email
-    subscriber.address = address
-    subscriber.frequency = frequency
-    subscriber.telegramChatId = telegramChatId
+    if (email) {
+      subscriber.email = email
+    }
+    if (address) {
+      subscriber.address = address
+    }
+    if (frequency) {
+      subscriber.frequency = frequency
+    }
+    if (telegramChatId) {
+      subscriber.telegramChatId = telegramChatId
+    }
 
     const savedSubscriber = await subscriber.save()
     res.json(savedSubscriber)
