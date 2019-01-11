@@ -7,6 +7,15 @@ const app = require('../index')
 
 chai.config.includeStack = true
 
+const getRandomId = () => {
+  return (
+    '_' +
+    Math.random()
+      .toString(36)
+      .substr(2, 9)
+  )
+}
+
 /**
  * root level hooks
  */
@@ -18,18 +27,17 @@ after(done => {
   done()
 })
 
-describe('## Subscriber APIs', function() {
+describe('## Subscriber APIs', () => {
   let activatedTest = 1
 
   describe('# POST /api/subscribers', () => {
-    const id = Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     let subscriber = {
-      email: `mariano.aguero+${id}@altoros.com`,
+      email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
 
-    const emailToUpdate = `mariano.aguero+${id + 1}@altoros.com`
+    const emailToUpdate = `mariano.aguero+${getRandomId()}@altoros.com`
 
     it('should create a new subscriber', done => {
       request(app)
@@ -97,16 +105,13 @@ describe('## Subscriber APIs', function() {
   })
 
   describe('# POST /api/subscribers/activate', () => {
-    const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-    const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
     let subscriberToActivate1 = {
-      email: `mariano.aguero+${id1}@altoros.com`,
+      email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
     let subscriberToActivate2 = {
-      email: `mariano.aguero+${id2}@altoros.com`,
+      email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
@@ -168,10 +173,8 @@ describe('## Subscriber APIs', function() {
   })
 
   describe('# GET /api/subscribers/:subscriberId', () => {
-    const id = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
     let subscriber = {
-      email: `mariano.aguero+${id}@altoros.com`,
+      email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
@@ -213,15 +216,12 @@ describe('## Subscriber APIs', function() {
 
   describe('# PUT /api/subscribers/:subscriberId', () => {
     it('should update subscriber email details', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
-      let emailToUpdate = `mariano.aguero+${id2}@altoros.com`
+      let emailToUpdate = `mariano.aguero+${getRandomId()}@altoros.com`
 
       request(app)
         .post('/api/subscribers')
@@ -253,11 +253,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with wrong email and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -290,11 +287,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with empty email and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -329,10 +323,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber address details', done => {
-      const id = Math.floor(Math.random() * 80007600300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -364,11 +356,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with wrong address and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -401,11 +390,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with empty address and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -438,10 +424,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber frequency details', done => {
-      const id = Math.floor(Math.random() * 80007600300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -473,11 +457,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with wrong frequency and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -512,11 +493,8 @@ describe('## Subscriber APIs', function() {
     })
 
     it('should update subscriber with empty frequency and get an error', done => {
-      const id1 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-      const id2 = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id1}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -578,10 +556,8 @@ describe('## Subscriber APIs', function() {
 
   describe('# DELETE /api/subscribers/', () => {
     it('should delete subscriber', done => {
-      const id = Math.floor(Math.random() * 80007600300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -611,10 +587,8 @@ describe('## Subscriber APIs', function() {
 
   describe('# GET /api/subscribers/summary/:addresss', function() {
     it('should get summary description by address ', function(done) {
-      const id = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
@@ -654,10 +628,8 @@ describe('## Subscriber APIs', function() {
 
   describe('# GET /api/subscribers/address/:addresss', function() {
     it('should get subscribers data by address ', function(done) {
-      const id = Math.floor(Math.random() * 800000000300000076000) + 1000000000000000
-
       let subscriber = {
-        email: `mariano.aguero+${id}@altoros.com`,
+        email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
