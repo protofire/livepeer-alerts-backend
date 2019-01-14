@@ -20,24 +20,47 @@ const {
   activationEmailUrl,
   frontendUrl,
   unsubscribeEmailUrl,
-  termsOfServiceUrl
+  termsOfServiceUrl,
+  sendgridTemplateIdAllGood,
+  sendgridTemplateIdPayAttention
 } = config
 
-const sendEmail = async (toEmail, subject, body) => {
+const sendEmail = async data => {
+  const {
+    email,
+    templateId,
+    transcoderAddress,
+    dateYesterday,
+    roundFrom,
+    roundTo,
+    lptEarned,
+    delegatingStatusUrl,
+    delegateAddress
+  } = data
+
   sgMail.setApiKey(sendgridAPIKEY)
+  sgMail.setSubstitutionWrappers('{{', '}}')
 
   const msg = {
-    to: toEmail,
+    to: email,
     from: fromEmail,
-    subject: subject,
-    text: stripTags(body),
-    html: body
+    templateId: templateId,
+    dynamic_template_data: {
+      delegateAddress: delegateAddress,
+      transcoderAddress: transcoderAddress,
+      dateYesterday: dateYesterday,
+      roundFrom: roundFrom,
+      roundTo: roundTo,
+      lptEarned: lptEarned,
+      delegatingStatusUrl: delegatingStatusUrl,
+      frontendUrl: frontendUrl
+    }
   }
 
   if (!['test'].includes(config.env)) {
     try {
       await sgMail.send(msg)
-      console.log(`Email sended to ${toEmail} successfully`)
+      console.log(`Email sended to ${email} successfully`)
     } catch (err) {
       console.log(err)
     }
@@ -45,7 +68,7 @@ const sendEmail = async (toEmail, subject, body) => {
   return
 }
 
-const getEmailBody = async subscriber => {
+const getEmailBodyParams = async subscriber => {
   let delegatorAccount, transcoderAccount, currentRound
   await promiseRetry(async retry => {
     // Get delegator Account
@@ -105,35 +128,21 @@ const getEmailBody = async subscriber => {
     .format('dddd DD, YYYY hh:mm A')
 
   // Open template file
-  const filename = callReward
-    ? '../notifications/emails/templates/notification_success.hbs'
-    : '../notifications/emails/templates/notification_warning.hbs'
-  const fileTemplate = path.join(__dirname, filename)
-  const source = fs.readFileSync(fileTemplate, 'utf8')
-
   const { delegateAddress, totalStake } = delegatorAccount
 
-  // Create email generator
-  const template = Handlebars.compile(source)
-  const body = template({
-    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
-    transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-    dateYesterday: dateYesterday,
-    roundFrom: roundFrom,
-    roundTo: roundTo,
-    lptEarned: lptEarned,
-    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
-  })
+  {
+  }
 
   return {
-    dateYesterday,
-    lptEarned,
-    roundFrom,
-    roundTo,
     callReward,
     totalStake,
     currentRound,
-    body,
+    transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+    dateYesterday,
+    roundFrom,
+    roundTo,
+    lptEarned,
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
     delegateAddress
   }
 }
@@ -141,11 +150,21 @@ const getEmailBody = async subscriber => {
 const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
   try {
     // Get email body
-    const { callReward, totalStake, currentRound, body } = await getEmailBody(subscriber)
+    const {
+      callReward,
+      totalStake,
+      currentRound,
+      transcoderAddressUrl,
+      transcoderAddress,
+      dateYesterday,
+      roundFrom,
+      roundTo,
+      lptEarned,
+      delegatingStatusUrl,
+      delegateAddress
+    } = await getEmailBodyParams(subscriber)
 
-    const subject = callReward
-      ? `Livepeer staking alert - All good`
-      : `Livepeer staking alert - Pay attention`
+    const templateId = callReward ? sendgridTemplateIdAllGood : sendgridTemplateIdPayAttention
 
     // Create earning
     if (createEarningOnSend) {
@@ -153,7 +172,20 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
     }
 
     // Send email
-    await sendEmail(subscriber.email, subject, body)
+    const data = {
+      email: subscriber.email,
+      templateId: templateId,
+      transcoderAddressUrl,
+      transcoderAddress,
+      dateYesterday,
+      roundFrom,
+      roundTo,
+      lptEarned,
+      delegatingStatusUrl,
+      delegateAddress
+    }
+
+    await sendEmail(data)
 
     // Save last email sent
     subscriber.lastEmailSent = Date.now()
