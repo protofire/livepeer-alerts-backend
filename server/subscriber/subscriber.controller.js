@@ -6,6 +6,7 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
+  getLivepeerTranscoderAccount,
   getLivepeerDelegatorStake
 } = require('../helpers/livepeerAPI')
 
@@ -189,6 +190,18 @@ const summary = async (req, res, next) => {
       getLivepeerDelegatorAccount(addressWithoutSubscriber),
       getLivepeerDelegatorTokenBalance(addressWithoutSubscriber)
     ])
+
+    let delegateCalledReward = false
+    if (summary && summary.status == 'Bonded') {
+      // Get transcoder account
+      const [transcoderAccount, currentRound] = await Promise.all([
+        getLivepeerTranscoderAccount(summary.delegateAddress),
+        getLivepeerCurrentRound()
+      ])
+
+      delegateCalledReward = transcoderAccount.lastRewardRound === currentRound
+    }
+    summary.delegateCalledReward = delegateCalledReward
 
     res.json({ summary, balance })
   } catch (error) {
