@@ -9,6 +9,7 @@ const {
   getLivepeerTranscoderAccount,
   getLivepeerDelegatorStake
 } = require('../helpers/livepeerAPI')
+const { fromBaseUnit } = require('../helpers/utils')
 
 /**
  * Load subscriber and append to req.
@@ -202,6 +203,8 @@ const summary = async (req, res, next) => {
       delegateCalledReward = transcoderAccount.lastRewardRound === currentRound
     }
     summary.delegateCalledReward = delegateCalledReward
+    summary.totalStakeInLPT = fromBaseUnit(summary.totalStake)
+    summary.bondedAmountInLPT = fromBaseUnit(summary.bondedAmount)
 
     res.json({ summary, balance })
   } catch (error) {

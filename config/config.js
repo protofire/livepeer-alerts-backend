@@ -45,7 +45,13 @@ const envVarsSchema = Joi.object({
     .description('Sendgrid template id for all good notification'),
   SENDGRID_TEMPLATE_ID_PAY_ATTENTION: Joi.string()
     .required()
-    .description('Sendgrid template id for pay attention notification')
+    .description('Sendgrid template id for pay attention notification'),
+  MAINNET_CONTROLLER_ADDRESS: Joi.string()
+    .required()
+    .description('Mainnet controller adddress'),
+  RINKEBY_CONTROLLER_ADDRESS: Joi.string()
+    .required()
+    .description('Rinkeby controller address')
 })
   .unknown()
   .required()
@@ -71,7 +77,9 @@ const config = {
   termsOfServiceUrl: envVars.TERMS_OF_SERVICE_URL,
   telegramBotKey: envVars.TELEGRAM_BOT_KEY,
   sendgridTemplateIdAllGood: envVars.SENDGRID_TEMPLATE_ID_ALL_GOOD,
-  sendgridTemplateIdPayAttention: envVars.SENDGRID_TEMPLATE_ID_PAY_ATTENTION
+  sendgridTemplateIdPayAttention: envVars.SENDGRID_TEMPLATE_ID_PAY_ATTENTION,
+  mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
+  rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS
 }
 
 module.exports = config

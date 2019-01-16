@@ -1,5 +1,6 @@
 const Big = require('big.js')
 const BN = require('bn.js')
+const { unitMap, toWei } = require('ethjs-unit')
 const Earning = require('../earning/earning.model')
 const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
@@ -185,6 +186,34 @@ const getButtonsBySubscriptor = async subscriptor => {
   return { welcomeText, buttons }
 }
 
+const formatPercentage = (x, decimals) => {
+  return !x
+    ? ''
+    : Big(x)
+        .div('10000')
+        .toFixed(decimals)
+        .replace(/0+$/, '')
+        .replace(/\.$/, '')
+}
+
+const formatBalance = (x, decimals = 0, unit = 'ether') => {
+  decimals = decimals ? decimals : unitMap[unit].length
+  return !x
+    ? ''
+    : Big(x)
+        .div(unitMap[unit])
+        .toFixed(decimals)
+        .replace(/([0-9]+(\.[0-9]+[1-9])?)(\.?0+$)/, '$1')
+}
+
+const toBaseUnit = x => {
+  return !x ? '' : toWei(x, 'ether').toString(10)
+}
+
+const fromBaseUnit = x => {
+  return !x ? '' : formatBalance(x, 4)
+}
+
 module.exports = {
   MathBN,
   createEarning,
@@ -196,5 +225,8 @@ module.exports = {
   subscriptionFind,
   subscriptionRemove,
   subscriptionExist,
-  subscriptionSave
+  subscriptionSave,
+  fromBaseUnit,
+  toBaseUnit,
+  formatBalance
 }
