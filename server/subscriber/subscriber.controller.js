@@ -187,7 +187,7 @@ const activate = async (req, res, next) => {
 const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
-    const [summary, balance] = await Promise.all([
+    let [summary, balance] = await Promise.all([
       getLivepeerDelegatorAccount(addressWithoutSubscriber),
       getLivepeerDelegatorTokenBalance(addressWithoutSubscriber)
     ])
@@ -206,6 +206,8 @@ const summary = async (req, res, next) => {
     summary.totalStakeInLPT = fromBaseUnit(summary.totalStake)
     summary.bondedAmountInLPT = fromBaseUnit(summary.bondedAmount)
 
+    // Apply from base unit
+    balance = fromBaseUnit(balance)
     res.json({ summary, balance })
   } catch (error) {
     next(error)
