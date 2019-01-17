@@ -1,7 +1,6 @@
 const Big = require('big.js')
 const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
-const Earning = require('../earning/earning.model')
 const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
 
@@ -81,18 +80,6 @@ const truncateStringInTheMiddle = (
   return str
 }
 
-const createEarning = async data => {
-  const { subscriber, totalStake, currentRound } = data
-  // Save status earning by subscriber
-  const earning = new Earning({
-    email: subscriber.email,
-    address: subscriber.address,
-    earning: totalStake,
-    round: currentRound
-  })
-  return await earning.save()
-}
-
 // Message const
 const subscribe = 'Subscribe'
 const unsubscribe = 'Unsubscribe'
@@ -115,20 +102,9 @@ const subscriptionSave = async data => {
   })
   await subscriber.save()
 
-  // Get livepeer data
-  const { getLivepeerCurrentRound, getLivepeerDelegatorStake } = require('./livepeerAPI')
-
-  let [delegatorStake, currentRound] = await Promise.all([
-    getLivepeerDelegatorStake(address),
-    getLivepeerCurrentRound()
-  ])
-
-  // Create earning
-  const earningCreated = await createEarning({
-    totalStake: delegatorStake,
-    currentRoud: currentRound,
-    subscriber: subscriber
-  })
+  // Save earning
+  const Earning = require('../earning/earning.model')
+  Earning.save(subscriber)
 
   console.log(`Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`)
 
@@ -214,9 +190,43 @@ const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
 }
 
+const getEarningParams = async data => {
+  const { transcoderAccount, currentRound, subscriber } = data
+
+  // Calculate fees, fromRound, toRound, earnedFromInflation
+  const Earning = require('../earning/earning.model')
+  let earnings = await Earning.find({ address: subscriber.address }).exec()
+
+  // Sort earnings
+  earnings.sort(function compare(a, b) {
+    const dateA = new Date(a.createdAt)
+    const dateB = new Date(b.createdAt)
+    return dateB - dateA
+  })
+
+  // Reduce to obtain last two rounds
+  earnings = earnings.reduce(function(r, a) {
+    r[a.round] = r[a.round] || []
+    r[a.round] = a
+    return r
+  }, Object.create(null))
+
+  // Calculate rounds and earnings
+  const earningFromValue =
+    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
+  const earningToValue =
+    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
+
+  const roundFrom = earningFromValue ? earningFromValue.round : 0
+  const roundTo = earningToValue ? earningToValue.round : roundFrom
+  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
+  const earningToRound = earningToValue ? earningToValue.earning : earningFromRound
+
+  return { roundFrom, roundTo, earningFromRound, earningToRound }
+}
+
 module.exports = {
   MathBN,
-  createEarning,
   truncateStringInTheMiddle,
   subscribe,
   unsubscribe,
@@ -228,5 +238,6 @@ module.exports = {
   subscriptionSave,
   fromBaseUnit,
   toBaseUnit,
-  formatBalance
+  formatBalance,
+  getEarningParams
 }
