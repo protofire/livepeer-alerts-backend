@@ -6,10 +6,9 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
-  getLivepeerTranscoderAccount,
-  getLivepeerDelegatorStake
+  getLivepeerTranscoderAccount
 } = require('../helpers/livepeerAPI')
-const { fromBaseUnit } = require('../helpers/utils')
+const { fromBaseUnit, MathBN } = require('../helpers/utils')
 
 /**
  * Load subscriber and append to req.
@@ -65,20 +64,7 @@ const create = async (req, res, next) => {
 
     const savedSubscriber = await subscriber.save()
 
-    let [delegatorStake, currentRound] = await Promise.all([
-      getLivepeerDelegatorStake(subscriber.address),
-      getLivepeerCurrentRound()
-    ])
-
-    const earningData = {
-      email: subscriber.email,
-      address: subscriber.address,
-      earning: delegatorStake,
-      round: currentRound
-    }
-    const earning = new Earning(earningData)
-
-    await earning.save()
+    await Earning.save(savedSubscriber)
 
     return res.json(savedSubscriber)
   } catch (e) {

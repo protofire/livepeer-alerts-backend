@@ -1,4 +1,4 @@
-const LivepeerSDK = require('@livepeer/sdk')
+const LivepeerSDK = require('@mariano-aguero/sdk')
 const { MathBN } = require('./utils')
 
 const getLivepeerTranscoders = async () => {
@@ -24,6 +24,11 @@ const getLivepeerCurrentRound = async () => {
   return await rpc.getCurrentRound()
 }
 
+const getLivepeerCurrentRoundInfo = async () => {
+  const { rpc } = await LivepeerSDK.default()
+  return await rpc.getCurrentRoundInfo()
+}
+
 const getLivepeerDelegatorTokenBalance = async address => {
   const { rpc } = await LivepeerSDK.default()
   return await rpc.getTokenBalance(address)
@@ -46,5 +51,6 @@ module.exports = {
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
-  getLivepeerDelegatorStake
+  getLivepeerDelegatorStake,
+  getLivepeerCurrentRoundInfo
 }
