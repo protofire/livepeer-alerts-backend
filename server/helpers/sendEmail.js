@@ -1,19 +1,16 @@
-const stripTags = require('striptags')
-const fs = require('fs')
-const path = require('path')
-const Handlebars = require('handlebars')
 const sgMail = require('@sendgrid/mail')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
+const Earning = require('../earning/earning.model')
 
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRound
 } = require('./livepeerAPI')
-const Earning = require('../earning/earning.model')
-const { createEarning, truncateStringInTheMiddle } = require('./utils')
+const { truncateStringInTheMiddle, getEarningParams, formatBalance } = require('./utils')
+
 const {
   sendgridAPIKEY,
   fromEmail,
@@ -90,38 +87,15 @@ const getEmailBodyParams = async subscriber => {
   // Check if call reward
   const callReward = transcoderAccount.lastRewardRound === currentRound
 
-  // Calculate fees, fromRound, toRound, earnedFromInflation
-  let earnings = await Earning.find({ address: subscriber.address }).exec()
-
-  // Sort earnings
-  earnings.sort(function compare(a, b) {
-    const dateA = new Date(a.createdAt)
-    const dateB = new Date(b.createdAt)
-    return dateB - dateA
+  const { roundFrom, roundTo, earningToRound, earningFromRound } = await getEarningParams({
+    transcoderAccount,
+    currentRound,
+    subscriber
   })
 
-  // Reduce to obtain last two rounds
-  earnings = earnings.reduce(function(r, a) {
-    r[a.round] = r[a.round] || []
-    r[a.round] = a
-    return r
-  }, Object.create(null))
+  // Calculate lpt earned tokens
+  const lptEarned = formatBalance(earningToRound, 2)
 
-  // Calculate rounds and earnings
-  const earningFromValue =
-    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
-  const earningToValue =
-    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
-
-  const roundFrom = earningFromValue ? earningFromValue.round : 0
-  const roundTo = earningToValue ? earningToValue.round : roundFrom
-  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
-  const earningToRound = earningToValue ? earningToValue.earning : 0
-
-  let lptEarned = 0
-  if (earningFromRound && earningToRound) {
-    lptEarned = earningFromRound - earningToRound
-  }
   const dateYesterday = moment()
     .subtract(1, 'days')
     .startOf('day')
@@ -129,9 +103,6 @@ const getEmailBodyParams = async subscriber => {
 
   // Open template file
   const { delegateAddress, totalStake } = delegatorAccount
-
-  {
-  }
 
   return {
     callReward,
@@ -152,8 +123,6 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
     // Get email body
     const {
       callReward,
-      totalStake,
-      currentRound,
       transcoderAddressUrl,
       transcoderAddress,
       dateYesterday,
@@ -165,16 +134,15 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
     } = await getEmailBodyParams(subscriber)
 
     const templateId = callReward ? sendgridTemplateIdAllGood : sendgridTemplateIdPayAttention
-
     // Create earning
     if (createEarningOnSend) {
-      await createEarning({ subscriber, totalStake, currentRound })
+      await Earning.save(subscriber)
     }
 
     // Send email
     const data = {
       email: subscriber.email,
-      templateId: templateId,
+      templateId,
       transcoderAddressUrl,
       transcoderAddress,
       dateYesterday,
@@ -191,22 +159,9 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
     subscriber.lastEmailSent = Date.now()
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
+    console.error(e)
     return
   }
 }
 
-const sendActivationEmail = toEmail => {
-  // Open template file
-  const fileTemplate = path.join(__dirname, '../notifications/emails/templates/activation.hbs')
-  const source = fs.readFileSync(fileTemplate, 'utf8')
-
-  // Create email generator
-  const template = Handlebars.compile(source)
-  const body = template({ unsubscribeEmailUrl, activationEmailUrl, termsOfServiceUrl })
-  const subject = 'Livepeer alert notification - Please confirm your email address'
-
-  // Send activation email
-  sendEmail(toEmail, subject, body)
-}
-
-module.exports = { sendNotificationEmail, sendActivationEmail }
+module.exports = { sendNotificationEmail }

@@ -104,7 +104,7 @@ const subscriptionSave = async data => {
 
   // Save earning
   const Earning = require('../earning/earning.model')
-  Earning.save(subscriber)
+  const earningCreated = Earning.save(subscriber)
 
   console.log(`Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`)
 

@@ -12,8 +12,13 @@ const {
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRound
 } = require('./livepeerAPI')
-const Earning = require('../earning/earning.model')
-const { createEarning, getButtonsBySubscriptor, truncateStringInTheMiddle } = require('./utils')
+const {
+  getButtonsBySubscriptor,
+  truncateStringInTheMiddle,
+  getEarningParams,
+  formatBalance
+} = require('./utils')
+
 const { telegramBotKey } = config
 
 const sendTelegram = async data => {
@@ -64,41 +69,18 @@ const getTelegramBody = async subscriber => {
     throw new Error('There is no telegram to send')
   }
 
+  const { roundFrom, roundTo, earningFromRound, earningToRound } = await getEarningParams({
+    transcoderAccount,
+    currentRound,
+    subscriber
+  })
+
   // Check if call reward
   const callReward = transcoderAccount.lastRewardRound === currentRound
 
-  // Calculate fees, fromRound, toRound, earnedFromInflation
-  let earnings = await Earning.find({ address: subscriber.address }).exec()
+  // Calculate earned lpt
+  const lptEarned = formatBalance(earningToRound, 2)
 
-  // Sort earnings
-  earnings.sort(function compare(a, b) {
-    const dateA = new Date(a.createdAt)
-    const dateB = new Date(b.createdAt)
-    return dateB - dateA
-  })
-
-  // Reduce to obtain last two rounds
-  earnings = earnings.reduce(function(r, a) {
-    r[a.round] = r[a.round] || []
-    r[a.round] = a
-    return r
-  }, Object.create(null))
-
-  // Calculate rounds and earnings
-  const earningFromValue =
-    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
-  const earningToValue =
-    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
-
-  const roundFrom = earningFromValue ? earningFromValue.round : 0
-  const roundTo = earningToValue ? earningToValue.round : roundFrom
-  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
-  const earningToRound = earningToValue ? earningToValue.earning : 0
-
-  let lptEarned = 0
-  if (earningFromRound && earningToRound) {
-    lptEarned = earningFromRound - earningToRound
-  }
   const dateYesterday = moment()
     .subtract(1, 'days')
     .startOf('day')
