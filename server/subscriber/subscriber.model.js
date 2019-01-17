@@ -6,7 +6,7 @@ const APIError = require('../helpers/APIError')
 /**
  * Subscriber Schema
  */
-const SubscriberSchema = new mongoose.Schema({
+let SubscriberSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,

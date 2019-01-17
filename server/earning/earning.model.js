@@ -1,10 +1,14 @@
 const Promise = require('bluebird')
 const mongoose = require('mongoose')
-
+const {
+  getLivepeerDelegatorAccount,
+  getLivepeerCurrentRoundInfo
+} = require('../helpers/livepeerAPI')
+const { MathBN } = require('../helpers/utils')
 /**
  * Earning Schema
  */
-const EarningSchema = new mongoose.Schema({
+let EarningSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
@@ -51,10 +55,42 @@ EarningSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .exec()
+  },
+
+  /**
+   * Save an Earning related to a subscriber
+   * @param subscriber
+   * @returns {Promise<void>}
+   */
+  async save(subscriber) {
+    const { address, email } = subscriber
+    let [delegator, currentRoundInfo] = await Promise.all([
+      getLivepeerDelegatorAccount(address),
+      getLivepeerCurrentRoundInfo()
+    ])
+
+    const { lastClaimRound, pendingStake, bondedAmount } = delegator
+    const unclaimedRounds = MathBN.sub(currentRoundInfo.lastInitializedRound, lastClaimRound)
+
+    const hasUnclaimedRounds = unclaimedRounds !== '0'
+    const earnedStake = hasUnclaimedRounds
+      ? MathBN.max('0', MathBN.sub(pendingStake, bondedAmount))
+      : '0'
+
+    const earningData = {
+      email: email,
+      address: address,
+      earning: earnedStake,
+      round: currentRoundInfo.id
+    }
+
+    return await this.create(earningData)
   }
 }
 
 /**
  * @typedef Earning
  */
-module.exports = mongoose.model('Earning', EarningSchema)
+const earning = mongoose.model('Earning', EarningSchema)
+
+module.exports = earning
