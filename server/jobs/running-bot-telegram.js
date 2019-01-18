@@ -89,9 +89,7 @@ bot.on('message', async msg => {
       // Buttons resetup for telegram, only show unsubscribe and get instant alert
       bot.sendMessage(
         msg.chat.id,
-        `The subscription was successful, your wallet address is ${address}.
-
-${welcomeText}`,
+        `The subscription was successful, your wallet address is ${address}.`,
         {
           reply_markup: {
             keyboard: buttons,
@@ -121,9 +119,7 @@ ${welcomeText}`,
       // Buttons resetup for telegram, only show subscribe and get instant alert
       bot.sendMessage(
         msg.chat.id,
-        `The unsubscription was successful, your wallet address is ${address}.
-
-${welcomeText}`,
+        `The unsubscription was successful, your wallet address is ${address}.`,
         {
           reply_markup: {
             keyboard: buttons,
@@ -153,20 +149,14 @@ ${welcomeText}`,
       const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
       // Buttons resetup for telegram, only show subscribe and get instant alert
-      bot.sendMessage(
-        msg.chat.id,
-        `${body}
-
-${welcomeText}`,
-        {
-          reply_markup: {
-            keyboard: buttons,
-            resize_keyboard: true,
-            one_time_keyboard: true
-          },
-          parse_mode: 'HTML'
-        }
-      )
+      bot.sendMessage(msg.chat.id, `${body}`, {
+        reply_markup: {
+          keyboard: buttons,
+          resize_keyboard: true,
+          one_time_keyboard: true
+        },
+        parse_mode: 'HTML'
+      })
     } catch (e) {
       console.log(JSON.stringify(e))
       bot.sendMessage(msg.chat.id, e.message)
