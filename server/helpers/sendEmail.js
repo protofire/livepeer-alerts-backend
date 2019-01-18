@@ -50,7 +50,7 @@ const sendEmail = async data => {
       roundTo: roundTo,
       lptEarned: lptEarned,
       delegatingStatusUrl: delegatingStatusUrl,
-      frontendUrl: frontendUrl
+      unsubscribeEmailUrl: unsubscribeEmailUrl
     }
   }
 
