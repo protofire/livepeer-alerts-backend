@@ -25,6 +25,9 @@ const envVarsSchema = Joi.object({
     .email()
     .required()
     .description('From email'),
+  FROM_EMAIL_NAME: Joi.string()
+    .required()
+    .description('From name email'),
   FRONTEND_URL: Joi.string()
     .required()
     .description('Frontend URL'),
@@ -71,6 +74,7 @@ const config = {
   },
   sendgridAPIKEY: envVars.SENDGRID_API_KEY,
   fromEmail: envVars.FROM_EMAIL,
+  fromEmailName: envVars.FROM_EMAIL_NAME,
   frontendUrl: envVars.FRONTEND_URL,
   activationEmailUrl: envVars.ACTIVATION_EMAIL_URL,
   unsubscribeEmailUrl: envVars.UNSUBSCRIBE_EMAIL_URL,
