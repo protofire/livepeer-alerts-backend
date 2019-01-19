@@ -10,7 +10,7 @@ const moment = require('moment')
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerCurrentRound
+  getLivepeerCurrentRoundInfo
 } = require('./livepeerAPI')
 const {
   getButtonsBySubscriptor,
@@ -51,7 +51,7 @@ ${welcomeText}`,
 }
 
 const getTelegramBody = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRound
+  let delegatorAccount, transcoderAccount, currentRoundObject
   await promiseRetry(async retry => {
     // Get delegator Account
     try {
@@ -59,16 +59,21 @@ const getTelegramBody = async subscriber => {
       if (delegatorAccount && delegatorAccount.status == 'Bonded') {
         // Get transcoder account
         transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-        currentRound = await getLivepeerCurrentRound()
+        currentRoundObject = await getLivepeerCurrentRoundInfo()
       }
     } catch (err) {
       retry()
     }
   })
-  if (!delegatorAccount || !transcoderAccount || !currentRound) {
-    throw new Error('There is no telegram to send')
+  console.log(`Delegator account ${JSON.stringify(delegatorAccount)}`)
+  console.log(`Transcoder account ${JSON.stringify(transcoderAccount)}`)
+  console.log(`Current round ${JSON.stringify(currentRoundObject)}`)
+
+  if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
+    throw new Error(`There is no alert to send, your status must be Bonded`)
   }
 
+  const currentRound = currentRoundObject.id
   const { roundFrom, roundTo, earningFromRound, earningToRound } = await getEarningParams({
     transcoderAccount,
     currentRound,
