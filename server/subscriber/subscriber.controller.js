@@ -9,6 +9,7 @@ const {
   getLivepeerTranscoderAccount
 } = require('../helpers/livepeerAPI')
 const { fromBaseUnit, MathBN } = require('../helpers/utils')
+const { sendNotificationEmail } = require('../helpers/sendEmail')
 
 /**
  * Load subscriber and append to req.
@@ -62,9 +63,14 @@ const create = async (req, res, next) => {
       telegramChatId: telegramChatId
     })
 
+    // Create subscriber
     const savedSubscriber = await subscriber.save()
 
-    await Earning.save(savedSubscriber)
+    // Create earning
+    Earning.save(savedSubscriber)
+
+    // Send email notification
+    await sendNotificationEmail(savedSubscriber, true)
 
     return res.json(savedSubscriber)
   } catch (e) {

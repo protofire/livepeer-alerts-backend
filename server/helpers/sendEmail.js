@@ -14,6 +14,7 @@ const { truncateStringInTheMiddle, getEarningParams, formatBalance } = require('
 const {
   sendgridAPIKEY,
   fromEmail,
+  fromEmailName,
   activationEmailUrl,
   frontendUrl,
   unsubscribeEmailUrl,
@@ -40,7 +41,10 @@ const sendEmail = async data => {
 
   const msg = {
     to: email,
-    from: fromEmail,
+    from: {
+      name: fromEmailName,
+      email: fromEmail
+    },
     templateId: templateId,
     dynamic_template_data: {
       delegateAddress: delegateAddress,
@@ -50,7 +54,7 @@ const sendEmail = async data => {
       roundTo: roundTo,
       lptEarned: lptEarned,
       delegatingStatusUrl: delegatingStatusUrl,
-      frontendUrl: frontendUrl
+      unsubscribeEmailUrl: unsubscribeEmailUrl
     }
   }
 

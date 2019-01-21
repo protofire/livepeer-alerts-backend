@@ -94,6 +94,17 @@ const subscriptionSave = async data => {
 
   const { address, chatId } = data
 
+  const { getLivepeerDelegatorAccount } = require('./livepeerAPI')
+  const delegatorAccount = await getLivepeerDelegatorAccount(address)
+
+  if (delegatorAccount && delegatorAccount.status !== 'Bonded') {
+    throw new Error(
+      `You can't subscribe. Your status must be Bonded. Your actual status is ${
+        delegatorAccount.status
+      }`
+    )
+  }
+
   // Create new subscriber on button press
   let subscriber = new Subscriber({
     address: address,
