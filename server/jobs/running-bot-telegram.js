@@ -12,22 +12,21 @@ const {
   subscriptionRemove,
   subscriptionSave
 } = require('../helpers/utils')
+const { NoAddressError } = require('../helpers/JobsErrors')
 const TelegramModel = require('../telegram/telegram.model')
 
-const { telegramBotKey, frontendUrl } = config
+const { telegramBotKey } = config
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(telegramBotKey, { polling: true })
 
 // Flag for waiting process
 let exitRunningBotTelegram = false
-let messageErrorNoAddress = `To subscribe to Livepeer notifications, you must pass your wallet address as a valid parameter. 
-  Go to the <a href="${frontendUrl}">website</a> and copy the link to subscribe telegram so you can start receiving notifications in the application.`
 
 const findAddress = async chatId => {
   const telegramModel = await TelegramModel.findOne({ chatId: chatId }).exec()
   if (!telegramModel || !telegramModel.address) {
-    throw new Error(messageErrorNoAddress)
+    throw new NoAddressError()
   }
   return telegramModel.address
 }
@@ -39,7 +38,7 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
 
     // Validate existing address
     if (!address) {
-      throw new Error(messageErrorNoAddress)
+      throw new NoAddressError()
     }
 
     // Save address an chatId

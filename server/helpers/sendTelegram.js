@@ -6,6 +6,7 @@ const Handlebars = require('handlebars')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
+const { NoAlertToSendError } = require('./JobsErrors')
 
 const {
   getLivepeerDelegatorAccount,
@@ -70,7 +71,7 @@ const getTelegramBody = async subscriber => {
   console.log(`Current round ${JSON.stringify(currentRoundObject)}`)
 
   if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
-    throw new Error(`There is no alert to send, your status must be Bonded`)
+    throw new NoAlertToSendError({ status: delegatorAccount.status })
   }
 
   const currentRound = currentRoundObject.id
