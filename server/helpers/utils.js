@@ -97,7 +97,7 @@ const subscriptionSave = async data => {
   const { getLivepeerDelegatorAccount } = require('./livepeerAPI')
   const delegatorAccount = await getLivepeerDelegatorAccount(address)
 
-  if (delegatorAccount.status !== 'Bonded') {
+  if (delegatorAccount && delegatorAccount.status !== 'Bonded') {
     throw new Error(
       `You can't subscribe. Your status must be Bonded. Your actual status is ${
         delegatorAccount.status
