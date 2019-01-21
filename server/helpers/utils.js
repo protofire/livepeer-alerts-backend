@@ -126,6 +126,9 @@ const subscriptionSave = async data => {
 // Check for existing subscription user
 const subscriptionExist = async data => {
   const { address, chatId } = data
+  if (!address || !chatId) {
+    return false
+  }
   const count = await Subscriber.countDocuments({ address: address, telegramChatId: chatId })
   console.log(`Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`)
   return count
