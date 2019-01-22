@@ -3,6 +3,11 @@ const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
 const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
+const {
+  NotSubscribedError,
+  AlreadySubscribedError,
+  StatusMustBeBondedError
+} = require('./JobsErrors')
 
 const MathBN = {
   sub: (a, b) => {
@@ -89,7 +94,7 @@ const getInstantAlert = 'Get instant alert'
 const subscriptionSave = async data => {
   const checkSubscriptorExist = await subscriptionExist(data)
   if (checkSubscriptorExist) {
-    throw new Error('You are already subscribed')
+    throw new AlreadySubscribedError()
   }
 
   const { address, chatId } = data
@@ -98,11 +103,7 @@ const subscriptionSave = async data => {
   const delegatorAccount = await getLivepeerDelegatorAccount(address)
 
   if (delegatorAccount && delegatorAccount.status !== 'Bonded') {
-    throw new Error(
-      `You can't subscribe. Your status must be Bonded. Your actual status is ${
-        delegatorAccount.status
-      }`
-    )
+    throw new StatusMustBeBondedError({ status: delegatorAccount.status })
   }
 
   // Create new subscriber on button press
@@ -125,6 +126,9 @@ const subscriptionSave = async data => {
 // Check for existing subscription user
 const subscriptionExist = async data => {
   const { address, chatId } = data
+  if (!address || !chatId) {
+    return false
+  }
   const count = await Subscriber.countDocuments({ address: address, telegramChatId: chatId })
   console.log(`Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`)
   return count
@@ -135,7 +139,7 @@ const subscriptionRemove = async data => {
   const { address, chatId } = data
   const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
   if (!subscriber) {
-    throw new Error('You are not subscribed, please subscribe to get alert notifications.')
+    throw new NotSubscribedError()
   }
   const subscriptorRemoved = await subscriber.remove()
   console.log(`Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`)
@@ -147,7 +151,7 @@ const subscriptionFind = async data => {
   const { address, chatId } = data
   const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
   if (!subscriber) {
-    throw new Error('You are not subscribed,  please subscribe to get alert notifications.')
+    throw new NotSubscribedError()
   }
   console.log(`Subscriptor found - Address ${address} - ChatId: ${chatId}`)
   return subscriber
@@ -164,7 +168,7 @@ const getButtonsBySubscriptor = async subscriptor => {
 2. Get instant alert`
   } else {
     buttons.push([subscribe])
-    welcomeText = `Welcome to Livepeer Alert, choose the following options to continue:
+    welcomeText = `Welcome to Livepeer Tools, choose the following options to continue:
 1. Subscribe for alerts
 2. Get instant alert`
   }
