@@ -179,28 +179,46 @@ const activate = async (req, res, next) => {
 const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
-    let [summary, balance] = await Promise.all([
+    let [delegator, balance] = await Promise.all([
       getLivepeerDelegatorAccount(addressWithoutSubscriber),
       getLivepeerDelegatorTokenBalance(addressWithoutSubscriber)
     ])
 
     let delegateCalledReward = false
-    if (summary && summary.status == 'Bonded') {
+
+    let data = {
+      role: 'Delegator'
+    }
+
+    if (delegator && delegator.status == 'Bonded' && delegator.delegateAddress) {
       // Get transcoder account
       const [transcoderAccount, currentRound] = await Promise.all([
-        getLivepeerTranscoderAccount(summary.delegateAddress),
+        getLivepeerTranscoderAccount(delegator.delegateAddress),
         getLivepeerCurrentRound()
       ])
 
+      // Check if transcoder call reward
       delegateCalledReward = transcoderAccount.lastRewardRound === currentRound
-    }
-    summary.delegateCalledReward = delegateCalledReward
-    summary.totalStakeInLPT = fromBaseUnit(summary.totalStake)
-    summary.bondedAmountInLPT = fromBaseUnit(summary.bondedAmount)
 
-    // Apply from base unit
-    balance = fromBaseUnit(balance)
-    res.json({ summary, balance })
+      // Check if delegator is really a transcoder
+      if (delegator.address === delegator.delegateAddress) {
+        transcoderAccount.delegateCalledReward = delegateCalledReward
+        transcoderAccount.totalStakeInLPT = fromBaseUnit(transcoderAccount.totalStake)
+        data.transcoder = transcoderAccount
+        data.role = 'Transcoder'
+      }
+    }
+
+    if (data.role === 'Delegator') {
+      delegator.delegateCalledReward = delegateCalledReward
+      delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
+      delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
+      data.delegator = delegator
+    }
+
+    data.balance = fromBaseUnit(balance)
+
+    res.json(data)
   } catch (error) {
     next(error)
   }
