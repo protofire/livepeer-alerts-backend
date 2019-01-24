@@ -6,7 +6,7 @@ const Earning = require('./earning.model')
  * @property {number} req.query.limit - Limit number of earnings to be returned.
  * @returns {Earning[]}
  */
-function list(req, res, next) {
+const list = (req, res, next) => {
   const { limit = 50, skip = 0 } = req.query
   Earning.list({ limit, skip })
     .then(earnings => res.json(earnings))
