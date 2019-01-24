@@ -46,8 +46,16 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       address: address,
       chatId: msg.chat.id
     }
-    const telegramModel = new TelegramModel(subscriptorData)
-    await telegramModel.save()
+
+    // Must exist only one telegram object
+    let telegramObject = await TelegramModel.findOne({ address: address }).exec()
+    if (!telegramObject) {
+      const telegramModel = new TelegramModel(subscriptorData)
+      telegramObject = await telegramModel.save()
+    } else {
+      telegramObject.chatId = msg.chat.id
+      await telegramObject.save()
+    }
 
     const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
