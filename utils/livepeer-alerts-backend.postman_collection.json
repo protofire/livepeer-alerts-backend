@@ -88,7 +88,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n\t\"address\": \"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4\",\n\t\"frequency\": \"daily\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n    \"address\": \"0x07525f33e00e5494bcbaba5d69f752ba0ed1a657\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",
@@ -117,17 +117,17 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"activated\": 0,\n    \"_id\": \"5c1cf5c0bc851f164a28da0c\",\n    \"email\": \"mariano.aguero+4661430089640456000005@altoros.com\",\n    \"address\": \"asdas\",\n    \"frequency\": \"weekly\",\n    \"activatedCode\": \"513866267420361360000\",\n    \"createdAt\": \"2018-12-21T14:16:32.501Z\",\n    \"__v\": 0\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n    \"address\": \"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c1cf5c0bc851f164a28da0c",
+					"raw": "{{host}}/api/subscribers/5c3cb9b32dc3bf001758fa07",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c1cf5c0bc851f164a28da0c"
+						"5c3cb9b32dc3bf001758fa07"
 					]
 				}
 			},
@@ -254,6 +254,38 @@
 					"path": [
 						"api",
 						"earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/telegrams",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/telegrams",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"telegrams"
 					]
 				}
 			},

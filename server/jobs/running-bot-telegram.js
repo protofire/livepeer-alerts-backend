@@ -156,6 +156,7 @@ bot.on('message', async msg => {
         },
         parse_mode: 'HTML'
       })
+      console.log(`Telegram sended to chatId ${msg.chat.id} successfully`)
     } catch (e) {
       console.log(JSON.stringify(e))
       bot.sendMessage(msg.chat.id, e.message)

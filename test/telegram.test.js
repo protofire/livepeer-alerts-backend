@@ -18,11 +18,11 @@ after(done => {
   done()
 })
 
-describe('## Earning APIs', function() {
-  describe('# GET /api/earning/', () => {
-    it('should get all earnings', done => {
+describe('## Telegram APIs', function() {
+  describe('# GET /api/telegram/', () => {
+    it('should get all telegrams', done => {
       request(app)
-        .get('/api/earnings')
+        .get('/api/telegrams')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.be.an('array')
@@ -31,9 +31,9 @@ describe('## Earning APIs', function() {
         .catch(done)
     })
 
-    it('should get all earnings (with limit and skip)', done => {
+    it('should get all telegrams (with limit and skip)', done => {
       request(app)
-        .get('/api/earnings')
+        .get('/api/telegrams')
         .query({ limit: 10, skip: 1 })
         .expect(httpStatus.OK)
         .then(res => {

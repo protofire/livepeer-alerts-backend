@@ -30,19 +30,13 @@ const sendTelegram = async data => {
 
   if (!['test'].includes(config.env)) {
     try {
-      const { buttons, welcomeText } = await getButtonsBySubscriptor({ address, chatId })
-      await bot.sendMessage(
-        chatId,
-        `${body}
-
-${welcomeText}`,
-        {
-          reply_markup: {
-            keyboard: buttons
-          },
-          parse_mode: 'HTML'
-        }
-      )
+      const { buttons } = await getButtonsBySubscriptor({ address, chatId })
+      await bot.sendMessage(chatId, body, {
+        reply_markup: {
+          keyboard: buttons
+        },
+        parse_mode: 'HTML'
+      })
       console.log(`Telegram sended to chatId ${chatId} successfully`)
     } catch (err) {
       console.log(err)
@@ -127,28 +121,25 @@ const getTelegramBody = async subscriber => {
 }
 
 const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
-  try {
-    // Get telegram body
-    const { callReward, totalStake, currentRound, body } = await getTelegramBody(subscriber)
+  // Get telegram body
+  const { body } = await getTelegramBody(subscriber)
 
-    // Create earning
-    if (createEarningOnSend) {
-      await createEarning({ subscriber, totalStake, currentRound })
-    }
-
-    // Send telegram
-    await sendTelegram({
-      chatId: subscriber.telegramChatId,
-      address: subscriber.address,
-      body: body
-    })
-
-    // Save last telegram sent
-    subscriber.lastTelegramSent = Date.now()
-    return await subscriber.save({ validateBeforeSave: false })
-  } catch (e) {
-    return
+  // Create earning
+  if (createEarningOnSend) {
+    const Earning = require('../earning/earning.model')
+    await Earning.save(subscriber)
   }
+
+  // Send telegram
+  await sendTelegram({
+    chatId: subscriber.telegramChatId,
+    address: subscriber.address,
+    body: body
+  })
+
+  // Save last telegram sent
+  subscriber.lastTelegramSent = Date.now()
+  return await subscriber.save({ validateBeforeSave: false })
 }
 
 module.exports = { sendNotificationTelegram, getTelegramBody }
