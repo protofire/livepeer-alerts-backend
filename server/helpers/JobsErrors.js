@@ -43,5 +43,6 @@ module.exports = {
   NoAddressError,
   AlreadySubscribedError,
   NotSubscribedError,
-  StatusMustBeBondedError
+  StatusMustBeBondedError,
+  NoAlertToSendError
 }

@@ -20,6 +20,32 @@ const TelegramSchema = new mongoose.Schema({
 })
 
 /**
+ * Methods
+ */
+TelegramSchema.method({})
+
+/**
+ * Statics
+ */
+TelegramSchema.statics = {
+  /**
+   * List telegrams in descending order of 'createdAt' timestamp.
+   * @param {number} skip - Number of telegrams to be skipped.
+   * @param {number} limit - Limit number of telegrams to be returned.
+   * @returns {Promise<Earning[]>}
+   */
+  list({ skip = 0, limit = 50 } = {}) {
+    return this.find()
+      .sort({ createdAt: -1 })
+      .skip(+skip)
+      .limit(+limit)
+      .exec()
+  }
+}
+
+/**
  * @typedef Telegram
  */
-module.exports = mongoose.model('Telegram', TelegramSchema)
+const telegram = mongoose.model('Telegram', TelegramSchema)
+
+module.exports = telegram
