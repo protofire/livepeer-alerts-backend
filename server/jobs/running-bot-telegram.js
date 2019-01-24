@@ -20,9 +20,6 @@ const { telegramBotKey } = config
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(telegramBotKey, { polling: true })
 
-// Flag for waiting process
-let exitRunningBotTelegram = false
-
 const findAddress = async chatId => {
   const telegramModel = await TelegramModel.findOne({ chatId: chatId }).exec()
   if (!telegramModel || !telegramModel.address) {
@@ -171,13 +168,3 @@ bot.on('message', async msg => {
     }
   }
 })
-
-// Wait until stack was empty
-function wait() {
-  if (!exitRunningBotTelegram) {
-    setTimeout(wait, 1000)
-  } else {
-    process.exit(1)
-  }
-}
-wait()
