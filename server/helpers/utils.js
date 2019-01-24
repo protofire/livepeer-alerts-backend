@@ -254,5 +254,6 @@ module.exports = {
   fromBaseUnit,
   toBaseUnit,
   formatBalance,
+  formatPercentage,
   getEarningParams
 }

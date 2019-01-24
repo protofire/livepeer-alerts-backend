@@ -8,7 +8,7 @@ const {
   getLivepeerDelegatorTokenBalance,
   getLivepeerTranscoderAccount
 } = require('../helpers/livepeerAPI')
-const { fromBaseUnit, MathBN } = require('../helpers/utils')
+const { fromBaseUnit, formatPercentage, MathBN } = require('../helpers/utils')
 const { sendNotificationEmail } = require('../helpers/sendEmail')
 
 /**
@@ -204,6 +204,10 @@ const summary = async (req, res, next) => {
       if (delegator.address === delegator.delegateAddress) {
         transcoderAccount.delegateCalledReward = delegateCalledReward
         transcoderAccount.totalStakeInLPT = fromBaseUnit(transcoderAccount.totalStake)
+        transcoderAccount.pendingRewardCutInPercentage = formatPercentage(
+          transcoderAccount.pendingRewardCut
+        )
+        transcoderAccount.rewardCutInPercentage = formatPercentage(transcoderAccount.rewardCut)
         data.transcoder = transcoderAccount
         data.role = 'Transcoder'
       }
@@ -213,6 +217,9 @@ const summary = async (req, res, next) => {
       delegator.delegateCalledReward = delegateCalledReward
       delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
       delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
+
+      delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
+      delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
       data.delegator = delegator
     }
 
