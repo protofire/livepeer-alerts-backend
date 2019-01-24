@@ -9,7 +9,6 @@ const {
   getLivepeerTranscoderAccount
 } = require('../helpers/livepeerAPI')
 const { fromBaseUnit, MathBN } = require('../helpers/utils')
-const { sendNotificationEmail } = require('../helpers/sendEmail')
 
 /**
  * Load subscriber and append to req.
@@ -70,6 +69,7 @@ const create = async (req, res, next) => {
     Earning.save(savedSubscriber)
 
     // Send email notification
+    const { sendNotificationEmail } = require('../helpers/sendEmail')
     await sendNotificationEmail(savedSubscriber, true)
 
     return res.json(savedSubscriber)
