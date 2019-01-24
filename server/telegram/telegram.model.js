@@ -1,5 +1,7 @@
 const Promise = require('bluebird')
 const mongoose = require('mongoose')
+const httpStatus = require('http-status')
+const APIError = require('../helpers/APIError')
 
 /**
  * Telegram Schema
@@ -40,6 +42,23 @@ TelegramSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .exec()
+  },
+
+  /**
+   * Get telegrams by address
+   * @param {ObjectId} address - The telegram address.
+   * @returns {Promise<Array, APIError>}
+   */
+  getTelegramsByAddress(address) {
+    return this.find({ address: address })
+      .exec()
+      .then(telegrams => {
+        if (telegrams) {
+          return telegrams
+        }
+        const err = new APIError('No such telegrams by address exists!', httpStatus.NOT_FOUND)
+        return Promise.reject(err)
+      })
   }
 }
 
