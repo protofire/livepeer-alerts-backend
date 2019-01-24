@@ -15,6 +15,7 @@ const {
   sendgridAPIKEY,
   fromEmail,
   fromEmailName,
+  bccEmail,
   activationEmailUrl,
   frontendUrl,
   unsubscribeEmailUrl,
@@ -41,6 +42,7 @@ const sendEmail = async data => {
 
   const msg = {
     to: email,
+    bcc: bccEmail,
     from: {
       name: fromEmailName,
       email: fromEmail

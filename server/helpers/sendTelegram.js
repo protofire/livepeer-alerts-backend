@@ -37,7 +37,7 @@ const sendTelegram = async data => {
         },
         parse_mode: 'HTML'
       })
-      console.log(`Telegram sended to chatId ${chatId} successfully`)
+      console.log(`Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`)
     } catch (err) {
       console.log(err)
     }
