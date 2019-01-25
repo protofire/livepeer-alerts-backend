@@ -11,7 +11,8 @@ const { NoAlertToSendError } = require('./JobsErrors')
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo
+  getLivepeerCurrentRoundInfo,
+  getLivepeerDefaultConstants
 } = require('./livepeerAPI')
 const {
   getButtonsBySubscriptor,
@@ -45,13 +46,15 @@ const sendTelegram = async data => {
   return
 }
 
-const getTelegramBody = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRoundObject
+const getTelegramBodyParams = async subscriber => {
+  let delegatorAccount, transcoderAccount, currentRoundObject, constants
   await promiseRetry(async retry => {
     // Get delegator Account
     try {
       delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      if (delegatorAccount && delegatorAccount.status == 'Bonded') {
+      constants = await getLivepeerDefaultConstants()
+
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
         // Get transcoder account
         transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
         currentRoundObject = await getLivepeerCurrentRoundInfo()
@@ -122,7 +125,7 @@ const getTelegramBody = async subscriber => {
 
 const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
   // Get telegram body
-  const { body } = await getTelegramBody(subscriber)
+  const { body } = await getTelegramBodyParams(subscriber)
 
   // Create earning
   if (createEarningOnSend) {
@@ -142,4 +145,4 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramBody }
+module.exports = { sendNotificationTelegram, getTelegramBodyParams }
