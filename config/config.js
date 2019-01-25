@@ -49,12 +49,18 @@ const envVarsSchema = Joi.object({
   TELEGRAM_BOT_KEY: Joi.string()
     .required()
     .description('Telegram bot key'),
-  SENDGRID_TEMPLATE_ID_ALL_GOOD: Joi.string()
+  SENDGRID_TEMPLATE_ID_CLAIM_REWARD_CALL_ALL_GOOD: Joi.string()
     .required()
-    .description('Sendgrid template id for all good notification'),
-  SENDGRID_TEMPLATE_ID_PAY_ATTENTION: Joi.string()
+    .description('Sendgrid template id for claim reward call all good notification'),
+  SENDGRID_TEMPLATE_ID_CLAIM_REWARD_CALL_PAY_ATTENTION: Joi.string()
     .required()
-    .description('Sendgrid template id for pay attention notification'),
+    .description('Sendgrid template id for claim reward call pay attention notification'),
+  SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_ALL_GOOD: Joi.string()
+    .required()
+    .description('Sendgrid template id for did reward call all good notification'),
+  SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION: Joi.string()
+    .required()
+    .description('Sendgrid template id for did reward call pay attention notification'),
   MAINNET_CONTROLLER_ADDRESS: Joi.string()
     .required()
     .description('Mainnet controller adddress'),
@@ -88,8 +94,12 @@ const config = {
   unsubscribeEmailUrl: envVars.UNSUBSCRIBE_EMAIL_URL,
   termsOfServiceUrl: envVars.TERMS_OF_SERVICE_URL,
   telegramBotKey: envVars.TELEGRAM_BOT_KEY,
-  sendgridTemplateIdAllGood: envVars.SENDGRID_TEMPLATE_ID_ALL_GOOD,
-  sendgridTemplateIdPayAttention: envVars.SENDGRID_TEMPLATE_ID_PAY_ATTENTION,
+  sendgridTemplateIdClaimRewardCallAllGood: envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_CALL_ALL_GOOD,
+  sendgridTemplateIdClaimRewardCallPayAttention:
+    envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_CALL_PAY_ATTENTION,
+  sendgridTemplateIdDidRewardCallAllGood: envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_ALL_GOOD,
+  sendgridTemplateIdDidRewardCallPayAttention:
+    envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS
 }

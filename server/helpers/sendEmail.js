@@ -18,8 +18,8 @@ const {
   fromEmailName,
   bccEmail,
   unsubscribeEmailUrl,
-  sendgridTemplateIdAllGood,
-  sendgridTemplateIdPayAttention
+  sendgridTemplateIdClaimRewardCallAllGood,
+  sendgridTemplateIdClaimRewardCallPayAttention
 } = config
 
 const sendEmail = async data => {
@@ -138,7 +138,9 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
       delegateAddress
     } = await getEmailBodyParams(subscriber)
 
-    const templateId = callReward ? sendgridTemplateIdAllGood : sendgridTemplateIdPayAttention
+    const templateId = callReward
+      ? sendgridTemplateIdClaimRewardCallAllGood
+      : sendgridTemplateIdClaimRewardCallPayAttention
     // Create earning
     if (createEarningOnSend) {
       await Earning.save(subscriber)
