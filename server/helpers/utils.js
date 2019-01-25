@@ -179,7 +179,7 @@ const getButtonsBySubscriptor = async subscriptor => {
 
 const formatPercentage = (x, decimals) => {
   return !x
-    ? ''
+    ? '0'
     : Big(x)
         .div('10000')
         .toFixed(decimals)
@@ -190,7 +190,7 @@ const formatPercentage = (x, decimals) => {
 const formatBalance = (x, decimals = 0, unit = 'ether') => {
   decimals = decimals ? decimals : unitMap[unit].length
   return !x
-    ? ''
+    ? '0'
     : Big(x)
         .div(unitMap[unit])
         .toFixed(decimals)
