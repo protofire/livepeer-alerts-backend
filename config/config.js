@@ -18,6 +18,9 @@ const envVarsSchema = Joi.object({
     .required()
     .description('Mongo DB host url'),
   MONGO_PORT: Joi.number().default(27017),
+  MONGO_DATABASE: Joi.string()
+    .required()
+    .description('Mongo database name'),
   SENDGRID_API_KEY: Joi.string()
     .required()
     .description('Sendgrid API KEY'),
@@ -72,7 +75,8 @@ const config = {
   port: envVars.PORT,
   mongooseDebug: envVars.MONGOOSE_DEBUG,
   mongo: {
-    host: envVars.MONGO_HOST,
+    host: `${envVars.MONGO_HOST}${envVars.MONGO_DATABASE}`,
+    database: envVars.MONGO_DATABASE,
     port: envVars.MONGO_PORT
   },
   sendgridAPIKEY: envVars.SENDGRID_API_KEY,

@@ -260,6 +260,38 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/rounds",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/rounds",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"rounds"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[GET] - /api/telegrams",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
