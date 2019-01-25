@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api')
 const path = require('path')
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getTelegramBody } = require('../helpers/sendTelegram')
+const { getTelegramBodyParams } = require('../helpers/sendTelegram')
 const {
   subscribe,
   unsubscribe,
@@ -148,7 +148,7 @@ bot.on('message', async msg => {
 
       bot.sendMessage(msg.chat.id, `Waiting for alert notification...`)
 
-      const { body } = await getTelegramBody(subscriptor)
+      const { body } = await getTelegramBodyParams(subscriptor)
 
       const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
