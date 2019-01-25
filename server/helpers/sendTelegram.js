@@ -91,8 +91,8 @@ const getTelegramBodyParams = async subscriber => {
 
   // Open template file
   const filename = callReward
-    ? '../notifications/telegram/templates/notification_success.hbs'
-    : '../notifications/telegram/templates/notification_warning.hbs'
+    ? '../notifications/telegram/transcoder-claim-reward-call/notification-success.hbs'
+    : '../notifications/telegram/transcoder-claim-reward-call/notification-warning.hbs'
   const fileTemplate = path.join(__dirname, filename)
   const source = fs.readFileSync(fileTemplate, 'utf8')
 

@@ -34,7 +34,7 @@ const checkChangeRound = async () => {
     startBlock: startBlock
   }
 
-  id = '1251'
+  id = '1253'
   if (!actualSavedRound) {
     let roundCreated = new Round(data)
     actualSavedRound = await roundCreated.save()
@@ -56,7 +56,7 @@ const checkChangeRound = async () => {
     await actualSavedRound.save()
 
     // Create job, round changed
-    queue.add({ roundId: actualSavedRound.roundId }, { delay: 1 * 60 }, (err, id) => {
+    queue.add({ roundId: actualSavedRound.roundId }, { delay: 120 * 60 }, (err, id) => {
       console.log(`[CheckChangeRound] - Create job, round changed to #${actualSavedRound.roundId}`)
       process.exit(0)
     })
