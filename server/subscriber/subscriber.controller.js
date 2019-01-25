@@ -6,7 +6,9 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
-  getLivepeerTranscoderAccount
+  getLivepeerTranscoderAccount,
+  getLivepeerCurrentRoundInfo,
+  getLivepeerDefaultConstants
 } = require('../helpers/livepeerAPI')
 const { fromBaseUnit, formatPercentage, MathBN } = require('../helpers/utils')
 
@@ -179,29 +181,33 @@ const activate = async (req, res, next) => {
 const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
-    let [delegator, balance] = await Promise.all([
+    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
       getLivepeerDelegatorAccount(addressWithoutSubscriber),
-      getLivepeerDelegatorTokenBalance(addressWithoutSubscriber)
+      getLivepeerDelegatorTokenBalance(addressWithoutSubscriber),
+      getLivepeerDefaultConstants(),
+      getLivepeerCurrentRoundInfo()
     ])
 
-    let delegateCalledReward = false
+    let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
 
+    // Detect role
     let data = {
-      role: 'Delegator'
+      role:
+        delegator &&
+        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+        delegator.delegateAddress &&
+        delegator.address === delegator.delegateAddress
+          ? constants.ROLE.TRANSCODER
+          : constants.ROLE.DELEGATOR
     }
 
-    if (delegator && delegator.status == 'Bonded' && delegator.delegateAddress) {
-      // Get transcoder account
-      const [transcoderAccount, currentRound] = await Promise.all([
-        getLivepeerTranscoderAccount(delegator.delegateAddress),
-        getLivepeerCurrentRound()
-      ])
+    // Check if transcoder call reward
+    let delegateCalledReward =
+      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
 
-      // Check if transcoder call reward
-      delegateCalledReward = transcoderAccount.lastRewardRound === currentRound
-
-      // Check if delegator is really a transcoder
-      if (delegator.address === delegator.delegateAddress) {
+    switch (data.role) {
+      case constants.ROLE.TRANSCODER:
+        // Calculate some values for transcoder
         transcoderAccount.delegateCalledReward = delegateCalledReward
         transcoderAccount.totalStakeInLPT = fromBaseUnit(transcoderAccount.totalStake)
         transcoderAccount.pendingRewardCutInPercentage = formatPercentage(
@@ -209,18 +215,25 @@ const summary = async (req, res, next) => {
         )
         transcoderAccount.rewardCutInPercentage = formatPercentage(transcoderAccount.rewardCut)
         data.transcoder = transcoderAccount
-        data.role = 'Transcoder'
-      }
-    }
+        break
+      case constants.ROLE.DELEGATOR:
+        // Calculate some values for delegator
+        delegator.delegateCalledReward = delegateCalledReward
+        delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
+        delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
+        delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
+        delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
 
-    if (data.role === 'Delegator') {
-      delegator.delegateCalledReward = delegateCalledReward
-      delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
-      delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
+        // Calculate rounds until bonded
+        const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
+        delegator.roundsUntilUnbonded = isUnbonding
+          ? MathBN.sub(delegator.withdrawRound, currentRoundInfo.lastInitializedRound)
+          : 0
 
-      delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
-      delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
-      data.delegator = delegator
+        data.delegator = delegator
+        break
+      default:
+        return
     }
 
     data.balance = fromBaseUnit(balance)
