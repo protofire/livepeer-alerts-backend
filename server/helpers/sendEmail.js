@@ -7,7 +7,8 @@ const Earning = require('../earning/earning.model')
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerCurrentRound
+  getLivepeerCurrentRound,
+  getLivepeerDefaultConstants
 } = require('./livepeerAPI')
 const { truncateStringInTheMiddle, getEarningParams, formatBalance } = require('./utils')
 
@@ -16,10 +17,7 @@ const {
   fromEmail,
   fromEmailName,
   bccEmail,
-  activationEmailUrl,
-  frontendUrl,
   unsubscribeEmailUrl,
-  termsOfServiceUrl,
   sendgridTemplateIdAllGood,
   sendgridTemplateIdPayAttention
 } = config
@@ -72,12 +70,13 @@ const sendEmail = async data => {
 }
 
 const getEmailBodyParams = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRound
+  let delegatorAccount, transcoderAccount, currentRound, constants
   await promiseRetry(async retry => {
     // Get delegator Account
     try {
       delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      if (delegatorAccount && delegatorAccount.status == 'Bonded') {
+      constants = await getLivepeerDefaultConstants()
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
         // Get transcoder account
         transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
         currentRound = await getLivepeerCurrentRound()
@@ -91,7 +90,7 @@ const getEmailBodyParams = async subscriber => {
   }
 
   // Check if call reward
-  const callReward = transcoderAccount.lastRewardRound === currentRound
+  const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
 
   const { roundFrom, roundTo, earningToRound, earningFromRound } = await getEarningParams({
     transcoderAccount,
