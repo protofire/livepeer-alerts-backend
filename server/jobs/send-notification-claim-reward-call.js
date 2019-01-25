@@ -7,8 +7,8 @@ Promise.config({
 const path = require('path')
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { sendNotificationEmail } = require('../helpers/sendEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegram')
+const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 
 // Get arguments
 const argv = require('minimist')(process.argv.slice(2))

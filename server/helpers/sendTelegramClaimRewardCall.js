@@ -23,7 +23,7 @@ const {
 
 const { telegramBotKey } = config
 
-const sendTelegram = async data => {
+const sendTelegramClaimRewardCall = async data => {
   const { chatId, address, body } = data
 
   // Create a bot that uses 'polling' to fetch new updates
@@ -134,7 +134,7 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   }
 
   // Send telegram
-  await sendTelegram({
+  await sendTelegramClaimRewardCall({
     chatId: subscriber.telegramChatId,
     address: subscriber.address,
     body: body

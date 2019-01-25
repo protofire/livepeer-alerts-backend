@@ -22,7 +22,7 @@ const {
   sendgridTemplateIdClaimRewardCallPayAttention
 } = config
 
-const sendEmail = async data => {
+const sendEmailClaimRewardCall = async data => {
   const {
     email,
     templateId,
@@ -160,7 +160,7 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
       delegateAddress
     }
 
-    await sendEmail(data)
+    await sendEmailClaimRewardCall(data)
 
     // Save last email sent
     subscriber.lastEmailSent = Date.now()

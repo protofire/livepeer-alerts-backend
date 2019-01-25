@@ -71,7 +71,7 @@ const create = async (req, res, next) => {
     Earning.save(savedSubscriber)
 
     // Send email notification
-    const { sendNotificationEmail } = require('../helpers/sendEmail')
+    const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
     await sendNotificationEmail(savedSubscriber, true)
 
     return res.json(savedSubscriber)

@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api')
 const path = require('path')
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getTelegramBodyParams } = require('../helpers/sendTelegram')
+const { getTelegramBodyParams } = require('../helpers/sendTelegramClaimRewardCall')
 const {
   subscribe,
   unsubscribe,
