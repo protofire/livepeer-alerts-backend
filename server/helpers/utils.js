@@ -99,10 +99,13 @@ const subscriptionSave = async data => {
 
   const { address, chatId } = data
 
-  const { getLivepeerDelegatorAccount } = require('./livepeerAPI')
-  const delegatorAccount = await getLivepeerDelegatorAccount(address)
+  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+  const [delegatorAccount, constants] = await Promise.all([
+    getLivepeerDelegatorAccount(address),
+    getLivepeerDefaultConstants()
+  ])
 
-  if (delegatorAccount && delegatorAccount.status !== 'Bonded') {
+  if (delegatorAccount && delegatorAccount.status !== constants.DELEGATOR_STATUS.Bonded) {
     throw new StatusMustBeBondedError({ status: delegatorAccount.status })
   }
 
