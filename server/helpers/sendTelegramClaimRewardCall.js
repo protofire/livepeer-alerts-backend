@@ -50,32 +50,22 @@ const sendTelegramClaimRewardCall = async data => {
 }
 
 const getTelegramBodyParams = async subscriber => {
-  let [delegatorAccount, transcoderAccount, currentRoundObject, constants] = await promiseRetry(
-    async retry => {
-      // Get delegator Account
-      try {
-        let transcoderAccount, currentRoundObject
+  let delegatorAccount, transcoderAccount, currentRoundObject, constants
+  await promiseRetry(async retry => {
+    // Get delegator Account
+    try {
+      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
+      constants = await getLivepeerDefaultConstants()
 
-        const delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-        const constants = await getLivepeerDefaultConstants()
-
-        if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
-          // Get transcoder account
-          transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-          currentRoundObject = await getLivepeerCurrentRoundInfo()
-        }
-
-        return {
-          delegatorAccount,
-          transcoderAccount,
-          currentRoundObject,
-          constants
-        }
-      } catch (err) {
-        retry()
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
+        // Get transcoder account
+        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
+        currentRoundObject = await getLivepeerCurrentRoundInfo()
       }
+    } catch (err) {
+      retry()
     }
-  )
+  })
   console.log(`Delegator account ${JSON.stringify(delegatorAccount)}`)
   console.log(`Transcoder account ${JSON.stringify(transcoderAccount)}`)
   console.log(`Current round ${JSON.stringify(currentRoundObject)}`)

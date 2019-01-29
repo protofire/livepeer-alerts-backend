@@ -70,29 +70,21 @@ const sendEmailClaimRewardCall = async data => {
 }
 
 const getEmailBodyParams = async subscriber => {
-  let [delegatorAccount, transcoderAccount, currentRound, constants] = await promiseRetry(
-    async retry => {
-      try {
-        let transcoderAccount, currentRound
-        const delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-        const constants = await getLivepeerDefaultConstants()
-
-        if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
-          // Get transcoder account
-          transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-          currentRound = await getLivepeerCurrentRound()
-        }
-        return {
-          delegatorAccount,
-          transcoderAccount,
-          currentRound,
-          constants
-        }
-      } catch (err) {
-        retry()
+  let delegatorAccount, transcoderAccount, currentRound, constants
+  await promiseRetry(async retry => {
+    // Get delegator Account
+    try {
+      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
+      constants = await getLivepeerDefaultConstants()
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
+        // Get transcoder account
+        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
+        currentRound = await getLivepeerCurrentRound()
       }
+    } catch (err) {
+      retry()
     }
-  )
+  })
   if (!delegatorAccount || !transcoderAccount || !currentRound) {
     throw new Error('There is no email to send')
   }
