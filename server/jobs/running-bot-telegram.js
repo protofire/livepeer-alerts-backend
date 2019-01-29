@@ -1,3 +1,8 @@
+const Promise = require('bluebird')
+Promise.config({
+  cancellation: true
+})
+
 const TelegramBot = require('node-telegram-bot-api')
 const path = require('path')
 const mongoose = require('../../config/mongoose')
