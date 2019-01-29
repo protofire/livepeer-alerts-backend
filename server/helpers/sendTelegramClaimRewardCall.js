@@ -1,5 +1,9 @@
-const TelegramBot = require('node-telegram-bot-api')
-const stripTags = require('striptags')
+// Create a bot that uses 'polling' to fetch new updates
+const Promise = require('bluebird')
+Promise.config({
+  cancellation: true
+})
+
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
@@ -21,13 +25,12 @@ const {
   formatBalance
 } = require('./utils')
 
-const { telegramBotKey } = config
-
 const sendTelegramClaimRewardCall = async data => {
   const { chatId, address, body } = data
 
-  // Create a bot that uses 'polling' to fetch new updates
-  const bot = new TelegramBot(telegramBotKey, { polling: true })
+  const TelegramBot = require('node-telegram-bot-api')
+  const { telegramBotKey } = config
+  const bot = new TelegramBot(telegramBotKey)
 
   if (!['test'].includes(config.env)) {
     try {
@@ -47,22 +50,32 @@ const sendTelegramClaimRewardCall = async data => {
 }
 
 const getTelegramBodyParams = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRoundObject, constants
-  await promiseRetry(async retry => {
-    // Get delegator Account
-    try {
-      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      constants = await getLivepeerDefaultConstants()
+  let [delegatorAccount, transcoderAccount, currentRoundObject, constants] = await promiseRetry(
+    async retry => {
+      // Get delegator Account
+      try {
+        let transcoderAccount, currentRoundObject
 
-      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
-        // Get transcoder account
-        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-        currentRoundObject = await getLivepeerCurrentRoundInfo()
+        const delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
+        const constants = await getLivepeerDefaultConstants()
+
+        if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
+          // Get transcoder account
+          transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
+          currentRoundObject = await getLivepeerCurrentRoundInfo()
+        }
+
+        return {
+          delegatorAccount,
+          transcoderAccount,
+          currentRoundObject,
+          constants
+        }
+      } catch (err) {
+        retry()
       }
-    } catch (err) {
-      retry()
     }
-  })
+  )
   console.log(`Delegator account ${JSON.stringify(delegatorAccount)}`)
   console.log(`Transcoder account ${JSON.stringify(transcoderAccount)}`)
   console.log(`Current round ${JSON.stringify(currentRoundObject)}`)
