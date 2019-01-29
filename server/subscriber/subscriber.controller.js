@@ -71,8 +71,42 @@ const create = async (req, res, next) => {
     Earning.save(savedSubscriber)
 
     // Send email notification
-    const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
-    await sendNotificationEmail(savedSubscriber, true)
+    let [delegator, constants, currentRoundInfo] = await Promise.all([
+      getLivepeerDelegatorAccount(address),
+      getLivepeerDefaultConstants(),
+      getLivepeerCurrentRoundInfo()
+    ])
+
+    let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
+
+    // Detect role
+    let data = {
+      role:
+        delegator &&
+        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+        delegator.delegateAddress &&
+        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+          ? constants.ROLE.TRANSCODER
+          : constants.ROLE.DELEGATOR
+    }
+
+    // Check if transcoder call reward
+    let delegateCalledReward =
+      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+
+    if (data.role === constants.ROLE.TRANSCODER) {
+      const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+      const data = {
+        subscriber: savedSubscriber,
+        delegateCalledReward: delegateCalledReward
+      }
+      await sendNotificationEmail(data)
+    }
+
+    if (data.role === constants.ROLE.DELEGATOR) {
+      const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+      await sendNotificationEmail(savedSubscriber, true)
+    }
 
     return res.json(savedSubscriber)
   } catch (e) {
