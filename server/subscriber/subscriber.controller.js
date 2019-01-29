@@ -196,7 +196,7 @@ const summary = async (req, res, next) => {
         delegator &&
         delegator.status == constants.DELEGATOR_STATUS.Bonded &&
         delegator.delegateAddress &&
-        delegator.address === delegator.delegateAddress
+        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
           ? constants.ROLE.TRANSCODER
           : constants.ROLE.DELEGATOR
     }

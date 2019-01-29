@@ -42,7 +42,7 @@ const getSubscribers = async subscribers => {
       delegator &&
       delegator.status == constants.DELEGATOR_STATUS.Bonded &&
       delegator.delegateAddress &&
-      delegator.address === delegator.delegateAddress
+      delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
         ? constants.ROLE.TRANSCODER
         : constants.ROLE.DELEGATOR
 
