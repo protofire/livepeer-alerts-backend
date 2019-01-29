@@ -1,10 +1,8 @@
-// Telegram bug support
 const Promise = require('bluebird')
 Promise.config({
   cancellation: true
 })
 
-const path = require('path')
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
@@ -34,7 +32,7 @@ if (!validTypes.includes(type)) {
 let exitSendNotificationJob = false
 
 const sendNotificationEmailFn = () => {
-  Subscriber.find({ frequency: frequency, activated: 1 })
+  Subscriber.find({ frequency: frequency, activated: 1, email: { $ne: null } })
     .exec()
     .then(async subscribers => {
       let emailsToSend = []
