@@ -1,23 +1,17 @@
-const { MongoClient } = require('mongodb')
-const mongoDbQueue = require('mongodb-queue')
+const Promise = require('bluebird')
+Promise.config({
+  cancellation: true
+})
 
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 const { getLivepeerCurrentRoundInfo } = require('../helpers/livepeerAPI')
 const Round = require('../round/round.model')
 
-const { mongo = {} } = config
-const { host, database } = mongo
-let queue
-
-MongoClient.connect(
-  host,
-  { useNewUrlParser: true },
-  (err, client) => {
-    const db = client.db(database)
-    queue = mongoDbQueue(db, 'round-queue')
-  }
-)
+const {
+  sendNotificationEmailFn,
+  sendNotificationTelegramFn
+} = require('./send-notification-did-reward-call')
 
 const checkChangeRound = async () => {
   console.log(`[CheckChangeRound] - Start`)
@@ -34,7 +28,6 @@ const checkChangeRound = async () => {
     startBlock: startBlock
   }
 
-  id = '1253'
   if (!actualSavedRound) {
     let roundCreated = new Round(data)
     actualSavedRound = await roundCreated.save()
@@ -55,15 +48,13 @@ const checkChangeRound = async () => {
     actualSavedRound.startBlock = startBlock
     await actualSavedRound.save()
 
-    // Create job, round changed
-    queue.add({ roundId: actualSavedRound.roundId }, { delay: 120 * 60 }, (err, id) => {
-      console.log(`[CheckChangeRound] - Create job, round changed to #${actualSavedRound.roundId}`)
-      process.exit(0)
-    })
+    console.log(`[CheckChangeRound] - Round changed, send notifications`)
+
+    await Promise.all([sendNotificationEmailFn(), sendNotificationTelegramFn()])
   } else {
-    console.log(`[CheckChangeRound] - No job created`)
-    process.exit(0)
+    console.log(`[CheckChangeRound] - No round changed`)
   }
+  process.exit(0)
 }
 
 return checkChangeRound()
