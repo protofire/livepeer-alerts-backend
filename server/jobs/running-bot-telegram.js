@@ -49,13 +49,22 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       chatId: msg.chat.id
     }
 
+    let telegrams = await TelegramModel.find({ chatId: msg.chat.id }).exec()
+    if (telegrams.length > 1) {
+      telegrams.shift()
+      telegrams.forEach(async telegram => {
+        await telegram.remove()
+      })
+    }
+
     // Must exist only one telegram object
-    let telegramObject = await TelegramModel.findOne({ address: address }).exec()
+    let telegramObject = await TelegramModel.findOne({ chatId: msg.chat.id }).exec()
     if (!telegramObject) {
       const telegramModel = new TelegramModel(subscriptorData)
       telegramObject = await telegramModel.save()
     } else {
       telegramObject.chatId = msg.chat.id
+      telegramObject.address = address
       await telegramObject.save()
     }
 
@@ -108,7 +117,10 @@ bot.on('message', async msg => {
         }
       )
     } catch (e) {
-      bot.sendMessage(msg.chat.id, e.message)
+      bot.sendMessage(
+        msg.chat.id,
+        'There was a problem when you try to subscribe, try it again later'
+      )
     }
   }
 
