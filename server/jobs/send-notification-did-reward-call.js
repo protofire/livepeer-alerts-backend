@@ -25,7 +25,7 @@ const getSubscribers = async subscribers => {
     }
 
     // Detect role
-    const [constants, role, delegator] = await getSubscriptorRole(subscriber)
+    const { constants, role, delegator } = await getSubscriptorRole(subscriber)
 
     if (!delegator || !delegator.delegateAddress) {
       continue

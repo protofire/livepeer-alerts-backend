@@ -11,6 +11,7 @@ const {
   getLivepeerDefaultConstants
 } = require('../helpers/livepeerAPI')
 const { fromBaseUnit, formatPercentage, MathBN } = require('../helpers/utils')
+const promiseRetry = require('promise-retry')
 
 /**
  * Load subscriber and append to req.
@@ -215,14 +216,22 @@ const activate = async (req, res, next) => {
 const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
-    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
-      getLivepeerDelegatorAccount(addressWithoutSubscriber),
-      getLivepeerDelegatorTokenBalance(addressWithoutSubscriber),
-      getLivepeerDefaultConstants(),
-      getLivepeerCurrentRoundInfo()
-    ])
 
-    let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
+    // Get delegator with promise retry, because infura
+    let [delegator, balance, constants, currentRoundInfo] = await promiseRetry(retry => {
+      return Promise.all([
+        getLivepeerDelegatorAccount(addressWithoutSubscriber),
+        getLivepeerDelegatorTokenBalance(addressWithoutSubscriber),
+        getLivepeerDefaultConstants(),
+        getLivepeerCurrentRoundInfo()
+      ]).catch(err => retry())
+    })
+
+    let [transcoderAccount] = await promiseRetry(retry => {
+      return Promise.all([getLivepeerTranscoderAccount(delegator.delegateAddress)]).catch(err =>
+        retry()
+      )
+    })
 
     // Detect role
     let data = {

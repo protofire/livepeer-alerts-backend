@@ -46,7 +46,7 @@ const findAddress = async chatId => {
 
 const getBodyBySubscriber = async subscriptor => {
   // Starting
-  let [constants, delegator, role] = await getSubscriptorRole(subscriptor)
+  let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
 
   let data
   if (role === constants.ROLE.TRANSCODER) {
@@ -170,6 +170,7 @@ ${body}`,
       )
       console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
     } catch (e) {
+      console.log(`[Telegram bot] - ${e}`)
       bot.sendMessage(
         msg.chat.id,
         'There was a problem when you try to subscribe, try it again later'
@@ -223,7 +224,7 @@ ${body}`,
       const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
       // Buttons resetup for telegram, only show subscribe and get instant alert
-      bot.sendMessage(msg.chat.id, `${body}`, {
+      bot.sendMessage(msg.chat.id, body, {
         reply_markup: {
           keyboard: buttons,
           resize_keyboard: true,

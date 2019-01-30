@@ -40,7 +40,7 @@ const sendNotificationEmailFn = () => {
       for (const subscriber of subscribers) {
         // Send notification only for delegators
         const { role, constants } = await getSubscriptorRole(subscriber)
-        if (role !== constants.ROLE.DELEGATOR) {
+        if (role === constants.ROLE.TRANSCODER) {
           continue
         }
         emailsToSend.push(sendNotificationEmail(subscriber, true))
@@ -66,7 +66,7 @@ const sendNotificationTelegramFn = () => {
       for (const subscriber of subscribers) {
         // Send notification only for delegators
         const { role, constants } = await getSubscriptorRole(subscriber)
-        if (role !== constants.ROLE.DELEGATOR) {
+        if (role === constants.ROLE.TRANSCODER) {
           continue
         }
         telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
