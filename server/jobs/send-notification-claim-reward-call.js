@@ -7,6 +7,7 @@ const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
+const { getSubscriptorRole } = require('../helpers/utils')
 
 // Get arguments
 const argv = require('minimist')(process.argv.slice(2))
@@ -36,9 +37,14 @@ const sendNotificationEmailFn = () => {
     .exec()
     .then(async subscribers => {
       let emailsToSend = []
-      subscribers.forEach(subscriber => {
+      for (const subscriber of subscribers) {
+        // Send notification only for delegators
+        const { role, constants } = await getSubscriptorRole(subscriber)
+        if (role !== constants.ROLE.DELEGATOR) {
+          continue
+        }
         emailsToSend.push(sendNotificationEmail(subscriber, true))
-      })
+      }
       try {
         await Promise.all(emailsToSend)
       } catch (error) {
@@ -57,9 +63,14 @@ const sendNotificationTelegramFn = () => {
     .exec()
     .then(async subscribers => {
       let telegramsMessageToSend = []
-      subscribers.forEach(subscriber => {
+      for (const subscriber of subscribers) {
+        // Send notification only for delegators
+        const { role, constants } = await getSubscriptorRole(subscriber)
+        if (role !== constants.ROLE.DELEGATOR) {
+          continue
+        }
         telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
-      })
+      }
       try {
         await Promise.all(telegramsMessageToSend)
       } catch (error) {
