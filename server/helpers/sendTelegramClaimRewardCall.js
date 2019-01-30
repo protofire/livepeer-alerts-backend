@@ -41,7 +41,9 @@ const sendTelegramClaimRewardCall = async data => {
         },
         parse_mode: 'HTML'
       })
-      console.log(`Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`)
+      console.log(
+        `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
+      )
     } catch (err) {
       console.log(err)
     }
@@ -66,9 +68,9 @@ const getTelegramBodyParams = async subscriber => {
       retry()
     }
   })
-  console.log(`Delegator account ${JSON.stringify(delegatorAccount)}`)
-  console.log(`Transcoder account ${JSON.stringify(transcoderAccount)}`)
-  console.log(`Current round ${JSON.stringify(currentRoundObject)}`)
+  console.log(`[Telegram bot] - Delegator account ${JSON.stringify(delegatorAccount)}`)
+  console.log(`[Telegram bot] - Transcoder account ${JSON.stringify(transcoderAccount)}`)
+  console.log(`[Telegram bot] - Current round ${JSON.stringify(currentRoundObject)}`)
 
   if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
     throw new NoAlertToSendError({ status: delegatorAccount.status })

@@ -115,7 +115,7 @@ const subscriptionSave = async data => {
     frequency: 'daily',
     telegramChatId: chatId
   })
-  await subscriber.save()
+  const subscriberCreated = await subscriber.save()
 
   // Save earning
   const Earning = require('../earning/earning.model')
@@ -123,19 +123,23 @@ const subscriptionSave = async data => {
     address: address
   })
 
-  console.log(`Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`)
+  console.log(
+    `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
+  )
 
-  return earningCreated
+  return subscriberCreated
 }
 
 // Check for existing subscription user
 const subscriptionExist = async data => {
   const { address, chatId } = data
-  if (!address || !chatId) {
+  if (!chatId) {
     return false
   }
-  const count = await Subscriber.countDocuments({ address: address, telegramChatId: chatId })
-  console.log(`Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`)
+  const count = await Subscriber.countDocuments({ telegramChatId: chatId })
+  console.log(
+    `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
+  )
   return count
 }
 
@@ -147,7 +151,9 @@ const subscriptionRemove = async data => {
     throw new NotSubscribedError()
   }
   const subscriptorRemoved = await subscriber.remove()
-  console.log(`Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`)
+  console.log(
+    `[Telegram bot] - Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`
+  )
   return subscriptorRemoved
 }
 
@@ -158,7 +164,7 @@ const subscriptionFind = async data => {
   if (!subscriber) {
     throw new NotSubscribedError()
   }
-  console.log(`Subscriptor found - Address ${address} - ChatId: ${chatId}`)
+  console.log(`[Telegram bot] - Subscriptor found - Address ${address} - ChatId: ${chatId}`)
   return subscriber
 }
 

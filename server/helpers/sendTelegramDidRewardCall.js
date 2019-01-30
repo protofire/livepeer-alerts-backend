@@ -26,7 +26,9 @@ const sendTelegramClaimRewardCall = async data => {
         parse_mode: 'HTML'
       })
 
-      console.log(`Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`)
+      console.log(
+        `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
+      )
       bot = null
     } catch (err) {
       console.log(err)
@@ -35,10 +37,9 @@ const sendTelegramClaimRewardCall = async data => {
   return
 }
 
-const sendNotificationTelegram = async data => {
-  const { subscriber, delegateCalledReward } = data
+const getTelegramClaimRewardCallBody = data => {
+  const { delegateCalledReward } = data
 
-  // Open template file
   const filename = delegateCalledReward
     ? '../notifications/telegram/transcoder-did-reward-call/notification-success.hbs'
     : '../notifications/telegram/transcoder-did-reward-call/notification-warning.hbs'
@@ -48,6 +49,15 @@ const sendNotificationTelegram = async data => {
   // Create telegram body
   const template = Handlebars.compile(source)
   const body = template()
+  return {
+    body
+  }
+}
+
+const sendNotificationTelegram = async data => {
+  const { subscriber } = data
+
+  const { body } = getTelegramClaimRewardCallBody(data)
 
   // Send telegram
   await sendTelegramClaimRewardCall({
@@ -61,4 +71,4 @@ const sendNotificationTelegram = async data => {
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram }
+module.exports = { sendNotificationTelegram, getTelegramClaimRewardCallBody }
