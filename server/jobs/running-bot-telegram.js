@@ -17,7 +17,8 @@ const {
   getButtonsBySubscriptor,
   subscriptionFind,
   subscriptionRemove,
-  subscriptionSave
+  subscriptionSave,
+  getSubscriptorRole
 } = require('../helpers/utils')
 const {
   getLivepeerDefaultConstants,
@@ -45,21 +46,7 @@ const findAddress = async chatId => {
 
 const getBodyBySubscriber = async subscriptor => {
   // Starting
-  let [constants, delegator] = await promiseRetry(retry => {
-    return Promise.all([
-      getLivepeerDefaultConstants(),
-      getLivepeerDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
-  })
-
-  // Detect role
-  let role =
-    delegator &&
-    delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-    delegator.delegateAddress &&
-    delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-      ? constants.ROLE.TRANSCODER
-      : constants.ROLE.DELEGATOR
+  let [constants, delegator, role] = await getSubscriptorRole(subscriptor)
 
   let data
   if (role === constants.ROLE.TRANSCODER) {

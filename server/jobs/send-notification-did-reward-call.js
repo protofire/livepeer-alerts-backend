@@ -11,6 +11,7 @@ const {
   getLivepeerDefaultConstants,
   getLivepeerCurrentRoundInfo
 } = require('../helpers/livepeerAPI')
+const { getSubscriptorRole } = require('../helpers/utils')
 const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
 const promiseRetry = require('promise-retry')
@@ -18,33 +19,17 @@ const promiseRetry = require('promise-retry')
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
 
-  // Get constants with promise retry, because infura
-  let constants = await promiseRetry(retry => {
-    return getLivepeerDefaultConstants().catch(err => retry())
-  })
-
   for (const subscriber of subscribers) {
     if (!subscriber || !subscriber.address) {
       continue
     }
 
-    // Get delegator with promise retry, because infura
-    let delegator = await promiseRetry(retry => {
-      return getLivepeerDelegatorAccount(subscriber.address).catch(err => retry())
-    })
+    // Detect role
+    const [constants, role, delegator] = await getSubscriptorRole(subscriber)
 
     if (!delegator || !delegator.delegateAddress) {
       continue
     }
-
-    // Detect role
-    let role =
-      delegator &&
-      delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-      delegator.delegateAddress &&
-      delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-        ? constants.ROLE.TRANSCODER
-        : constants.ROLE.DELEGATOR
 
     if (role !== constants.ROLE.TRANSCODER) {
       continue

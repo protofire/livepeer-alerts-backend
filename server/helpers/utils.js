@@ -3,6 +3,7 @@ const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
 const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
+const promiseRetry = require('promise-retry')
 const {
   NotSubscribedError,
   AlreadySubscribedError,
@@ -251,6 +252,32 @@ const getEarningParams = async data => {
   return { roundFrom, roundTo, earningFromRound, earningToRound }
 }
 
+const getSubscriptorRole = async subscriptor => {
+  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+
+  let [constants, delegator] = await promiseRetry(retry => {
+    return Promise.all([
+      getLivepeerDefaultConstants(),
+      getLivepeerDelegatorAccount(subscriptor.address)
+    ]).catch(err => retry())
+  })
+
+  // Detect role
+  const role =
+    delegator &&
+    delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+    delegator.delegateAddress &&
+    delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+      ? constants.ROLE.TRANSCODER
+      : constants.ROLE.DELEGATOR
+
+  return {
+    role,
+    constants,
+    delegator
+  }
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -266,5 +293,6 @@ module.exports = {
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getEarningParams
+  getEarningParams,
+  getSubscriptorRole
 }
