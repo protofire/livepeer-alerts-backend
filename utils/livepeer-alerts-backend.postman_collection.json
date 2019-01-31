@@ -260,6 +260,38 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/rounds",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/rounds",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"rounds"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[GET] - /api/telegrams",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
@@ -286,6 +318,36 @@
 					"path": [
 						"api",
 						"telegrams"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[DELETE] - /api/telegrams/:address",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Fernando\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/telegrams/5c1a44159a4faa31adcde266",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"telegrams",
+						"5c1a44159a4faa31adcde266"
 					]
 				}
 			},

@@ -34,6 +34,15 @@ module.exports = {
     }
   },
 
+  // DELETE /api/subscribers/:subscriberId
+  deleteSubscriber: {
+    params: {
+      subscriberId: Joi.string()
+        .hex()
+        .required()
+    }
+  },
+
   // GET /api/subscribers/:subscriberId
   getSubscriber: {
     params: {

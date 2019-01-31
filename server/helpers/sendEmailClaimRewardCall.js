@@ -7,7 +7,8 @@ const Earning = require('../earning/earning.model')
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerCurrentRound
+  getLivepeerCurrentRound,
+  getLivepeerDefaultConstants
 } = require('./livepeerAPI')
 const { truncateStringInTheMiddle, getEarningParams, formatBalance } = require('./utils')
 
@@ -15,15 +16,13 @@ const {
   sendgridAPIKEY,
   fromEmail,
   fromEmailName,
-  activationEmailUrl,
-  frontendUrl,
+  bccEmail,
   unsubscribeEmailUrl,
-  termsOfServiceUrl,
-  sendgridTemplateIdAllGood,
-  sendgridTemplateIdPayAttention
+  sendgridTemplateIdClaimRewardCallAllGood,
+  sendgridTemplateIdClaimRewardCallPayAttention
 } = config
 
-const sendEmail = async data => {
+const sendEmailClaimRewardCall = async data => {
   const {
     email,
     templateId,
@@ -41,6 +40,7 @@ const sendEmail = async data => {
 
   const msg = {
     to: email,
+    bcc: bccEmail,
     from: {
       name: fromEmailName,
       email: fromEmail
@@ -70,12 +70,13 @@ const sendEmail = async data => {
 }
 
 const getEmailBodyParams = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRound
+  let delegatorAccount, transcoderAccount, currentRound, constants
   await promiseRetry(async retry => {
     // Get delegator Account
     try {
       delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      if (delegatorAccount && delegatorAccount.status == 'Bonded') {
+      constants = await getLivepeerDefaultConstants()
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
         // Get transcoder account
         transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
         currentRound = await getLivepeerCurrentRound()
@@ -89,7 +90,7 @@ const getEmailBodyParams = async subscriber => {
   }
 
   // Check if call reward
-  const callReward = transcoderAccount.lastRewardRound === currentRound
+  const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
 
   const { roundFrom, roundTo, earningToRound, earningFromRound } = await getEarningParams({
     transcoderAccount,
@@ -137,7 +138,9 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
       delegateAddress
     } = await getEmailBodyParams(subscriber)
 
-    const templateId = callReward ? sendgridTemplateIdAllGood : sendgridTemplateIdPayAttention
+    const templateId = callReward
+      ? sendgridTemplateIdClaimRewardCallAllGood
+      : sendgridTemplateIdClaimRewardCallPayAttention
     // Create earning
     if (createEarningOnSend) {
       await Earning.save(subscriber)
@@ -157,7 +160,7 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
       delegateAddress
     }
 
-    await sendEmail(data)
+    await sendEmailClaimRewardCall(data)
 
     // Save last email sent
     subscriber.lastEmailSent = Date.now()

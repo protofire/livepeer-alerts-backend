@@ -6,9 +6,12 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
-  getLivepeerTranscoderAccount
+  getLivepeerTranscoderAccount,
+  getLivepeerCurrentRoundInfo,
+  getLivepeerDefaultConstants
 } = require('../helpers/livepeerAPI')
-const { fromBaseUnit, MathBN } = require('../helpers/utils')
+const { fromBaseUnit, formatPercentage, MathBN } = require('../helpers/utils')
+const promiseRetry = require('promise-retry')
 
 /**
  * Load subscriber and append to req.
@@ -69,8 +72,42 @@ const create = async (req, res, next) => {
     Earning.save(savedSubscriber)
 
     // Send email notification
-    const { sendNotificationEmail } = require('../helpers/sendEmail')
-    await sendNotificationEmail(savedSubscriber, true)
+    let [delegator, constants, currentRoundInfo] = await Promise.all([
+      getLivepeerDelegatorAccount(address),
+      getLivepeerDefaultConstants(),
+      getLivepeerCurrentRoundInfo()
+    ])
+
+    let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
+
+    // Detect role
+    let data = {
+      role:
+        delegator &&
+        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+        delegator.delegateAddress &&
+        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+          ? constants.ROLE.TRANSCODER
+          : constants.ROLE.DELEGATOR
+    }
+
+    // Check if transcoder call reward
+    let delegateCalledReward =
+      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+
+    if (data.role === constants.ROLE.TRANSCODER) {
+      const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+      const data = {
+        subscriber: savedSubscriber,
+        delegateCalledReward: delegateCalledReward
+      }
+      await sendNotificationEmail(data)
+    }
+
+    if (data.role === constants.ROLE.DELEGATOR) {
+      const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+      await sendNotificationEmail(savedSubscriber, true)
+    }
 
     return res.json(savedSubscriber)
   } catch (e) {
@@ -179,28 +216,72 @@ const activate = async (req, res, next) => {
 const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
-    let [summary, balance] = await Promise.all([
-      getLivepeerDelegatorAccount(addressWithoutSubscriber),
-      getLivepeerDelegatorTokenBalance(addressWithoutSubscriber)
-    ])
 
-    let delegateCalledReward = false
-    if (summary && summary.status == 'Bonded') {
-      // Get transcoder account
-      const [transcoderAccount, currentRound] = await Promise.all([
-        getLivepeerTranscoderAccount(summary.delegateAddress),
-        getLivepeerCurrentRound()
-      ])
+    // Get delegator with promise retry, because infura
+    let [delegator, balance, constants, currentRoundInfo] = await promiseRetry(retry => {
+      return Promise.all([
+        getLivepeerDelegatorAccount(addressWithoutSubscriber),
+        getLivepeerDelegatorTokenBalance(addressWithoutSubscriber),
+        getLivepeerDefaultConstants(),
+        getLivepeerCurrentRoundInfo()
+      ]).catch(err => retry())
+    })
 
-      delegateCalledReward = transcoderAccount.lastRewardRound === currentRound
+    let [transcoderAccount] = await promiseRetry(retry => {
+      return Promise.all([getLivepeerTranscoderAccount(delegator.delegateAddress)]).catch(err =>
+        retry()
+      )
+    })
+
+    // Detect role
+    let data = {
+      role:
+        delegator &&
+        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+        delegator.delegateAddress &&
+        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+          ? constants.ROLE.TRANSCODER
+          : constants.ROLE.DELEGATOR
     }
-    summary.delegateCalledReward = delegateCalledReward
-    summary.totalStakeInLPT = fromBaseUnit(summary.totalStake)
-    summary.bondedAmountInLPT = fromBaseUnit(summary.bondedAmount)
 
-    // Apply from base unit
-    balance = fromBaseUnit(balance)
-    res.json({ summary, balance })
+    // Check if transcoder call reward
+    let delegateCalledReward =
+      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+
+    switch (data.role) {
+      case constants.ROLE.TRANSCODER:
+        // Calculate some values for transcoder
+        transcoderAccount.delegateCalledReward = delegateCalledReward
+        transcoderAccount.totalStakeInLPT = fromBaseUnit(transcoderAccount.totalStake)
+        transcoderAccount.pendingRewardCutInPercentage = formatPercentage(
+          transcoderAccount.pendingRewardCut
+        )
+        transcoderAccount.rewardCutInPercentage = formatPercentage(transcoderAccount.rewardCut)
+        data.transcoder = transcoderAccount
+        break
+      case constants.ROLE.DELEGATOR:
+        // Calculate some values for delegator
+        delegator.delegateCalledReward = delegateCalledReward
+        delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
+        delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
+        delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
+        delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
+
+        // Calculate rounds until bonded
+        const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
+        delegator.roundsUntilUnbonded = isUnbonding
+          ? MathBN.sub(delegator.withdrawRound, currentRoundInfo.lastInitializedRound)
+          : 0
+
+        data.delegator = delegator
+        break
+      default:
+        return
+    }
+
+    data.balance = fromBaseUnit(balance)
+
+    res.json(data)
   } catch (error) {
     next(error)
   }

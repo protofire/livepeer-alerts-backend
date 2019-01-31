@@ -1,5 +1,9 @@
-const TelegramBot = require('node-telegram-bot-api')
-const stripTags = require('striptags')
+// Create a bot that uses 'polling' to fetch new updates
+const Promise = require('bluebird')
+Promise.config({
+  cancellation: true
+})
+
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
@@ -11,7 +15,8 @@ const { NoAlertToSendError } = require('./JobsErrors')
 const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo
+  getLivepeerCurrentRoundInfo,
+  getLivepeerDefaultConstants
 } = require('./livepeerAPI')
 const {
   getButtonsBySubscriptor,
@@ -20,13 +25,12 @@ const {
   formatBalance
 } = require('./utils')
 
-const { telegramBotKey } = config
-
-const sendTelegram = async data => {
+const sendTelegramClaimRewardCall = async data => {
   const { chatId, address, body } = data
 
-  // Create a bot that uses 'polling' to fetch new updates
-  const bot = new TelegramBot(telegramBotKey, { polling: true })
+  const TelegramBot = require('node-telegram-bot-api')
+  const { telegramBotKey } = config
+  const bot = new TelegramBot(telegramBotKey)
 
   if (!['test'].includes(config.env)) {
     try {
@@ -37,7 +41,9 @@ const sendTelegram = async data => {
         },
         parse_mode: 'HTML'
       })
-      console.log(`Telegram sended to chatId ${chatId} successfully`)
+      console.log(
+        `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
+      )
     } catch (err) {
       console.log(err)
     }
@@ -45,13 +51,15 @@ const sendTelegram = async data => {
   return
 }
 
-const getTelegramBody = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRoundObject
+const getTelegramBodyParams = async subscriber => {
+  let delegatorAccount, transcoderAccount, currentRoundObject, constants
   await promiseRetry(async retry => {
     // Get delegator Account
     try {
       delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      if (delegatorAccount && delegatorAccount.status == 'Bonded') {
+      constants = await getLivepeerDefaultConstants()
+
+      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
         // Get transcoder account
         transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
         currentRoundObject = await getLivepeerCurrentRoundInfo()
@@ -60,9 +68,9 @@ const getTelegramBody = async subscriber => {
       retry()
     }
   })
-  console.log(`Delegator account ${JSON.stringify(delegatorAccount)}`)
-  console.log(`Transcoder account ${JSON.stringify(transcoderAccount)}`)
-  console.log(`Current round ${JSON.stringify(currentRoundObject)}`)
+  console.log(`[Telegram bot] - Delegator account ${JSON.stringify(delegatorAccount)}`)
+  console.log(`[Telegram bot] - Transcoder account ${JSON.stringify(transcoderAccount)}`)
+  console.log(`[Telegram bot] - Current round ${JSON.stringify(currentRoundObject)}`)
 
   if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
     throw new NoAlertToSendError({ status: delegatorAccount.status })
@@ -88,8 +96,8 @@ const getTelegramBody = async subscriber => {
 
   // Open template file
   const filename = callReward
-    ? '../notifications/telegram/templates/notification_success.hbs'
-    : '../notifications/telegram/templates/notification_warning.hbs'
+    ? '../notifications/telegram/transcoder-claim-reward-call/notification-success.hbs'
+    : '../notifications/telegram/transcoder-claim-reward-call/notification-warning.hbs'
   const fileTemplate = path.join(__dirname, filename)
   const source = fs.readFileSync(fileTemplate, 'utf8')
 
@@ -122,7 +130,7 @@ const getTelegramBody = async subscriber => {
 
 const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
   // Get telegram body
-  const { body } = await getTelegramBody(subscriber)
+  const { body } = await getTelegramBodyParams(subscriber)
 
   // Create earning
   if (createEarningOnSend) {
@@ -131,7 +139,7 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   }
 
   // Send telegram
-  await sendTelegram({
+  await sendTelegramClaimRewardCall({
     chatId: subscriber.telegramChatId,
     address: subscriber.address,
     body: body
@@ -142,4 +150,4 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramBody }
+module.exports = { sendNotificationTelegram, getTelegramBodyParams }

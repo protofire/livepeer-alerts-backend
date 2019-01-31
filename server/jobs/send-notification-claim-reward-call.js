@@ -1,14 +1,13 @@
-// Telegram bug support
 const Promise = require('bluebird')
 Promise.config({
   cancellation: true
 })
 
-const path = require('path')
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { sendNotificationEmail } = require('../helpers/sendEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegram')
+const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
+const { getSubscriptorRole } = require('../helpers/utils')
 
 // Get arguments
 const argv = require('minimist')(process.argv.slice(2))
@@ -34,13 +33,18 @@ if (!validTypes.includes(type)) {
 let exitSendNotificationJob = false
 
 const sendNotificationEmailFn = () => {
-  Subscriber.find({ frequency: frequency, activated: 1 })
+  Subscriber.find({ frequency: frequency, activated: 1, email: { $ne: null } })
     .exec()
     .then(async subscribers => {
       let emailsToSend = []
-      subscribers.forEach(subscriber => {
+      for (const subscriber of subscribers) {
+        // Send notification only for delegators
+        const { role, constants } = await getSubscriptorRole(subscriber)
+        if (role === constants.ROLE.TRANSCODER) {
+          continue
+        }
         emailsToSend.push(sendNotificationEmail(subscriber, true))
-      })
+      }
       try {
         await Promise.all(emailsToSend)
       } catch (error) {
@@ -59,9 +63,14 @@ const sendNotificationTelegramFn = () => {
     .exec()
     .then(async subscribers => {
       let telegramsMessageToSend = []
-      subscribers.forEach(subscriber => {
+      for (const subscriber of subscribers) {
+        // Send notification only for delegators
+        const { role, constants } = await getSubscriptorRole(subscriber)
+        if (role === constants.ROLE.TRANSCODER) {
+          continue
+        }
         telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
-      })
+      }
       try {
         await Promise.all(telegramsMessageToSend)
       } catch (error) {

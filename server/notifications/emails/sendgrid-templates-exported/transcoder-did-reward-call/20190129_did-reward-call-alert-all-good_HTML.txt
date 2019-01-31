@@ -150,7 +150,7 @@
     <table class="wrapper" role="module" data-type="image" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
       <tr>
         <td style="font-size:6px;line-height:10px;padding:0px 0px 0px 0px;" valign="top" align="center">
-          <img class="max-width" border="0" style="display:block;color:#000000;text-decoration:none;font-family:Helvetica, arial, sans-serif;font-size:16px;max-width:40% !important;width:40%;height:auto !important;" src="https://marketing-image-production.s3.amazonaws.com/uploads/a13f10d8cf6ae9699e22c47505d316d70135dc924e0742e2ae59f55798e62a34c2b9de9404fd74b7f046d8af90ac0097c716ed9c006443750340893f9b3aa727.png" alt="" width="240">
+          <img class="max-width" border="0" style="display:block;color:#000000;text-decoration:none;font-family:Helvetica, arial, sans-serif;font-size:16px;max-width:40% !important;width:40%;height:auto !important;" src="https://marketing-image-production.s3.amazonaws.com/uploads/cd8d663ccbe07c6497239b40ed9e36739031068027afa1bc23e3acbbf9a18da7765c33e32ab2ac9ade2e281243f09a8c02e1c3108a4b5ef43fe4ed61e539cf01.png" alt="" width="240">
         </td>
       </tr>
     </table>
@@ -177,7 +177,7 @@
             height="100%"
             valign="top"
             bgcolor="#ffffff">
-            <div style="text-align: center;"><strong><span style="font-size:28px;">Livepeer staking alert - Pay attention</span></strong></div>
+            <div style="text-align: center;"><strong><span style="font-size:28px;">Reward calling status alert - All good</span></strong></div>
         </td>
       </tr>
     </table>
@@ -188,21 +188,15 @@
             height="100%"
             valign="top"
             bgcolor="#ffffff">
-            <div style="text-align: left;"><span style="font-size:18px;">I am sorry, your transcoder </span><a href="https://explorer.livepeer.org/accounts/{{delegateAddress}}/transcoding">{{transcoderAddress}}</a><span style="font-size:18px;"> has not claimed the inflationary token reward.</span></div>
+            <div style="text-align: left;"><span style="font-size:18px;"><span style="font-family:verdana,geneva,sans-serif;"><span id="docs-internal-guid-dd511682-7fff-a79e-126e-7eca33993772" style="font-weight:normal;"><span style="color: rgb(0, 0, 0); background-color: transparent; font-weight: 400; font-style: normal; font-variant: normal; white-space: pre-wrap;">Your node has successfully made the last round’s inflationary tokens reward call.</span></span></span></span></div>
 
-<div style="text-align: left;"><span style="font-size:18px;">You've earned from inflation since {{dateYesterday}} (rounds #{{roundFrom}} - #{{roundTo}}): {{lptEarned}} LPT</span></div>
+<div style="text-align: left;">
+<div style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);">&nbsp;</div>
 
-<div style="text-align: left;">&nbsp;</div>
+<div style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-size: 18px;">Best regards</span></span></span></div>
 
-<div style="text-align: left;"><span style="font-size:18px;">Check your delegating status: {{delegatingStatusUrl}}</span></div>
-
-<div style="text-align: left;">&nbsp;</div>
-
-<div style="text-align: left;"><span style="font-size:18px;">Best regards</span></div>
-
-<div style="text-align: left;">&nbsp;</div>
-
-<div style="text-align: center;">&nbsp;</div>
+<div>&nbsp;</div>
+</div>
         </td>
       </tr>
     </table>
@@ -237,72 +231,18 @@
         </td>
       </tr>
     </table>
-  
-    <table class="module" role="module" data-type="social" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
-      <tbody>
-        <tr>
-          <td valign="top" style="padding:10px 0px 10px 0px;font-size:6px;line-height:10px;background-color:#f6f9f9;">
-            <table align="center">
-              <tbody>
-                <tr>
-                  <td style="padding: 0px 5px;">
-        <a role="social-icon-link"  href="https://www.facebook.com/livepeer/" target="_blank" alt="Facebook"
-          data-nolink="false"
-          title="Facebook "
-          style="-webkit-border-radius:30px;-moz-border-radius:30px;border-radius:30px;display:inline-block;background-color:rgb(26, 134, 155);">
-          <img role="social-icon" alt="Facebook" title="Facebook "
-            height="37"
-            width="37"
-            style="height: 37px, width: 37px"
-            src="https://marketing-image-production.s3.amazonaws.com/social/white/facebook.png" />
-        </a>
-      </td>
-                  <td style="padding: 0px 5px;">
-        <a role="social-icon-link"  href="https://twitter.com/livepeerorg" target="_blank" alt="Twitter"
-          data-nolink="false"
-          title="Twitter "
-          style="-webkit-border-radius:30px;-moz-border-radius:30px;border-radius:30px;display:inline-block;background-color:rgb(26, 134, 155);">
-          <img role="social-icon" alt="Twitter" title="Twitter "
-            height="37"
-            width="37"
-            style="height: 37px, width: 37px"
-            src="https://marketing-image-production.s3.amazonaws.com/social/white/twitter.png" />
-        </a>
-      </td>
-                  <td style="padding: 0px 5px;">
-        <a role="social-icon-link"  href="https://www.instagram.com/livepeer.tv/" target="_blank" alt="Instagram"
-          data-nolink="false"
-          title="Instagram "
-          style="-webkit-border-radius:30px;-moz-border-radius:30px;border-radius:30px;display:inline-block;background-color:rgb(26, 134, 155);">
-          <img role="social-icon" alt="Instagram" title="Instagram "
-            height="37"
-            width="37"
-            style="height: 37px, width: 37px"
-            src="https://marketing-image-production.s3.amazonaws.com/social/white/instagram.png" />
-        </a>
-      </td>
-                  
-                  
-                  <td style="padding: 0px 5px;">
-        <a role="social-icon-link"  href="https://www.linkedin.com/company/livepeer/" target="_blank" alt="LinkedIn"
-          data-nolink="false"
-          title="LinkedIn "
-          style="-webkit-border-radius:30px;-moz-border-radius:30px;border-radius:30px;display:inline-block;background-color:rgb(26, 134, 155);">
-          <img role="social-icon" alt="LinkedIn" title="LinkedIn "
-            height="37"
-            width="37"
-            style="height: 37px, width: 37px"
-            src="https://marketing-image-production.s3.amazonaws.com/social/white/linkedin.png" />
-        </a>
-      </td>
-                </tr>
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      </tbody>
+  <div data-role="module-unsubscribe" class="module unsubscribe-css__unsubscribe___2CDlR" role="module" data-type="unsubscribe" style="background-color:#b9bbbb;color:#ffffff;font-size:12px;line-height:30px;padding:16px 16px 16px 16px;text-align:center"><p style="font-family:[Sender_Name];font-size:12px;line-height:30px"><a class="Unsubscribe--unsubscribeLink" href="{{unsubscribeEmailUrl}}" style="color:#1a869b">Unsubscribe</a></p></div>
+    <table class="module" role="module" data-type="text" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+      <tr>
+        <td style="padding:18px 0px 18px 0px;line-height:22px;text-align:inherit;"
+            height="100%"
+            valign="top"
+            bgcolor="">
+            <div style="text-align: right;"><a href="https://protofire.io/" style="background-color: rgb(185, 187, 187); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 14px; color: rgb(26, 134, 155); text-align: right;">Built by Protofire</a>&nbsp;<span style="color: rgb(36, 41, 46); font-family: verdana, geneva, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: right; background-color: rgb(185, 187, 187);">&nbsp;</span></div>
+        </td>
+      </tr>
     </table>
-  <div data-role="module-unsubscribe" class="module unsubscribe-css__unsubscribe___2CDlR" role="module" data-type="unsubscribe" style="background-color:#b9bbbb;color:#ffffff;font-size:12px;line-height:30px;padding:16px 16px 16px 16px;text-align:center"><p style="font-family:[Sender_Name];font-size:12px;line-height:30px"><a class="Unsubscribe--unsubscribeLink" href="{{frontendUrl}}" style="color:#1a869b">Unsubscribe</a></p></div>
+  
                               </td>
                             </tr>
                           </table>

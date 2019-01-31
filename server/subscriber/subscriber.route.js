@@ -1,51 +1,62 @@
 const express = require('express')
 const validate = require('express-validation')
 const paramValidation = require('../../config/param-validation')
-const subscriberController = require('./subscriber.controller')
+const {
+  list,
+  create,
+  activate,
+  summary,
+  get,
+  getByAddress,
+  update,
+  loadByAddress,
+  loadBySubscriberId,
+  remove
+} = require('./subscriber.controller')
 
 const router = express.Router() // eslint-disable-line new-cap
 
 router
   .route('/')
   /** GET /api/subscribers - Get list of subscribers */
-  .get(subscriberController.list)
+  .get(list)
 
   /** POST /api/subscribers - Create new subscriber */
-  .post(validate(paramValidation.createSubscriber), subscriberController.create)
+  .post(validate(paramValidation.createSubscriber), create)
 
 router
   .route('/activate')
 
   /** POST /api/subscribers/activate - Activate new subscriber */
-  .post(validate(paramValidation.activateSubscriber), subscriberController.activate)
+  .post(validate(paramValidation.activateSubscriber), activate)
 
 router
   .route('/summary/:addressWithoutSubscriber')
 
   /** GET /api/subscribers/summary/:address - Get summary by address */
-  .get(validate(paramValidation.getSummary), subscriberController.summary)
+  .get(validate(paramValidation.getSummary), summary)
 
 router
   .route('/address/:address')
 
   /** GET /api/subscribers/address/:address - Get subscriber by address */
-  .get(validate(paramValidation.getByAddress), subscriberController.getByAddress)
+  .get(validate(paramValidation.getByAddress), getByAddress)
 
 router
   .route('/:subscriberId')
   /** GET /api/subscribers/:subscriberId - Get subscriber */
-  .get(validate(paramValidation.getSubscriber), subscriberController.get)
+  .get(validate(paramValidation.getSubscriber), get)
 
   /** PUT /api/subscribers/:subscriberId - Update subscriber */
-  .put(validate(paramValidation.updateSubscriber), subscriberController.update)
+  .put(validate(paramValidation.updateSubscriber), update)
 
   /** DELETE /api/subscribers/:subscriberId - Delete subscriber */
-  .delete(subscriberController.remove)
+  .delete(validate(paramValidation.deleteSubscriber), remove)
 
 /** Load subscriber when API with subscriberId route parameter is hit */
-router.param('subscriberId', subscriberController.loadBySubscriberId)
+router.param('subscriberId', loadBySubscriberId)
 
 /** Load subscriber when API with address route parameter is hit */
-router.param('address', subscriberController.loadByAddress)
+router.param('address', loadByAddress)
 
 module.exports = router

@@ -3,6 +3,7 @@ const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
 const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
+const promiseRetry = require('promise-retry')
 const {
   NotSubscribedError,
   AlreadySubscribedError,
@@ -99,10 +100,13 @@ const subscriptionSave = async data => {
 
   const { address, chatId } = data
 
-  const { getLivepeerDelegatorAccount } = require('./livepeerAPI')
-  const delegatorAccount = await getLivepeerDelegatorAccount(address)
+  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+  const [delegatorAccount, constants] = await Promise.all([
+    getLivepeerDelegatorAccount(address),
+    getLivepeerDefaultConstants()
+  ])
 
-  if (delegatorAccount && delegatorAccount.status !== 'Bonded') {
+  if (delegatorAccount && delegatorAccount.status !== constants.DELEGATOR_STATUS.Bonded) {
     throw new StatusMustBeBondedError({ status: delegatorAccount.status })
   }
 
@@ -112,25 +116,31 @@ const subscriptionSave = async data => {
     frequency: 'daily',
     telegramChatId: chatId
   })
-  await subscriber.save()
+  const subscriberCreated = await subscriber.save()
 
   // Save earning
   const Earning = require('../earning/earning.model')
-  const earningCreated = await Earning.save(subscriber)
+  const earningCreated = await Earning.save({
+    address: address
+  })
 
-  console.log(`Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`)
+  console.log(
+    `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
+  )
 
-  return earningCreated
+  return subscriberCreated
 }
 
 // Check for existing subscription user
 const subscriptionExist = async data => {
   const { address, chatId } = data
-  if (!address || !chatId) {
+  if (!chatId) {
     return false
   }
-  const count = await Subscriber.countDocuments({ address: address, telegramChatId: chatId })
-  console.log(`Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`)
+  const count = await Subscriber.countDocuments({ telegramChatId: chatId })
+  console.log(
+    `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
+  )
   return count
 }
 
@@ -142,7 +152,9 @@ const subscriptionRemove = async data => {
     throw new NotSubscribedError()
   }
   const subscriptorRemoved = await subscriber.remove()
-  console.log(`Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`)
+  console.log(
+    `[Telegram bot] - Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`
+  )
   return subscriptorRemoved
 }
 
@@ -153,7 +165,7 @@ const subscriptionFind = async data => {
   if (!subscriber) {
     throw new NotSubscribedError()
   }
-  console.log(`Subscriptor found - Address ${address} - ChatId: ${chatId}`)
+  console.log(`[Telegram bot] - Subscriptor found - Address ${address} - ChatId: ${chatId}`)
   return subscriber
 }
 
@@ -179,7 +191,7 @@ const getButtonsBySubscriptor = async subscriptor => {
 
 const formatPercentage = (x, decimals) => {
   return !x
-    ? ''
+    ? '0'
     : Big(x)
         .div('10000')
         .toFixed(decimals)
@@ -190,7 +202,7 @@ const formatPercentage = (x, decimals) => {
 const formatBalance = (x, decimals = 0, unit = 'ether') => {
   decimals = decimals ? decimals : unitMap[unit].length
   return !x
-    ? ''
+    ? '0'
     : Big(x)
         .div(unitMap[unit])
         .toFixed(decimals)
@@ -240,6 +252,32 @@ const getEarningParams = async data => {
   return { roundFrom, roundTo, earningFromRound, earningToRound }
 }
 
+const getSubscriptorRole = async subscriptor => {
+  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+
+  let [constants, delegator] = await promiseRetry(retry => {
+    return Promise.all([
+      getLivepeerDefaultConstants(),
+      getLivepeerDelegatorAccount(subscriptor.address)
+    ]).catch(err => retry())
+  })
+
+  // Detect role
+  const role =
+    delegator &&
+    delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+    delegator.delegateAddress &&
+    delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+      ? constants.ROLE.TRANSCODER
+      : constants.ROLE.DELEGATOR
+
+  return {
+    role,
+    constants,
+    delegator
+  }
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -254,5 +292,7 @@ module.exports = {
   fromBaseUnit,
   toBaseUnit,
   formatBalance,
-  getEarningParams
+  formatPercentage,
+  getEarningParams,
+  getSubscriptorRole
 }
