@@ -81,7 +81,7 @@ const config = {
   port: envVars.PORT,
   mongooseDebug: envVars.MONGOOSE_DEBUG,
   mongo: {
-    host: `${envVars.MONGO_HOST}${envVars.MONGO_DATABASE}`,
+    host: `${envVars.MONGO_HOST}`,
     database: envVars.MONGO_DATABASE,
     port: envVars.MONGO_PORT
   },
