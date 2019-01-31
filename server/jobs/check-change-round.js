@@ -39,7 +39,7 @@ const checkChangeRound = async () => {
 
   console.log(`[CheckChangeRound] - Actual round ${id}`)
 
-  if (actualSavedRound.roundId !== id) {
+  if (actualSavedRound.roundId !== id && initialized) {
     // Update fields
     actualSavedRound.roundId = id
     actualSavedRound.initialized = initialized
