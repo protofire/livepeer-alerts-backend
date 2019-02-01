@@ -40,6 +40,16 @@ const getLivepeerCurrentRoundInfo = async () => {
   return await rpc.getCurrentRoundInfo()
 }
 
+const getLivepeerRoundLength = async () => {
+  const { rpc } = await LivepeerSDK.default()
+  return await rpc.getRoundLength()
+}
+
+const getLivepeerRoundsPerYear = async () => {
+  const { rpc } = await LivepeerSDK.default()
+  return await rpc.getRoundsPerYear()
+}
+
 const getLivepeerDelegatorTokenBalance = async address => {
   if (!address) {
     return null
@@ -79,6 +89,35 @@ const getLivepeerDefaultConstants = async () => {
   }
 }
 
+const getLivepeerLatestBlock = async () => {
+  const { rpc } = await LivepeerSDK.default()
+  return await rpc.getBlock('latest')
+}
+
+const getLivepeerRoundProgress = async () => {
+  const [currentRoundInfo, roundLength, latestBlock] = await Promise.all([
+    getLivepeerCurrentRoundInfo(),
+    getLivepeerRoundLength(),
+    getLivepeerLatestBlock()
+  ])
+
+  const { id, startBlock, length, initialized } = currentRoundInfo
+  const { number } = latestBlock
+  const nextRoundStartBlock = MathBN.add(startBlock, length)
+
+  const nextRoundNum = MathBN.add(id, '1')
+  const blocksUntilNextRound = MathBN.sub(nextRoundStartBlock - number)
+
+  return {
+    isInitialized: initialized,
+    blocksUntilNextRound: blocksUntilNextRound,
+    nextRoundStartBlock: nextRoundStartBlock,
+    roundLength: roundLength,
+    nextRoundNum: nextRoundNum,
+    progress: length > 0 ? (blocksUntilNextRound * 100) / length : 0
+  }
+}
+
 module.exports = {
   getLivepeerTranscoders,
   getLivepeerDelegatorAccount,
@@ -88,5 +127,9 @@ module.exports = {
   getLivepeerDelegatorStake,
   getLivepeerCurrentRoundInfo,
   getLivepeerLastInitializedRound,
-  getLivepeerDefaultConstants
+  getLivepeerDefaultConstants,
+  getLivepeerRoundLength,
+  getLivepeerRoundsPerYear,
+  getLivepeerLatestBlock,
+  getLivepeerRoundProgress
 }
