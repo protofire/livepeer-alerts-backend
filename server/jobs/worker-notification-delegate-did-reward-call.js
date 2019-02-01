@@ -11,10 +11,10 @@ const Round = require('../round/round.model')
 const {
   sendNotificationEmailFn,
   sendNotificationTelegramFn
-} = require('./send-notification-did-reward-call')
+} = require('./delegate-did-reward-call-utils')
 
-const checkChangeRound = async () => {
-  console.log(`[CheckChangeRound] - Start`)
+const workerNotificationDelegateDidRewardCall = async () => {
+  console.log(`[Worker notification delegate did reward call] - Start`)
 
   const currentRoundInfo = await getLivepeerCurrentRoundInfo()
   let { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
@@ -37,7 +37,7 @@ const checkChangeRound = async () => {
     throw new Error(`There is no actual round`)
   }
 
-  console.log(`[CheckChangeRound] - Actual round ${id}`)
+  console.log(`[Worker notification delegate did reward call] - Actual round ${id}`)
 
   if (actualSavedRound.roundId !== id && initialized) {
     // Update fields
@@ -48,13 +48,15 @@ const checkChangeRound = async () => {
     actualSavedRound.startBlock = startBlock
     await actualSavedRound.save()
 
-    console.log(`[CheckChangeRound] - Round changed, send notifications`)
+    console.log(
+      `[Worker notification delegate did reward call] - Round changed, send notifications`
+    )
 
     await Promise.all([sendNotificationEmailFn(), sendNotificationTelegramFn()])
   } else {
-    console.log(`[CheckChangeRound] - No round changed`)
+    console.log(`[Worker notification delegate did reward call] - No round changed`)
   }
   process.exit(0)
 }
 
-return checkChangeRound()
+return workerNotificationDelegateDidRewardCall()
