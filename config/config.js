@@ -66,7 +66,10 @@ const envVarsSchema = Joi.object({
     .description('Mainnet controller adddress'),
   RINKEBY_CONTROLLER_ADDRESS: Joi.string()
     .required()
-    .description('Rinkeby controller address')
+    .description('Rinkeby controller address'),
+  THRESHOLD_SEND_NOTIFICATION: Joi.number()
+    .required()
+    .description('Threshold to send notification')
 })
   .unknown()
   .required()
@@ -81,7 +84,7 @@ const config = {
   port: envVars.PORT,
   mongooseDebug: envVars.MONGOOSE_DEBUG,
   mongo: {
-    host: `${envVars.MONGO_HOST}`,
+    host: `${envVars.MONGO_HOST}${envVars.MONGO_DATABASE}`,
     database: envVars.MONGO_DATABASE,
     port: envVars.MONGO_PORT
   },
@@ -101,7 +104,8 @@ const config = {
   sendgridTemplateIdDidRewardCallPayAttention:
     envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
-  rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS
+  rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
+  thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
 }
 
 module.exports = config
