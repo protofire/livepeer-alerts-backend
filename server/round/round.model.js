@@ -25,6 +25,10 @@ const RoundSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  notificationsForRoundSent: {
+    type: Boolean,
+    deafult: false
+  },
   createdAt: {
     type: Date,
     default: Date.now

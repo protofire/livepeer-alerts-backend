@@ -101,7 +101,7 @@ const getLivepeerRoundProgress = async () => {
     getLivepeerLatestBlock()
   ])
 
-  const { id, startBlock, length, initialized } = currentRoundInfo
+  const { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
   const { number } = latestBlock
   const nextRoundStartBlock = MathBN.add(startBlock, length)
 
@@ -109,7 +109,11 @@ const getLivepeerRoundProgress = async () => {
   const blocksUntilNextRound = MathBN.sub(nextRoundStartBlock - number)
 
   return {
+    roundId: id,
     isInitialized: initialized,
+    lastInitializedRound: lastInitializedRound,
+    length: length,
+    startBlock: startBlock,
     blocksUntilNextRound: blocksUntilNextRound,
     nextRoundStartBlock: nextRoundStartBlock,
     roundLength: roundLength,
