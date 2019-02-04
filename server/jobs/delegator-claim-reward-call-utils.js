@@ -26,7 +26,12 @@ const getSubscribersToSendEmails = async () => {
     emailsToSend.push(sendNotificationEmail(subscriber, true))
   }
 
-  return subscribers
+  console.log(
+    `[Worker notification delegator claim reward call] - Emails subscribers to notify ${
+      emailsToSend.length
+    }`
+  )
+  return await Promise.all(emailsToSend)
 }
 
 const getSubscribersToSendTelegrams = async () => {
@@ -46,7 +51,12 @@ const getSubscribersToSendTelegrams = async () => {
     telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
   }
 
-  return subscribers
+  console.log(
+    `[Worker notification delegator claim reward call] - Telegrams subscribers to notify ${
+      telegramsMessageToSend.length
+    }`
+  )
+  return await Promise.all(telegramsMessageToSend)
 }
 
 module.exports = {

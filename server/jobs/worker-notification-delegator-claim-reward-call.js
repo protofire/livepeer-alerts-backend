@@ -28,13 +28,13 @@ const checkProgressRound = async () => {
       `[Worker notification delegator claim reward call] - Threshold reached, sending notifications`
     )
     await Promise.all([getSubscribersToSendEmails(), getSubscribersToSendTelegrams()])
+  } else {
+    console.log(
+      `[Worker notification delegator claim reward call] - The round have a progress of ${
+        currentRoundInfo.progress
+      } %`
+    )
   }
-
-  console.log(
-    `[Worker notification delegator claim reward call] - The round have a progress of ${
-      currentRoundInfo.progress
-    } %`
-  )
   process.exit(0)
 }
 
