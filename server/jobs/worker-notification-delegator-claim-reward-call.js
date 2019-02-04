@@ -88,7 +88,7 @@ const checkProgressRound = async () => {
       `[Worker notification delegator claim reward call] - The round have a progress of ${progress} %`
     )
   } catch (err) {
-    console.log(`Error with infura`)
+    console.log(err && err.message)
   }
   process.exit(0)
 }
