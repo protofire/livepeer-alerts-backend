@@ -105,7 +105,7 @@ const config = {
     envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
-  thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
+  thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION
 }
 
 module.exports = config

@@ -71,7 +71,11 @@ const sendNotificationEmailFn = async () => {
     subscribersToSendEmails.push(sendNotificationEmail(subscriberToNotify))
   }
 
-  console.log(`[Worker notification delegate did reward call] - Emails subscribers to notify ${subscribersToSendEmails.length}`)
+  console.log(
+    `[Worker notification delegate did reward call] - Emails subscribers to notify ${
+      subscribersToSendEmails.length
+    }`
+  )
   await Promise.all(subscribersToSendEmails)
 
   return subscribersToNofity
@@ -91,7 +95,11 @@ const sendNotificationTelegramFn = async () => {
     subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
   }
 
-  console.log(`[Worker notification delegate did reward call] - Telegrams subscribers to notify ${subscribersToSendTelegrams.length}`)
+  console.log(
+    `[Worker notification delegate did reward call] - Telegrams subscribers to notify ${
+      subscribersToSendTelegrams.length
+    }`
+  )
   await Promise.all(subscribersToSendTelegrams)
 
   return subscribersToNofity
