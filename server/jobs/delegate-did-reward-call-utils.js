@@ -6,9 +6,7 @@ Promise.config({
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const {
-  getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
-  getLivepeerDefaultConstants,
   getLivepeerCurrentRoundInfo
 } = require('../helpers/livepeerAPI')
 const { getSubscriptorRole } = require('../helpers/utils')
@@ -73,7 +71,11 @@ const sendNotificationEmailFn = async () => {
     subscribersToSendEmails.push(sendNotificationEmail(subscriberToNotify))
   }
 
-  console.log(`Emails subscribers to notify ${subscribersToSendEmails.length}`)
+  console.log(
+    `[Worker notification delegate did reward call] - Emails subscribers to notify ${
+      subscribersToSendEmails.length
+    }`
+  )
   await Promise.all(subscribersToSendEmails)
 
   return subscribersToNofity
@@ -93,7 +95,11 @@ const sendNotificationTelegramFn = async () => {
     subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
   }
 
-  console.log(`Telegrams subscribers to notify ${subscribersToSendTelegrams.length}`)
+  console.log(
+    `[Worker notification delegate did reward call] - Telegrams subscribers to notify ${
+      subscribersToSendTelegrams.length
+    }`
+  )
   await Promise.all(subscribersToSendTelegrams)
 
   return subscribersToNofity
