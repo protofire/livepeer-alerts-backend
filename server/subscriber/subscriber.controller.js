@@ -10,7 +10,12 @@ const {
   getLivepeerCurrentRoundInfo,
   getLivepeerDefaultConstants
 } = require('../helpers/livepeerAPI')
-const { fromBaseUnit, formatPercentage, MathBN } = require('../helpers/utils')
+const {
+  fromBaseUnit,
+  formatPercentage,
+  MathBN,
+  getDelegatorRoundsUntilUnbonded
+} = require('../helpers/utils')
 const promiseRetry = require('promise-retry')
 
 /**
@@ -268,10 +273,11 @@ const summary = async (req, res, next) => {
         delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
 
         // Calculate rounds until bonded
-        const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
-        delegator.roundsUntilUnbonded = isUnbonding
-          ? MathBN.sub(delegator.withdrawRound, currentRoundInfo.lastInitializedRound)
-          : 0
+        delegator.roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+          delegator,
+          constants,
+          currentRoundInfo
+        })
 
         data.delegator = delegator
         break

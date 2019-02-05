@@ -278,6 +278,14 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
+const getDelegatorRoundsUntilUnbonded = data => {
+  const { delegator, constants, currentRoundInfo } = data
+  const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
+  return isUnbonding
+    ? MathBN.sub(delegator.withdrawRound, currentRoundInfo.lastInitializedRound)
+    : 0
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -294,5 +302,6 @@ module.exports = {
   formatBalance,
   formatPercentage,
   getEarningParams,
-  getSubscriptorRole
+  getSubscriptorRole,
+  getDelegatorRoundsUntilUnbonded
 }
