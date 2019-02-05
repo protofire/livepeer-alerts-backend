@@ -83,7 +83,7 @@ SubscriberSchema.statics = {
    * @returns {Promise<Subscriber, APIError>}
    */
   getByAddress(address) {
-    return this.findOne({ address: address })
+    return this.findOne({ address: { $regex: address, $options: 'i' } })
       .exec()
       .then(subscriber => {
         if (subscriber) {
