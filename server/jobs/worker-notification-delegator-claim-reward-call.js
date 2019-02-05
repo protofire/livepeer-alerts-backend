@@ -48,16 +48,11 @@ const checkProgressRound = async () => {
       throw new Error(`There is no actual round`)
     }
 
+    const notificationsForRoundSent = !!actualSavedRound.notificationsForRoundSent
     console.log(
-      `[Worker notification delegator claim reward call] - Check lock ${
-        actualSavedRound.notificationsForRoundSent
-      }`
+      `[Worker notification delegator claim reward call] - Check lock ${notificationsForRoundSent}`
     )
-    if (
-      progress < thresholdSendNotification &&
-      actualSavedRound &&
-      !actualSavedRound.notificationsForRoundSent
-    ) {
+    if (progress < thresholdSendNotification && actualSavedRound && !notificationsForRoundSent) {
       console.log(
         `[Worker notification delegator claim reward call] - Threshold reached, sending notifications`
       )
@@ -90,6 +85,7 @@ const checkProgressRound = async () => {
   } catch (err) {
     console.log(err && err.message)
   }
+  console.log(`[Worker notification delegator claim reward call] - Finish`)
   process.exit(0)
 }
 
