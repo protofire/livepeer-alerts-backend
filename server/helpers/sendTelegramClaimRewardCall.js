@@ -73,7 +73,7 @@ const getTelegramBodyParams = async subscriber => {
   console.log(`[Telegram bot] - Current round ${JSON.stringify(currentRoundObject)}`)
 
   if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
-    throw new NoAlertToSendError({ status: delegatorAccount.status })
+    return
   }
 
   const currentRound = currentRoundObject.id
@@ -130,7 +130,13 @@ const getTelegramBodyParams = async subscriber => {
 
 const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
   // Get telegram body
-  const { body } = await getTelegramBodyParams(subscriber)
+  const data = await getTelegramBodyParams(subscriber)
+
+  if (!data) {
+    return
+  }
+
+  const { body } = data
 
   // Create earning
   if (createEarningOnSend) {
