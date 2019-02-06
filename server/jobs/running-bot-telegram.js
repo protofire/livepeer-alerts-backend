@@ -8,8 +8,8 @@ const promiseRetry = require('promise-retry')
 const path = require('path')
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getTelegramBodyParams } = require('../helpers/sendTelegramClaimRewardCall')
-const { getTelegramClaimRewardCallBody } = require('../helpers/sendTelegramDidRewardCall')
+const { getTelegramClaimRewardCallBody } = require('../helpers/sendTelegramClaimRewardCall')
+const { getTelegramDidRewardCallBody } = require('../helpers/sendTelegramDidRewardCall')
 const {
   subscribe,
   unsubscribe,
@@ -50,7 +50,7 @@ const getBodyBySubscriber = async subscriptor => {
 
   let data
   if (role === constants.ROLE.TRANSCODER) {
-    // OK, is a transcoder, let's send notifications
+    // OK, is a delegate, let's send notifications
 
     // Get transcoder with promise retry, because infura
     let [transcoderAccount, currentRoundInfo] = await promiseRetry(retry => {
@@ -64,10 +64,10 @@ const getBodyBySubscriber = async subscriptor => {
     let delegateCalledReward =
       transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
 
-    data = await getTelegramClaimRewardCallBody({ delegateCalledReward })
+    data = await getTelegramDidRewardCallBody({ delegateCalledReward })
   } else {
     // OK, is a delegator, let's send notifications
-    data = await getTelegramBodyParams(subscriptor)
+    data = await getTelegramClaimRewardCallBody(subscriptor)
   }
 
   return data && data.body

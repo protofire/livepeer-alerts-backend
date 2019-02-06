@@ -16,13 +16,15 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRoundInfo,
+  getLivepeerCurrentRound,
   getLivepeerDefaultConstants
 } = require('./livepeerAPI')
 const {
   getButtonsBySubscriptor,
   truncateStringInTheMiddle,
   getEarningParams,
-  formatBalance
+  formatBalance,
+  getDelegatorRoundsUntilUnbonded
 } = require('./utils')
 
 const sendTelegramClaimRewardCall = async data => {
@@ -51,86 +53,111 @@ const sendTelegramClaimRewardCall = async data => {
   return
 }
 
-const getTelegramBodyParams = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRoundObject, constants
-  await promiseRetry(async retry => {
-    // Get delegator Account
-    try {
-      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      constants = await getLivepeerDefaultConstants()
-
-      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
-        // Get transcoder account
-        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-        currentRoundObject = await getLivepeerCurrentRoundInfo()
-      }
-    } catch (err) {
-      retry()
-    }
+const getTelegramClaimRewardCallBody = async subscriber => {
+  let [delegator, constants] = await promiseRetry(async retry => {
+    return Promise.all([
+      getLivepeerDelegatorAccount(subscriber.address),
+      getLivepeerDefaultConstants()
+    ]).catch(err => retry())
   })
-  console.log(`[Telegram bot] - Delegator account ${JSON.stringify(delegatorAccount)}`)
-  console.log(`[Telegram bot] - Transcoder account ${JSON.stringify(transcoderAccount)}`)
-  console.log(`[Telegram bot] - Current round ${JSON.stringify(currentRoundObject)}`)
 
-  if (!delegatorAccount || !transcoderAccount || !currentRoundObject) {
-    return
+  let body = {}
+  switch (delegator.status) {
+    case constants.DELEGATOR_STATUS.Bonded:
+      // Check call reward
+      let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
+        return Promise.all([
+          getLivepeerTranscoderAccount(delegator.delegateAddress),
+          getLivepeerCurrentRound()
+        ]).catch(err => retry())
+      })
+
+      // Check if call reward
+      const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
+      // Open template file
+      const filenameBonded = callReward
+        ? '../notifications/telegram/delegate-claim-reward-call/notification-success.hbs'
+        : '../notifications/telegram/delegate-claim-reward-call/notification-warning.hbs'
+      const fileTemplateBonded = path.join(__dirname, filenameBonded)
+      const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
+
+      const { roundFrom, roundTo, earningFromRound, earningToRound } = await getEarningParams({
+        transcoderAccount,
+        currentRound,
+        subscriber
+      })
+
+      // Calculate earned lpt
+      const lptEarned = formatBalance(earningToRound, 2)
+
+      const dateYesterday = moment()
+        .subtract(1, 'days')
+        .startOf('day')
+        .format('dddd DD, YYYY hh:mm A')
+
+      const { delegateAddress, totalStake } = delegator
+
+      // Create telegram generator
+      const templateBonded = Handlebars.compile(sourceBonded)
+      body = templateBonded({
+        transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
+        transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+        dateYesterday: dateYesterday,
+        roundFrom: roundFrom,
+        roundTo: roundTo,
+        lptEarned: lptEarned,
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
+          subscriber.address
+        }/delegating`
+      })
+      break
+    case constants.DELEGATOR_STATUS.Unbonded:
+      // Open template file
+      const filenameUnbonded =
+        '../notifications/telegram/delegate-claim-reward-call/notification-state-unbonded.hbs'
+      const fileTemplateUnbonded = path.join(__dirname, filenameUnbonded)
+      const sourceUnbonded = fs.readFileSync(fileTemplateUnbonded, 'utf8')
+
+      // Create telegram generator
+      const templateUnbonded = Handlebars.compile(sourceUnbonded)
+      body = templateUnbonded()
+      break
+
+    case constants.DELEGATOR_STATUS.Unbonding:
+      // Open template file
+      const filenameUnbonding =
+        '../notifications/telegram/delegate-claim-reward-call/notification-state-unbonding.hbs'
+      const fileTemplateUnbonding = path.join(__dirname, filenameUnbonding)
+      const sourceUnbonding = fs.readFileSync(fileTemplateUnbonding, 'utf8')
+
+      // Create telegram generator
+      const templateUnbonding = Handlebars.compile(sourceUnbonding)
+      const [currentRoundInfo] = await promiseRetry(retry => {
+        return Promise.all([getLivepeerCurrentRoundInfo()]).catch(err => retry())
+      })
+
+      const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+        delegator,
+        constants,
+        currentRoundInfo
+      })
+
+      body = templateUnbonding({
+        roundsUntilUnbonded
+      })
+      break
+    default:
+      return
   }
 
-  const currentRound = currentRoundObject.id
-  const { roundFrom, roundTo, earningFromRound, earningToRound } = await getEarningParams({
-    transcoderAccount,
-    currentRound,
-    subscriber
-  })
-
-  // Check if call reward
-  const callReward = transcoderAccount.lastRewardRound === currentRound
-
-  // Calculate earned lpt
-  const lptEarned = formatBalance(earningToRound, 2)
-
-  const dateYesterday = moment()
-    .subtract(1, 'days')
-    .startOf('day')
-    .format('dddd DD, YYYY hh:mm A')
-
-  // Open template file
-  const filename = callReward
-    ? '../notifications/telegram/transcoder-claim-reward-call/notification-success.hbs'
-    : '../notifications/telegram/transcoder-claim-reward-call/notification-warning.hbs'
-  const fileTemplate = path.join(__dirname, filename)
-  const source = fs.readFileSync(fileTemplate, 'utf8')
-
-  const { delegateAddress, totalStake } = delegatorAccount
-
-  // Create telegram generator
-  const template = Handlebars.compile(source)
-  const body = template({
-    transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
-    transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-    dateYesterday: dateYesterday,
-    roundFrom: roundFrom,
-    roundTo: roundTo,
-    lptEarned: lptEarned,
-    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
-  })
-
   return {
-    dateYesterday,
-    lptEarned,
-    roundFrom,
-    roundTo,
-    callReward,
-    totalStake,
-    currentRound,
-    body,
-    delegateAddress
+    body
   }
 }
 
 const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
   // Get telegram body
-  const data = await getTelegramBodyParams(subscriber)
+  const data = await getTelegramClaimRewardCallBody(subscriber)
 
   if (!data) {
     return
@@ -156,4 +183,4 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramBodyParams }
+module.exports = { sendNotificationTelegram, getTelegramClaimRewardCallBody }

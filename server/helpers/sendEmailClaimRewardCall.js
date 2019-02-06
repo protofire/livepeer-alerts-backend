@@ -8,9 +8,15 @@ const {
   getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRound,
-  getLivepeerDefaultConstants
+  getLivepeerDefaultConstants,
+  getLivepeerCurrentRoundInfo
 } = require('./livepeerAPI')
-const { truncateStringInTheMiddle, getEarningParams, formatBalance } = require('./utils')
+const {
+  truncateStringInTheMiddle,
+  getEarningParams,
+  formatBalance,
+  getDelegatorRoundsUntilUnbonded
+} = require('./utils')
 
 const {
   sendgridAPIKEY,
@@ -19,7 +25,9 @@ const {
   bccEmail,
   unsubscribeEmailUrl,
   sendgridTemplateIdClaimRewardCallAllGood,
-  sendgridTemplateIdClaimRewardCallPayAttention
+  sendgridTemplateIdClaimRewardCallPayAttention,
+  sendgridTemplateIdClaimRewardUnbondedState,
+  sendgridTemplateIdClaimRewardUnbondingState
 } = config
 
 const sendEmailClaimRewardCall = async data => {
@@ -32,7 +40,8 @@ const sendEmailClaimRewardCall = async data => {
     roundTo,
     lptEarned,
     delegatingStatusUrl,
-    delegateAddress
+    delegateAddress,
+    roundsUntilUnbonded
   } = data
 
   sgMail.setApiKey(sendgridAPIKEY)
@@ -54,7 +63,8 @@ const sendEmailClaimRewardCall = async data => {
       roundTo: roundTo,
       lptEarned: lptEarned,
       delegatingStatusUrl: delegatingStatusUrl,
-      unsubscribeEmailUrl: unsubscribeEmailUrl
+      unsubscribeEmailUrl: unsubscribeEmailUrl,
+      roundsUntilUnbonded: roundsUntilUnbonded
     }
   }
 
@@ -69,100 +79,105 @@ const sendEmailClaimRewardCall = async data => {
   return
 }
 
-const getEmailBodyParams = async subscriber => {
-  let delegatorAccount, transcoderAccount, currentRound, constants
-  await promiseRetry(async retry => {
-    // Get delegator Account
-    try {
-      delegatorAccount = await getLivepeerDelegatorAccount(subscriber.address)
-      constants = await getLivepeerDefaultConstants()
-      if (delegatorAccount && delegatorAccount.status == constants.DELEGATOR_STATUS.Bonded) {
-        // Get transcoder account
-        transcoderAccount = await getLivepeerTranscoderAccount(delegatorAccount.delegateAddress)
-        currentRound = await getLivepeerCurrentRound()
-      }
-    } catch (err) {
-      retry()
-    }
-  })
-  if (!delegatorAccount || !transcoderAccount || !currentRound) {
-    throw new Error('There is no email to send')
-  }
-
-  // Check if call reward
-  const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
-
-  const { roundFrom, roundTo, earningToRound, earningFromRound } = await getEarningParams({
-    transcoderAccount,
-    currentRound,
-    subscriber
-  })
-
-  // Calculate lpt earned tokens
-  const lptEarned = formatBalance(earningToRound, 2)
-
-  const dateYesterday = moment()
-    .subtract(1, 'days')
-    .startOf('day')
-    .format('dddd DD, YYYY hh:mm A')
-
-  // Open template file
-  const { delegateAddress, totalStake } = delegatorAccount
-
-  return {
-    callReward,
-    totalStake,
-    currentRound,
-    transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-    dateYesterday,
-    roundFrom,
-    roundTo,
-    lptEarned,
-    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
-    delegateAddress
-  }
-}
-
 const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
   try {
-    // Get email body
-    const {
-      callReward,
-      transcoderAddressUrl,
-      transcoderAddress,
-      dateYesterday,
-      roundFrom,
-      roundTo,
-      lptEarned,
-      delegatingStatusUrl,
-      delegateAddress
-    } = await getEmailBodyParams(subscriber)
+    let [delegator, constants] = await promiseRetry(async retry => {
+      return Promise.all([
+        getLivepeerDelegatorAccount(subscriber.address),
+        getLivepeerDefaultConstants()
+      ]).catch(err => retry())
+    })
 
-    const templateId = callReward
-      ? sendgridTemplateIdClaimRewardCallAllGood
-      : sendgridTemplateIdClaimRewardCallPayAttention
-    // Create earning
+    let templateId
+    let body = {}
+
+    switch (delegator.status) {
+      case constants.DELEGATOR_STATUS.Bonded:
+        // Check call reward
+        let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
+          return Promise.all([
+            getLivepeerTranscoderAccount(delegator.delegateAddress),
+            getLivepeerCurrentRound()
+          ]).catch(err => retry())
+        })
+
+        const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
+
+        // Select template based on call reward
+        templateId = callReward
+          ? sendgridTemplateIdClaimRewardCallAllGood
+          : sendgridTemplateIdClaimRewardCallPayAttention
+
+        const { roundFrom, roundTo, earningToRound } = await getEarningParams({
+          transcoderAccount,
+          currentRound,
+          subscriber
+        })
+
+        // Calculate lpt earned tokens
+        const lptEarned = formatBalance(earningToRound, 2)
+
+        const dateYesterday = moment()
+          .subtract(1, 'days')
+          .startOf('day')
+          .format('dddd DD, YYYY hh:mm A')
+
+        const { delegateAddress, totalStake } = delegator
+
+        // Generate params for body
+        body = {
+          callReward,
+          totalStake,
+          currentRound,
+          transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+          dateYesterday,
+          roundFrom,
+          roundTo,
+          lptEarned,
+          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
+            subscriber.address
+          }/delegating`,
+          delegateAddress
+        }
+        break
+
+      case constants.DELEGATOR_STATUS.Unbonded:
+        templateId = sendgridTemplateIdClaimRewardUnbondedState
+        break
+
+      case constants.DELEGATOR_STATUS.Unbonding:
+        templateId = sendgridTemplateIdClaimRewardUnbondingState
+
+        const [currentRoundInfo] = await promiseRetry(retry => {
+          return Promise.all([getLivepeerCurrentRoundInfo()]).catch(err => retry())
+        })
+
+        const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+          delegator,
+          constants,
+          currentRoundInfo
+        })
+
+        // Generate params for body
+        body = {
+          roundsUntilUnbonded
+        }
+
+        break
+      default:
+        return
+    }
+
     if (createEarningOnSend) {
       await Earning.save(subscriber)
     }
 
-    // Send email
-    const data = {
-      email: subscriber.email,
-      templateId,
-      transcoderAddressUrl,
-      transcoderAddress,
-      dateYesterday,
-      roundFrom,
-      roundTo,
-      lptEarned,
-      delegatingStatusUrl,
-      delegateAddress
-    }
+    body.email = subscriber.email
+    body.templateId = templateId
 
-    await sendEmailClaimRewardCall(data)
+    await sendEmailClaimRewardCall(body)
 
-    // Save last email sent
+    // // Save last email sent
     subscriber.lastEmailSent = Date.now()
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {

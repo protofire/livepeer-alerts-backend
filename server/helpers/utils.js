@@ -106,10 +106,6 @@ const subscriptionSave = async data => {
     getLivepeerDefaultConstants()
   ])
 
-  if (delegatorAccount && delegatorAccount.status !== constants.DELEGATOR_STATUS.Bonded) {
-    throw new StatusMustBeBondedError({ status: delegatorAccount.status })
-  }
-
   // Create new subscriber on button press
   let subscriber = new Subscriber({
     address: address,
@@ -278,6 +274,14 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
+const getDelegatorRoundsUntilUnbonded = data => {
+  const { delegator, constants, currentRoundInfo } = data
+  const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
+  return isUnbonding
+    ? MathBN.sub(delegator.withdrawRound, currentRoundInfo.lastInitializedRound)
+    : 0
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -294,5 +298,6 @@ module.exports = {
   formatBalance,
   formatPercentage,
   getEarningParams,
-  getSubscriptorRole
+  getSubscriptorRole,
+  getDelegatorRoundsUntilUnbonded
 }

@@ -177,7 +177,7 @@
             height="100%"
             valign="top"
             bgcolor="#ffffff">
-            <div style="text-align: center;"><strong><span style="font-size:28px;">Livepeer staking alert - Pay attention</span></strong></div>
+            <div style="text-align: center;"><strong><span style="font-size:28px;">You are currently in the Unbonding state</span></strong></div>
         </td>
       </tr>
     </table>
@@ -188,19 +188,16 @@
             height="100%"
             valign="top"
             bgcolor="#ffffff">
-            <div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size:18px;">I am sorry, your delegate&nbsp;</span></span><a href="https://explorer.livepeer.org/accounts/{{delegateAddress}}/transcoding"><span style="color:#000000;">{{transcoderAddress}}</span></a><span style="color:#000000;"><span style="font-size:18px;"> has not claimed the inflationary token reward.</span></span></span></div>
+            <div style="text-align: left;"><span style="color: rgb(51, 51, 51); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: center;">You still have {{roundsUntilUnbonded}} round(s) left in the unbonding period. Each round lasts roughly one day.</span></div>
 
-<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size:18px;">You've earned from inflation since {{dateYesterday}} (rounds #{{roundFrom}} - #{{roundTo}}): {{lptEarned}} LPT</span></span></span></div>
+<div style="text-align: left;">
+<div style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);">&nbsp;</div>
 
-<div style="text-align: left;">&nbsp;</div>
+<div style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-size: 18px;">Best regards</span></span></span></div>
 
-<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size:18px;">Check your delegating status: {{delegatingStatusUrl}}</span></span></span></div>
+<div>&nbsp;</div>
+</div>
 
-<div style="text-align: left;">&nbsp;</div>
-
-<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size:18px;">Best regards</span></span></span></div>
-
-<div style="text-align: left;">&nbsp;</div>
         </td>
       </tr>
     </table>
@@ -242,7 +239,7 @@
             height="100%"
             valign="top"
             bgcolor="">
-            <div style="text-align: right;"><span style="font-size:14px;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color: rgb(36, 41, 46); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400;"><a href="https://protofire.io/" style="color:#1a869b">Built by Protofire</a>&nbsp;&nbsp;</span></span></span></div>
+            <div style="text-align: right;"><a href="https://protofire.io/" style="background-color: rgb(185, 187, 187); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 14px; color: rgb(26, 134, 155); text-align: right;">Built by Protofire</a>&nbsp;<span style="color: rgb(36, 41, 46); font-family: verdana, geneva, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: right; background-color: rgb(185, 187, 187);">&nbsp;</span></div>
         </td>
       </tr>
     </table>

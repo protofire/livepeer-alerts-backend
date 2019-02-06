@@ -61,6 +61,12 @@ const envVarsSchema = Joi.object({
   SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION: Joi.string()
     .required()
     .description('Sendgrid template id for did reward call pay attention notification'),
+  SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDING_STATE: Joi.string()
+    .required()
+    .description('Sendgrid template id for notification related to the unbonding state'),
+  SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDED_STATE: Joi.string()
+    .required()
+    .description('Sendgrid template id for notification related to the unbonded state'),
   MAINNET_CONTROLLER_ADDRESS: Joi.string()
     .required()
     .description('Mainnet controller adddress'),
@@ -103,6 +109,10 @@ const config = {
   sendgridTemplateIdDidRewardCallAllGood: envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_ALL_GOOD,
   sendgridTemplateIdDidRewardCallPayAttention:
     envVars.SENDGRID_TEMPLATE_ID_DID_REWARD_CALL_PAY_ATTENTION,
+  sendgridTemplateIdClaimRewardUnbondingState:
+    envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDING_STATE,
+  sendgridTemplateIdClaimRewardUnbondedState:
+    envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDED_STATE,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION
