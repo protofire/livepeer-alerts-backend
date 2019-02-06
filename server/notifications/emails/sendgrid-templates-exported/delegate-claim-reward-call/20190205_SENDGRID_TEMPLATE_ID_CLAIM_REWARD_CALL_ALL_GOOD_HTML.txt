@@ -190,7 +190,7 @@
             bgcolor="#ffffff">
             <div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">You are alright, your delegate&nbsp;</span></span><a href="https://explorer.livepeer.org/accounts/{{delegateAddress}}/transcoding"><span>{{transcoderAddress}}</span></a><span style="color:#000000;"><span style="font-size: 18px;">&nbsp;claimed the inflationary token reward.</span></span></span></div>
 
-<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">You've earned from inflation since {{dateYesterday}} (rounds #{{roundFrom}} - #{{roundTo}}): {{lptEarned}} LPT</span></span></span></div>
+<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">You've earned from inflation since {{dateYesterday}}: {{lptEarned}} LPT</span></span></span></div>
 
 <div style="text-align: left;">&nbsp;</div>
 
