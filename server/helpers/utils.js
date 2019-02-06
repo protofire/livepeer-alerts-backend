@@ -106,10 +106,6 @@ const subscriptionSave = async data => {
     getLivepeerDefaultConstants()
   ])
 
-  if (delegatorAccount && delegatorAccount.status !== constants.DELEGATOR_STATUS.Bonded) {
-    throw new StatusMustBeBondedError({ status: delegatorAccount.status })
-  }
-
   // Create new subscriber on button press
   let subscriber = new Subscriber({
     address: address,

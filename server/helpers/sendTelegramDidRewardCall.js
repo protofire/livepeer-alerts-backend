@@ -37,12 +37,12 @@ const sendTelegramClaimRewardCall = async data => {
   return
 }
 
-const getTelegramClaimRewardCallBody = data => {
+const getTelegramDidRewardCallBody = data => {
   const { delegateCalledReward } = data
 
   const filename = delegateCalledReward
-    ? '../notifications/telegram/transcoder-did-reward-call/notification-success.hbs'
-    : '../notifications/telegram/transcoder-did-reward-call/notification-warning.hbs'
+    ? '../notifications/telegram/delegate-did-reward-call/notification-success.hbs'
+    : '../notifications/telegram/delegate-did-reward-call/notification-warning.hbs'
   const fileTemplate = path.join(__dirname, filename)
   const source = fs.readFileSync(fileTemplate, 'utf8')
 
@@ -57,7 +57,7 @@ const getTelegramClaimRewardCallBody = data => {
 const sendNotificationTelegram = async data => {
   const { subscriber } = data
 
-  const { body } = getTelegramClaimRewardCallBody(data)
+  const { body } = getTelegramDidRewardCallBody(data)
 
   // Send telegram
   await sendTelegramClaimRewardCall({
@@ -71,4 +71,4 @@ const sendNotificationTelegram = async data => {
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramClaimRewardCallBody }
+module.exports = { sendNotificationTelegram, getTelegramDidRewardCallBody }
