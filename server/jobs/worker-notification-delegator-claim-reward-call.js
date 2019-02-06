@@ -52,7 +52,7 @@ const checkProgressRound = async () => {
     console.log(
       `[Worker notification delegator claim reward call] - Check lock ${notificationsForRoundSent}`
     )
-    if (progress < thresholdSendNotification && actualSavedRound && !notificationsForRoundSent) {
+    if (progress < thresholdSendNotification && !notificationsForRoundSent) {
       console.log(
         `[Worker notification delegator claim reward call] - Threshold reached, sending notifications`
       )
