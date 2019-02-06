@@ -9,7 +9,13 @@
 			"name": "[GET] - /api/subscribers",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -31,7 +37,13 @@
 			"name": "[GET] - /api/subscribers/:id",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -45,6 +57,13 @@
 						"api",
 						"subscribers",
 						"5c23a020f090fa1abdff4a81"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
 					]
 				}
 			},
@@ -54,13 +73,19 @@
 			"name": "[GET] - /api/subscribers/address/:address",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/address/0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064",
+					"raw": "{{host}}/api/subscribers/address/0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781",
 					"host": [
 						"{{host}}"
 					],
@@ -68,7 +93,7 @@
 						"api",
 						"subscribers",
 						"address",
-						"0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064"
+						"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781"
 					]
 				}
 			},
@@ -84,11 +109,16 @@
 						"name": "Content-Type",
 						"value": "application/json",
 						"type": "text"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n    \"address\": \"0x07525f33e00e5494bcbaba5d69f752ba0ed1a657\",\n    \"frequency\": \"daily\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero+100@altoros.com\",\n    \"address\": \"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",
@@ -113,21 +143,26 @@
 						"name": "Content-Type",
 						"value": "application/json",
 						"type": "text"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero@altoros.com\",\n    \"address\": \"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4\",\n    \"frequency\": \"daily\"\n}"
+					"raw": "{\n\t\"email\": null,\n\t\"telegramChatId\": \"758750944\",\n\t\"activated\": 1,\n\t\"lastEmailSent\": null,\n    \"address\": \"0x88E103B26E1a4CE226739d37D356b22AfBfEed85\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c3cb9b32dc3bf001758fa07",
+					"raw": "{{host}}/api/subscribers/5c530c237bf9df0c61ca74ec",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c3cb9b32dc3bf001758fa07"
+						"5c530c237bf9df0c61ca74ec"
 					]
 				}
 			},
@@ -143,6 +178,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -150,14 +190,14 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c1a44159a4faa31adcde266",
+					"raw": "{{host}}/api/subscribers/5c583f6a9936c6001768abca",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"subscribers",
-						"5c1a44159a4faa31adcde266"
+						"5c583f6a9936c6001768abca"
 					]
 				}
 			},
@@ -173,6 +213,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -206,6 +251,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -213,7 +263,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/summary/0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4",
+					"raw": "{{host}}/api/subscribers/summary/0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781",
 					"host": [
 						"{{host}}"
 					],
@@ -221,7 +271,7 @@
 						"api",
 						"subscribers",
 						"summary",
-						"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4"
+						"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781"
 					]
 				}
 			},
@@ -240,6 +290,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -260,38 +315,6 @@
 			"response": []
 		},
 		{
-			"name": "[GET] - /api/rounds",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{host}}/api/rounds",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"api",
-						"rounds"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "[GET] - /api/telegrams",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
@@ -304,6 +327,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -324,6 +352,43 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/rounds",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/rounds",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"rounds"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[DELETE] - /api/telegrams/:address",
 			"request": {
 				"method": "DELETE",
@@ -333,6 +398,11 @@
 						"name": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -340,14 +410,14 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/telegrams/5c1a44159a4faa31adcde266",
+					"raw": "{{host}}/api/telegrams/0x88e103b26e1a4ce226739d37d356b22afbfeed85",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"telegrams",
-						"5c1a44159a4faa31adcde266"
+						"0x88e103b26e1a4ce226739d37d356b22afbfeed85"
 					]
 				}
 			},
