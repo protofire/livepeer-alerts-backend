@@ -13,6 +13,7 @@ const winstonInstance = require('./winston')
 const routes = require('../index.route')
 const config = require('./config')
 const APIError = require('../server/helpers/APIError')
+const hostValidation = require('host-validation')
 
 const app = express()
 
@@ -33,6 +34,25 @@ app.use(helmet())
 
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors())
+
+// enable host validation
+if (config.env === 'development') {
+  app.use(
+    hostValidation({
+      hosts: ['127.0.0.1:3000', 'localhost:3000', '127.0.0.1:4040', 'localhost:4040'],
+      referers: ['http://localhost:3000', /^http:\/\/localhost:3000\/.*/]
+    })
+  )
+}
+
+if (config.env === 'production') {
+  app.use(
+    hostValidation({
+      hosts: ['livepeer-alerts-backend.herokuapp.com'],
+      referers: ['https://livepeer.tools', /^https:\/\/livepeer\.tools\/.*/]
+    })
+  )
+}
 
 // enable detailed API logging in dev env
 if (config.env === 'development') {
