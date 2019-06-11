@@ -68,6 +68,11 @@ const MathBN = {
   },
   toBig: x => {
     return new Big(x)
+  },
+  pow: (a, b) => {
+    const aBN = new BN(a || '0')
+    const bBN = new BN(b || '0')
+    return aBN.pow(bBN)
   }
 }
 
@@ -282,6 +287,12 @@ const getDelegatorRoundsUntilUnbonded = data => {
     : 0
 }
 
+const tokenAmountInUnits = (amount, decimals = 18) => {
+  const amountAsBN = new BN(amount)
+  const decimalsPerToken = MathBN.pow(10, decimals)
+  return MathBN.div(amountAsBN, decimalsPerToken)
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -299,5 +310,6 @@ module.exports = {
   formatPercentage,
   getEarningParams,
   getSubscriptorRole,
-  getDelegatorRoundsUntilUnbonded
+  getDelegatorRoundsUntilUnbonded,
+  tokenAmountInUnits
 }

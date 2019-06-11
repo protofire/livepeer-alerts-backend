@@ -75,7 +75,10 @@ const envVarsSchema = Joi.object({
     .description('Rinkeby controller address'),
   THRESHOLD_SEND_NOTIFICATION: Joi.number()
     .required()
-    .description('Threshold to send notification')
+    .description('Threshold to send notification'),
+  APOLLO_API_URL: Joi.string()
+    .description('Livepeer dgraph API url')
+    .default('https://api.thegraph.com/subgraphs/name/graphprotocol/livepeer')
 })
   .unknown()
   .required()
@@ -115,7 +118,8 @@ const config = {
     envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDED_STATE,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
-  thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION
+  thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
+  apolloApiUrl: envVars.APOLLO_API_URL
 }
 
 module.exports = config
