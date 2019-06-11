@@ -45,6 +45,21 @@ const getDelegate = async delegateAddress => {
   }
 }
 
+// Returns all the delegates registered as transcoders which have reward tokens
+const getRegisteredDelegates = async () => {
+  const queryResult = await client.query({
+    query: gql`
+      {
+        transcoders(where: { totalStake_gt: 0, status: "Registered", id_not: null }) {
+          id
+          totalStake
+        }
+      }
+    `
+  })
+  return queryResult.data && queryResult.data.transcoders ? queryResult.data.transcoders : []
+}
+
 // Returns the amount of tokens rewards on each round for the given delegate
 const getDelegateRewards = async delegateAddress => {
   const queryResult = await client.query({
@@ -83,14 +98,18 @@ const getDelegateRoi = async delegateAddress => {
   if (!rewards && !totalStake) {
     return null
   } else {
-    const totalReward = rewards.reduce((total, reward) => {
-      // Removes the cases in which the rewardToken is null
-      const rewardTokenAmount = reward.rewardTokens ? reward.rewardTokens : 0
-      const amount = tokenAmountInUnits(rewardTokenAmount)
-      return MathBN.add(total, amount)
-    }, new BN(0))
-    return MathBN.div(totalReward, totalStake)
+    return calculateRoi(rewards, totalStake)
   }
+}
+
+const calculateRoi = (rewards, totalStake) => {
+  const totalReward = rewards.reduce((total, reward) => {
+    // Removes the cases in which the rewardToken is null
+    const rewardTokenAmount = reward.rewardTokens ? reward.rewardTokens : 0
+    const amount = tokenAmountInUnits(rewardTokenAmount)
+    return MathBN.add(total, amount)
+  }, new BN(0))
+  return MathBN.div(totalReward, totalStake)
 }
 
 const getMissedRewardCalls = async delegateAddress => {
@@ -111,10 +130,30 @@ const getMissedRewardCalls = async delegateAddress => {
   return missedCalls
 }
 
+const getTopDelegates = async topNumber => {
+  let topDelegates = []
+  const delegates = await getRegisteredDelegates()
+  for (delegateIterator of delegates) {
+    const rewards = await getDelegateRewards(delegateIterator.id)
+    const roi = calculateRoi(rewards, delegateIterator.totalStake)
+    topDelegates.push({
+      ...delegateIterator,
+      roi
+    })
+  }
+  // Sorts in ROI descending order
+  topDelegates.sort((a, b) => {
+    return MathBN.sub(b.roi, a.roi)
+  })
+  return topDelegates.slice(0, topNumber)
+}
+
 module.exports = {
   getDelegate,
   getDelegateRewards,
   getDelegateTotalStake,
   getDelegateRoi,
-  getMissedRewardCalls
+  getMissedRewardCalls,
+  getTopDelegates,
+  getRegisteredDelegates
 }

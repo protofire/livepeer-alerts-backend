@@ -73,17 +73,26 @@ module.exports = {
     }
   },
 
-  // GET /api/delegate/:address
+  // GET /api/delegates/:address
   getDelegate: {
     params: {
       address: Joi.string().required()
     }
   },
 
-  // GET /api/delegate/roi/:address
+  // GET /api/delegates/roi/:address
   getDelegateRoi: {
     params: {
       address: Joi.string().required()
+    }
+  },
+
+  // GET /api/delegates/top/:number
+  getTopDelegates: {
+    params: {
+      number: Joi.number()
+        .min(0)
+        .required()
     }
   }
 }
