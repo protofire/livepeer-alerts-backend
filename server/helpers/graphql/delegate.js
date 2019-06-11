@@ -53,6 +53,10 @@ const getRegisteredDelegates = async () => {
         transcoders(where: { totalStake_gt: 0, status: "Registered", id_not: null }) {
           id
           totalStake
+          rewards {
+            id
+            rewardTokens
+          }
         }
       }
     `
@@ -134,10 +138,12 @@ const getTopDelegates = async topNumber => {
   let topDelegates = []
   const delegates = await getRegisteredDelegates()
   for (delegateIterator of delegates) {
-    const rewards = await getDelegateRewards(delegateIterator.id)
+    const rewards = delegateIterator.rewards
+
     const roi = calculateRoi(rewards, delegateIterator.totalStake)
     topDelegates.push({
-      ...delegateIterator,
+      id: delegateIterator.id,
+      totalStake: delegateIterator.totalStake,
       roi
     })
   }
