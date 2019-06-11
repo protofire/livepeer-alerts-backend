@@ -143,7 +143,9 @@ const getTopDelegates = async topNumber => {
   }
   // Sorts in ROI descending order
   topDelegates.sort((a, b) => {
-    return MathBN.sub(b.roi, a.roi)
+    const aBn = MathBN.toBig(a.roi)
+    const bBn = MathBN.toBig(b.roi)
+    return bBn.sub(aBn)
   })
   return topDelegates.slice(0, topNumber)
 }
