@@ -69,7 +69,9 @@ const getDelegateRewards = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
       {
-        rewards(where: { transcoder: "${delegateAddress}" }) {
+        rewards(
+        where: { transcoder: "${delegateAddress}" }
+        orderBy: id, orderDirection: desc) {
           rewardTokens
           round {
             id
