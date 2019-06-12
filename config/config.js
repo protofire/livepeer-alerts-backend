@@ -78,7 +78,7 @@ const envVarsSchema = Joi.object({
     .description('Threshold to send notification'),
   APOLLO_API_URL: Joi.string()
     .description('Livepeer dgraph API url')
-    .default('https://api.thegraph.com/subgraphs/name/graphprotocol/livepeer')
+    .required()
 })
   .unknown()
   .required()
