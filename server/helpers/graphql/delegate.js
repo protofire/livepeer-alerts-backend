@@ -1,3 +1,5 @@
+const { calculateMissedRewardCalls, calculateRoi } = require('../utils')
+
 const { getCurrentRound } = require('./protocol')
 
 const { client } = require('./apolloClient')
@@ -108,30 +110,13 @@ const getDelegateRoi = async delegateAddress => {
   }
 }
 
-const calculateRoi = (rewards, totalStake) => {
-  const totalReward = rewards.reduce((total, reward) => {
-    // Removes the cases in which the rewardToken is null
-    const rewardTokenAmount = reward.rewardTokens ? reward.rewardTokens : 0
-    const amount = tokenAmountInUnits(rewardTokenAmount)
-    return MathBN.add(total, amount)
-  }, new BN(0))
-  return MathBN.div(totalReward, totalStake)
-}
-
 const getMissedRewardCalls = async delegateAddress => {
   let missedCalls = 0
   const rewards = await getDelegateRewards(delegateAddress)
   const currentRound = await getCurrentRound()
 
   if (rewards) {
-    missedCalls = rewards
-      .sort((a, b) => b.round.id - a.round.id)
-      .filter(
-        reward =>
-          reward.rewardTokens === null &&
-          reward.round.id >= currentRound.id - 30 &&
-          reward.round.id !== currentRound.id
-      ).length
+    missedCalls = calculateMissedRewardCalls(rewards, currentRound)
   }
   return missedCalls
 }
