@@ -299,8 +299,8 @@ const calculateRoi = (rewards, totalStake) => {
   }
   const totalReward = rewards.reduce((total, reward) => {
     // Removes the cases in which the rewardToken is null
-    const amount = reward.rewardTokens ? reward.rewardTokens : 0
-    return MathBN.add(total, amount)
+    const rewardTokenAmount = reward.rewardTokens ? reward.rewardTokens : 0
+    return MathBN.add(total, rewardTokenAmount)
   }, new BN(0))
   return MathBN.div(totalReward, totalStake)
 }

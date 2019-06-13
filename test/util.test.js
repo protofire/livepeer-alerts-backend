@@ -1,14 +1,37 @@
 const { createRewardObject } = require('../server/helpers/test/util')
+const BN = require('bn.js')
 const { calculateMissedRewardCalls, calculateRoi } = require('../server/helpers/utils')
 const chai = require('chai') // eslint-disable-line import/newline-after-import
 const expect = chai.expect
 const assert = chai.assert
+const { MathBN } = require('../server/helpers/utils')
 
 chai.config.includeStack = true
 
 describe('## Utils file test', () => {
   describe('# ROI Calculation', () => {
-    it('Transcoder has no rewards, totalStake is not null, should return ROI value', done => {
+    it('Transcoder has rewards, totalStake is not null, should return ROI value', done => {
+      // given
+      const rewards = []
+      const transcoderId = '1'
+      const totalStake = '692281940372333711643'
+      let totalReward = new BN(0)
+      for (let roundI = 1; roundI <= 30; roundI++) {
+        const newReward = createRewardObject(transcoderId, roundI)
+        const rewardToken = newReward.rewardTokens
+        totalReward = MathBN.add(totalReward, rewardToken.toString())
+        rewards.push(newReward)
+      }
+
+      // when
+      const roi = calculateRoi(rewards, totalStake)
+
+      const roiExpected = MathBN.div(totalReward, totalStake)
+      // then
+      expect(roi).to.equal(roiExpected)
+      done()
+    })
+    it('Transcoder has no rewards, totalStake is not null, should return 0 as ROI value', done => {
       // given
       const rewards = []
       const transcoderId = '1'

@@ -4,7 +4,7 @@ const createRewardObject = (transcoderId, roundId) => {
   // Reward token between 1*10.pow(21) and 99 * 10.pow(21)
   const base = Math.pow(10, 21)
   const top = 9 * Math.pow(10, 21)
-  const rewardTokens = Math.floor(Math.random() * top + base)
+  const rewardTokens = Math.floor(Math.random() * top + base).toString()
   const transcoder = createTranscoder(transcoderId)
   const round = createRoundObject(roundId)
   return {
