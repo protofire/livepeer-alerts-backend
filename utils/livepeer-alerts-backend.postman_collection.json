@@ -424,7 +424,7 @@
 			"response": []
 		},
 		{
-			"name": "[DELETE] - /api/delegate/address/:address",
+			"name": "[GET] - /api/delegates/:address",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -448,14 +448,52 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/delegate/address/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"raw": "{{host}}/api/delegates/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
-						"delegate",
-						"address",
+						"delegates",
+						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegates/roi/:address",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"type": "text",
+						"value": "http://localhost:3000"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Fernando\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/delegates/roi/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"delegates",
+						"roi",
 						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
 					]
 				}

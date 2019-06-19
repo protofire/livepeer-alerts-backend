@@ -25,7 +25,7 @@ const getROI = async (req, res, next) => {
   try {
     const rewards = await getDelegateRewards(address)
     const totalStake = await getDelegateTotalStake(address)
-    let result = null
+    let roi = null
     if (rewards && totalStake) {
       const totalReward = rewards.reduce((total, reward) => {
         // Removes the cases in which the rewardToken is null
@@ -33,10 +33,10 @@ const getROI = async (req, res, next) => {
         const amount = tokenAmountInUnits(rewardTokenAmount)
         return MathBN.add(total, amount)
       }, new BN(0))
-      result = MathBN.div(totalReward, totalStake)
+      roi = MathBN.div(totalReward, totalStake)
     }
 
-    res.json(result)
+    res.json({ roi })
   } catch (error) {
     next(error)
   }

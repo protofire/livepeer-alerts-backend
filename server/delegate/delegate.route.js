@@ -7,7 +7,7 @@ const { getByAddress, getROI } = require('./delegate.controller')
 
 /** GET /api/delegate/address/:address - Get delegate by address */
 router
-  .route('/address/:address')
+  .route('/:address')
 
   .get(validate(paramValidation.getByAddress), getByAddress)
 
