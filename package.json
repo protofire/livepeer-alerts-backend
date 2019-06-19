@@ -11,7 +11,7 @@
     "yarn": ">=1.5.1"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon index.js",
     "lint": "esw *.js server config --color",
     "lint:watch": "npm run lint -- --watch",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha  test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server",
@@ -31,6 +31,10 @@
   "dependencies": {
     "@mariano-aguero/sdk": "^1.0.0-alpha.6",
     "@sendgrid/mail": "^6.3.1",
+    "apollo-boost": "^0.4.2",
+    "apollo-cache-inmemory": "^1.6.2",
+    "apollo-client": "^2.6.2",
+    "apollo-link-http": "^1.5.14",
     "big.js": "^5.2.2",
     "bluebird": "3.5.1",
     "bn.js": "^4.11.8",
@@ -44,6 +48,8 @@
     "express": "4.16.3",
     "express-validation": "1.0.2",
     "express-winston": "2.5.0",
+    "graphql": "^14.3.1",
+    "graphql-tag": "^2.10.1",
     "handlebars": "^4.1.2",
     "helmet": "3.12.0",
     "host-validation": "^2.0.1",
@@ -55,7 +61,9 @@
     "moment": "^2.23.0",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
+    "node-fetch": "^2.6.0",
     "node-telegram-bot-api": "^0.30.0",
+    "nodemon": "^1.19.1",
     "promise-retry": "^1.1.1",
     "striptags": "^3.1.1",
     "web3": "github:ethereum/web3.js",
