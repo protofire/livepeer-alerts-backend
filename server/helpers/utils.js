@@ -293,6 +293,20 @@ const tokenAmountInUnits = (amount, decimals = 18) => {
   return MathBN.div(amountAsBN, decimalsPerToken)
 }
 
+const calculateMissedRewardCalls = (rewards, currentRound) => {
+  if (!currentRound || !rewards) {
+    return 0
+  }
+  return rewards
+    .sort((a, b) => b.round.id - a.round.id)
+    .filter(
+      reward =>
+        reward.rewardTokens === null &&
+        reward.round.id >= currentRound.id - 30 &&
+        reward.round.id !== currentRound.id
+    ).length
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -311,5 +325,6 @@ module.exports = {
   getEarningParams,
   getSubscriptorRole,
   getDelegatorRoundsUntilUnbonded,
-  tokenAmountInUnits
+  tokenAmountInUnits,
+  calculateMissedRewardCalls
 }
