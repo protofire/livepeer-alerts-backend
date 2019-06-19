@@ -1,11 +1,8 @@
-const { calculateMissedRewardCalls } = require('../utils')
-
-const { getCurrentRound } = require('./protocol')
-
-const { client } = require('./apolloClient')
+const { client } = require('../apolloClient')
 const gql = require('graphql-tag')
-const BN = require('bn.js')
-const { MathBN, tokenAmountInUnits } = require('../utils')
+
+const { calculateMissedRewardCalls, tokenAmountInUnits } = require('../../utils')
+const { getCurrentRound } = require('../protocol')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
 const getDelegateSummary = async delegateAddress => {
@@ -113,5 +110,7 @@ module.exports = {
   getDelegate,
   getDelegateRewards,
   getDelegateTotalStake,
-  getMissedRewardCalls
+  getMissedRewardCalls,
+  getDelegateSummary,
+  getRegisteredDelegates
 }

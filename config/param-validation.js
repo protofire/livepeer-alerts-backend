@@ -60,6 +60,7 @@ module.exports = {
   },
 
   // GET /api/subscribers/address/:address
+  // GET /api/delegate/address/:address
   getByAddress: {
     params: {
       address: Joi.string().required()
@@ -73,8 +74,8 @@ module.exports = {
     }
   },
 
-  // GET /api/delegates/:address
-  getDelegate: {
+  // GET /api/delegate/roi/:address
+  getDelegateRoi: {
     params: {
       address: Joi.string().required()
     }

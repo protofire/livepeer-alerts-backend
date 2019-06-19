@@ -3,12 +3,18 @@ const validate = require('express-validation')
 const paramValidation = require('../../config/param-validation')
 
 const router = express.Router() // eslint-disable-line new-cap
-const { delegateByAddress } = require('./delegate.controller')
+const { getByAddress, delegateRoi } = require('./delegate.controller')
 
-/** GET /api/delegates/:address - Get delegate by address */
+/** GET /api/delegate/address/:address - Get delegate by address */
 router
-  .route('/:address')
+  .route('/address/:address')
 
-  .get(validate(paramValidation.getDelegate), delegateByAddress)
+  .get(validate(paramValidation.getByAddress), getByAddress)
+
+/** GET /api/delegate/roi/:address - Get delegate ROI by address */
+router
+  .route('/roi/:address')
+
+  .get(validate(paramValidation.getDelegateRoi), delegateRoi)
 
 module.exports = router
