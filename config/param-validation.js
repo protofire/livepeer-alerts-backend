@@ -72,5 +72,12 @@ module.exports = {
     body: {
       activatedCode: Joi.number().required()
     }
+  },
+
+  // GET /api/delegate/roi/:address
+  getDelegateROI: {
+    params: {
+      address: Joi.string().required()
+    }
   }
 }

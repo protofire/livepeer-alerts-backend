@@ -17,6 +17,6 @@ router.use('/telegrams', telegramRouters)
 
 router.use('/rounds', roundRouters)
 
-router.use('/delegate', delegateRouters)
+router.use('/delegates', delegateRouters)
 
 module.exports = router
