@@ -1,8 +1,9 @@
 const { client } = require('../apolloClient')
 const gql = require('graphql-tag')
+const _ = require('lodash')
 
 const { calculateMissedRewardCalls, tokenAmountInUnits } = require('../../utils')
-const { getCurrentRound } = require('../protocol')
+const { getCurrentRound } = require('./protocol')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
 const getDelegateSummary = async delegateAddress => {
@@ -26,7 +27,7 @@ const getDelegateSummary = async delegateAddress => {
       }
     `
   })
-  return queryResult.data && queryResult.data.transcoder ? queryResult.data.transcoder : null
+  return _.get(queryResult, 'data.transcoder', null)
 }
 
 // Returns the delegate summary plus the ROI and missed reward calls
@@ -36,7 +37,7 @@ const getDelegate = async delegateAddress => {
   return {
     summary: {
       ...summary,
-      totalStake: summary.totalStake ? tokenAmountInUnits(summary.totalStake) : null,
+      totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0)),
       last30MissedRewardCalls
     }
   }
@@ -58,7 +59,7 @@ const getRegisteredDelegates = async () => {
       }
     `
   })
-  return queryResult.data && queryResult.data.transcoders ? queryResult.data.transcoders : []
+  return _.get(queryResult, 'data.transcoders', [])
 }
 
 // Returns the amount of tokens rewards on each round for the given delegate
@@ -77,7 +78,7 @@ const getDelegateRewards = async delegateAddress => {
       }
     `
   })
-  return queryResult.data && queryResult.data.rewards ? queryResult.data.rewards : null
+  return _.get(queryResult, 'data.rewards', null)
 }
 
 const getDelegateTotalStake = async delegateAddress => {
@@ -90,9 +91,7 @@ const getDelegateTotalStake = async delegateAddress => {
       }
     `
   })
-  return queryResult.data && queryResult.data.transcoder && queryResult.data.transcoder.totalStake
-    ? queryResult.data.transcoder.totalStake
-    : null
+  return _.get(queryResult, 'data.transcoder.totalStake', null)
 }
 
 const getMissedRewardCalls = async delegateAddress => {
