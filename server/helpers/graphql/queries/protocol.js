@@ -1,4 +1,4 @@
-const { client } = require('./apolloClient')
+const { client } = require('../apolloClient')
 const gql = require('graphql-tag')
 
 const CurrentRoundQuery = gql`
