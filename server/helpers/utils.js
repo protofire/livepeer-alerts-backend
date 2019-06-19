@@ -363,6 +363,25 @@ const calculateDelegateNextReward = (delegateNextProtocolReward, delegateRewardC
   return MathBN.mul(delegateNextProtocolReward, delegateRewardCut)
 }
 
+// Receives the delegateNextProtocolReward and the delegateRewardCut and returns the reward to delegators
+const calculateDelegateNextRewardToDelegators = (delegateNextProtocolReward, delegateRewardCut) => {
+  // FORMULA: delegateNextProtocolReward - delegateNextProtocolReward*rewardCut
+  if (!delegateNextProtocolReward || !delegateRewardCut) {
+    return 0
+  }
+  const delegateReward = calculateDelegateNextReward(delegateNextProtocolReward, delegateRewardCut)
+  return MathBN.sub(delegateNextProtocolReward, delegateReward)
+}
+
+// Receives the rewardToDelegators and the delegatorParticipationInTotalStake and return the lptReward of the given delegator
+const calculateDelegatorNextReturn = (rewardToDelegators, delegatorParticipationInTotalStake) => {
+  // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
+  if (!rewardToDelegators || !delegatorParticipationInTotalStake) {
+    return 0
+  }
+  return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -386,5 +405,7 @@ module.exports = {
   calculateNextRoundInflationRatio,
   calculateParticipationInTotalBondedRatio,
   calculateDelegateNextProtocolReward,
-  calculateDelegateNextReward
+  calculateDelegateNextReward,
+  calculateDelegateNextRewardToDelegators,
+  calculateDelegatorNextReturn
 }
