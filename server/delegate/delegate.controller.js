@@ -3,7 +3,7 @@
  * @returns {Subscriber}
  */
 
-const utils = require('../helpers/utils')
+const { MathBN, tokenAmountInUnits } = require('../helpers/utils')
 const BN = require('bn.js')
 const {
   getDelegate,
@@ -20,7 +20,7 @@ const getByAddress = async (req, res, next) => {
     next(error)
   }
 }
-const delegateRoi = async (req, res, next) => {
+const getROI = async (req, res, next) => {
   const { address } = req.params
   try {
     const rewards = await getDelegateRewards(address)
@@ -30,10 +30,10 @@ const delegateRoi = async (req, res, next) => {
       const totalReward = rewards.reduce((total, reward) => {
         // Removes the cases in which the rewardToken is null
         const rewardTokenAmount = reward.rewardTokens ? reward.rewardTokens : 0
-        const amount = utils.tokenAmountInUnits(rewardTokenAmount)
-        return utils.MathBN.add(total, amount)
+        const amount = tokenAmountInUnits(rewardTokenAmount)
+        return MathBN.add(total, amount)
       }, new BN(0))
-      result = utils.MathBN.div(totalReward, totalStake)
+      result = MathBN.div(totalReward, totalStake)
     }
 
     res.json(result)
@@ -44,5 +44,5 @@ const delegateRoi = async (req, res, next) => {
 
 module.exports = {
   getByAddress,
-  delegateRoi
+  getROI
 }

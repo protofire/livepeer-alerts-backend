@@ -75,7 +75,7 @@ module.exports = {
   },
 
   // GET /api/delegate/roi/:address
-  getDelegateRoi: {
+  getDelegateROI: {
     params: {
       address: Joi.string().required()
     }
