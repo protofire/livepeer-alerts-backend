@@ -1,11 +1,11 @@
-const { client } = require('./apolloClient')
+const { client } = require('../apolloClient')
 const gql = require('graphql-tag')
 
-const getTranscoderRewards = async transcoderAddress => {
+const getDelegateRewards = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
       {
-        rewards(where: { transcoder: "${transcoderAddress}" }) {
+        rewards(where: { transcoder: "${delegateAddress}" }) {
           rewardTokens
         }
       }
@@ -14,11 +14,11 @@ const getTranscoderRewards = async transcoderAddress => {
   return queryResult.data && queryResult.data.rewards ? queryResult.data.rewards : null
 }
 
-const getTranscoderTotalStake = async transcoderAddress => {
+const getDelegateTotalStake = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
       {
-        transcoder(id: "${transcoderAddress}") {
+        transcoder(id: "${delegateAddress}") {
           totalStake
         }
       }
@@ -29,7 +29,12 @@ const getTranscoderTotalStake = async transcoderAddress => {
     : null
 }
 
+const getDelegate = async delegateAddress => {
+  return {}
+}
+
 module.exports = {
-  getTranscoderRewards,
-  getTranscoderTotalStake
+  getDelegate,
+  getDelegateRewards,
+  getDelegateTotalStake
 }
