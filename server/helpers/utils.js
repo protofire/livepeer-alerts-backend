@@ -12,13 +12,13 @@ const {
 
 const MathBN = {
   sub: (a, b) => {
-    const aBN = new BN(a || '0')
-    const bBN = new BN(b || '0')
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
     return aBN.sub(bBN).toString(10)
   },
   add: (a, b) => {
-    const aBN = new BN(a || '0')
-    const bBN = new BN(b || '0')
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
     return aBN.add(bBN).toString(10)
   },
   gt: (a, b) => {
@@ -32,8 +32,8 @@ const MathBN = {
     return aBN.gte(bBN)
   },
   lt: (a, b) => {
-    const aBN = new BN(a || '0')
-    const bBN = new BN(b || '0')
+    const aBN = MathBN.toBig(a)
+    const bBN = MathBN.toBig(b)
     return aBN.lt(bBN)
   },
   lte: (a, b) => {
@@ -307,6 +307,36 @@ const calculateMissedRewardCalls = (rewards, currentRound) => {
     ).length
 }
 
+const calculateCurrentBondingRate = (totalBonded, totalSupply) => {
+  if (!totalBonded || !totalSupply) {
+    return 0
+  }
+  return MathBN.div(totalBonded, totalSupply)
+}
+
+// Calculates the nextRoundInflation as a ratio
+const calculateNextRoundInflationRatio = (
+  inflationRate,
+  inflationChange,
+  targetBondingRate,
+  totalBonded,
+  totalSupply
+) => {
+  if (!inflationRate || !inflationChange || !targetBondingRate || !totalBonded || !totalSupply) {
+    return 0
+  } else {
+    let nextRoundInflation
+    const currentBondingRate = calculateCurrentBondingRate(totalBonded, totalSupply)
+    // If the current bonding rate is bellow the targetBondingRate, the inflation is positive, otherwise is negative
+    if (MathBN.lt(currentBondingRate, targetBondingRate)) {
+      nextRoundInflation = MathBN.add(inflationRate, inflationChange)
+    } else {
+      nextRoundInflation = MathBN.sub(inflationRate, inflationChange)
+    }
+    return nextRoundInflation
+  }
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -326,5 +356,6 @@ module.exports = {
   getSubscriptorRole,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
-  calculateMissedRewardCalls
+  calculateMissedRewardCalls,
+  calculateNextRoundInflationRatio
 }

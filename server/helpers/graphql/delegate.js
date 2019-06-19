@@ -1,3 +1,4 @@
+const { getNextRoundInflation } = require('../livepeerAPI')
 const { calculateMissedRewardCalls } = require('../utils')
 
 const { getCurrentRound } = require('./protocol')
@@ -32,7 +33,7 @@ const getDelegateSummary = async delegateAddress => {
   return queryResult.data && queryResult.data.transcoder ? queryResult.data.transcoder : null
 }
 
-// Returns the delegate summary plus the ROI and missed reward calls
+// Returns the delegate summary plus the missed reward calls
 const getDelegate = async delegateAddress => {
   const summary = await getDelegateSummary(delegateAddress)
   const last30MissedRewardCalls = await getMissedRewardCalls(delegateAddress)
@@ -96,6 +97,36 @@ const getDelegateTotalStake = async delegateAddress => {
   return queryResult.data && queryResult.data.transcoder && queryResult.data.transcoder.totalStake
     ? queryResult.data.transcoder.totalStake
     : null
+}
+
+// DelegateReward = DelegateProtocolNextReward * rewardCut
+
+// Receives a delegateAddress and returns the TOTAL reward (protocol reward, no the reward cut) of that delegate for the next round
+const getDelegateProtocolNextReward = async delegateAddress => {
+  const summary = await getDelegateSummary(delegateAddress)
+  const totalStake = summary.totalStake
+  const nextInflation = await getNextRoundInflation()
+  // transcoderRewardCut
+  // transcoderTotalStake
+  // nextInflation
+  // % participation in total supply -> totalBonded / protocol total stake
+  // target bonding rate
+}
+
+// Receives a delegateAddress and returns the reward of the delegate (nextReward*rewardCut)
+const getDelegateNextReward = async delegateAddress => {}
+
+const getDelegatorNextReturn = async delegateAddress => {
+  const nextRoundInflation = await getNextRoundInflation()
+
+  // transcoderRewardCut
+  // delegateStake
+  // totalBonded
+  // transcoderTotalStake
+  // nextInflation
+  // % participation in total supply -> totalBonded / protocol total stake
+  // target bonding rate
+  return 0
 }
 
 const getMissedRewardCalls = async delegateAddress => {
