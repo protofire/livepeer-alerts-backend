@@ -44,13 +44,13 @@ const MathBN = {
   mul: (a, b) => {
     const aBN = new Big(a || '0')
     const bBN = new Big(b || '0')
-    return aBN.mul(bBN).toString(10)
+    return aBN.mul(bBN).toString()
   },
   div: (a, b) => {
     const aBN = new Big(a || '0')
     const bBN = new Big(b || '0')
     try {
-      return aBN.div(bBN).toString(10)
+      return aBN.div(bBN).toString()
     } catch (err) {
       console.error(err)
       return 0
@@ -70,9 +70,8 @@ const MathBN = {
     return new Big(x)
   },
   pow: (a, b) => {
-    const aBN = new BN(a || '0')
-    const bBN = new BN(b || '0')
-    return aBN.pow(bBN)
+    const aBN = MathBN.toBig(a)
+    return aBN.pow(b)
   }
 }
 
@@ -288,9 +287,8 @@ const getDelegatorRoundsUntilUnbonded = data => {
 }
 
 const tokenAmountInUnits = (amount, decimals = 18) => {
-  const amountAsBN = new BN(amount)
   const decimalsPerToken = MathBN.pow(10, decimals)
-  return MathBN.div(amountAsBN, decimalsPerToken)
+  return MathBN.div(amount, decimalsPerToken)
 }
 
 const calculateMissedRewardCalls = (rewards, currentRound) => {
@@ -337,6 +335,34 @@ const calculateNextRoundInflationRatio = (
   }
 }
 
+// Receives the delegateTotalStake and the protocolTotalBonded and returns the participation ratio of that delegate in the protocol
+const calculateParticipationInTotalBondedRatio = (delegateTotalStake, protocolTotalBonded) => {
+  // FORMULA: delegateTotalStake / protocolTotalBonded
+  if (!delegateTotalStake || !protocolTotalBonded) {
+    return 0
+  }
+  return MathBN.div(delegateTotalStake, protocolTotalBonded)
+}
+
+// Receives the mintedTokensForNextRound and the delegateParticipationInTotalBonded and returns the reward of that delegate for the next round
+const calculateDelegateNextProtocolReward = (
+  mintedTokensForNextRound,
+  delegateParticipationInTotalBonded
+) => {
+  if (!mintedTokensForNextRound || !delegateParticipationInTotalBonded) {
+    return 0
+  }
+  return MathBN.mul(mintedTokensForNextRound, delegateParticipationInTotalBonded)
+}
+
+// Receives the delegateNextProtocolReward and the delegateRewardCut and returns the REAL reward of that delegate (protocolReward * rewardCut) for the next round
+const calculateDelegateNextReward = (delegateNextProtocolReward, delegateRewardCut) => {
+  if (!delegateNextProtocolReward || !delegateRewardCut) {
+    return 0
+  }
+  return MathBN.mul(delegateNextProtocolReward, delegateRewardCut)
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -357,5 +383,8 @@ module.exports = {
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   calculateMissedRewardCalls,
-  calculateNextRoundInflationRatio
+  calculateNextRoundInflationRatio,
+  calculateParticipationInTotalBondedRatio,
+  calculateDelegateNextProtocolReward,
+  calculateDelegateNextReward
 }

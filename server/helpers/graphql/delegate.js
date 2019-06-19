@@ -1,5 +1,10 @@
-const { getNextRoundInflation } = require('../livepeerAPI')
-const { calculateMissedRewardCalls } = require('../utils')
+const { getMintedTokensForNextRound, getTotalBonded } = require('../livepeerAPI')
+const {
+  calculateMissedRewardCalls,
+  calculateDelegateNextReward,
+  calculateDelegateNextProtocolReward,
+  calculateParticipationInTotalBondedRatio
+} = require('../utils')
 
 const { getCurrentRound } = require('./protocol')
 
@@ -7,6 +12,8 @@ const { client } = require('./apolloClient')
 const gql = require('graphql-tag')
 const BN = require('bn.js')
 const { MathBN, tokenAmountInUnits } = require('../utils')
+
+const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
 const getDelegateSummary = async delegateAddress => {
@@ -99,22 +106,36 @@ const getDelegateTotalStake = async delegateAddress => {
     : null
 }
 
-// DelegateReward = DelegateProtocolNextReward * rewardCut
-
 // Receives a delegateAddress and returns the TOTAL reward (protocol reward, no the reward cut) of that delegate for the next round
 const getDelegateProtocolNextReward = async delegateAddress => {
-  const summary = await getDelegateSummary(delegateAddress)
-  const totalStake = summary.totalStake
-  const nextInflation = await getNextRoundInflation()
-  // transcoderRewardCut
-  // transcoderTotalStake
-  // nextInflation
-  // % participation in total supply -> totalBonded / protocol total stake
-  // target bonding rate
+  // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
+  let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await Promise.all([
+    getDelegateSummary(delegateAddress),
+    getMintedTokensForNextRound(),
+    getTotalBonded()
+  ])
+  const { totalStake } = summary
+  const participationInTotalBondedRatio = calculateParticipationInTotalBondedRatio(
+    totalStake,
+    totalBondedInProtocol
+  )
+  return calculateDelegateNextProtocolReward(
+    mintedTokensForNextRound,
+    participationInTotalBondedRatio
+  )
 }
 
-// Receives a delegateAddress and returns the reward of the delegate (nextReward*rewardCut)
-const getDelegateNextReward = async delegateAddress => {}
+// Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
+const getDelegateNextReward = async delegateAddress => {
+  // DelegateReward = DelegateProtocolNextReward * rewardCut
+  let [summary, protocolNextReward] = await Promise.all([
+    getDelegateSummary(delegateAddress),
+    getDelegateProtocolNextReward(delegateAddress)
+  ])
+  const { pendingRewardCut } = summary
+  const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
+  return calculateDelegateNextReward(protocolNextReward, rewardCut)
+}
 
 const getDelegatorNextReturn = async delegateAddress => {
   const nextRoundInflation = await getNextRoundInflation()

@@ -1,7 +1,6 @@
 const LivepeerSDK = require('@mariano-aguero/sdk')
-const { MathBN, calculateNextRoundInflationRatio } = require('./utils')
-
-const INFLATION_DIV_UNITS = 1000000
+const { MathBN, calculateNextRoundInflationRatio, tokenAmountInUnits } = require('./utils')
+const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
 
 const getLivepeerTranscoders = async () => {
   const { rpc } = await LivepeerSDK.default()
@@ -83,23 +82,31 @@ const getTokenTotalSupply = async () => {
 const getInflationRate = async () => {
   const { rpc } = await LivepeerSDK.default()
   const inflation = await rpc.getInflation()
-  return MathBN.div(inflation, INFLATION_DIV_UNITS)
+  return MathBN.div(inflation, PROTOCOL_DIVISION_BASE)
 }
 
 // Returns the change of inflation for the next round, the value should be divided by 1.000.000 in order to make it a ratio
 const getInflationChange = async () => {
   const { rpc } = await LivepeerSDK.default()
   const inflationChange = await rpc.getInflationChange()
-  return MathBN.div(inflationChange, INFLATION_DIV_UNITS)
+  return MathBN.div(inflationChange, PROTOCOL_DIVISION_BASE)
 }
 
 // Returns the inflation as a ratio for the next round, the value should be divided by 1.000.000 in order to make it a ratio
 const getNextRoundInflation = async () => {
-  const inflationRate = await getInflationRate()
-  const inflationChange = await getInflationChange()
-  const targetBondingRate = await getTargetBondingRate()
-  const totalBonded = await getTotalBonded()
-  const totalSupply = await getTokenTotalSupply()
+  let [
+    inflationRate,
+    inflationChange,
+    targetBondingRate,
+    totalBonded,
+    totalSupply
+  ] = await Promise.all([
+    getInflationRate(),
+    getInflationChange(),
+    getTargetBondingRate(),
+    getTotalBonded(),
+    getTokenTotalSupply()
+  ])
   return calculateNextRoundInflationRatio(
     inflationRate,
     inflationChange,
@@ -113,12 +120,23 @@ const getNextRoundInflation = async () => {
 const getTargetBondingRate = async () => {
   const { rpc } = await LivepeerSDK.default()
   const target = await rpc.getTargetBondingRate()
-  return MathBN.div(target, INFLATION_DIV_UNITS)
+  return MathBN.div(target, PROTOCOL_DIVISION_BASE)
 }
 
+// Returns the total amount of tokens bonded in the protocol
 const getTotalBonded = async () => {
   const { rpc } = await LivepeerSDK.default()
   return await rpc.getTotalBonded()
+}
+
+// Returns the amount of minted tokens for the next round (inflation * totalSupply)
+const getMintedTokensForNextRound = async () => {
+  let [nextInflation, totalSupply] = await Promise.all([
+    getNextRoundInflation(),
+    getTokenTotalSupply()
+  ])
+  const mintedTokens = MathBN.mul(totalSupply, nextInflation)
+  return tokenAmountInUnits(mintedTokens)
 }
 
 const getLivepeerDefaultConstants = async () => {
@@ -189,5 +207,6 @@ module.exports = {
   getInflationChange,
   getNextRoundInflation,
   getTotalBonded,
-  getTargetBondingRate
+  getTargetBondingRate,
+  getMintedTokensForNextRound
 }
