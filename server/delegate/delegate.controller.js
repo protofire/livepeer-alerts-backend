@@ -3,13 +3,13 @@
  * @returns {Subscriber}
  */
 
-const { getDelegate } = require('../helpers/graphql/delegate')
+const { getDelegate } = require('../helpers/graphql/queries/delegate')
 
-const delegateByAddress = async (req, res, next) => {
-  const { address = null } = req.params
-  let result = null
+const getByAddress = async (req, res, next) => {
+  const { address } = req.params
+  console.log('asdasdas')
   try {
-    result = await getDelegate(address)
+    const result = await getDelegate(address)
     res.json(result)
   } catch (error) {
     next(error)
@@ -17,5 +17,5 @@ const delegateByAddress = async (req, res, next) => {
 }
 
 module.exports = {
-  delegateByAddress
+  getByAddress
 }
