@@ -78,21 +78,5 @@ module.exports = {
     params: {
       address: Joi.string().required()
     }
-  },
-
-  // GET /api/delegates/roi/:address
-  getDelegateRoi: {
-    params: {
-      address: Joi.string().required()
-    }
-  },
-
-  // GET /api/delegates/top/:number
-  getTopDelegates: {
-    params: {
-      number: Joi.number()
-        .min(0)
-        .required()
-    }
   }
 }
