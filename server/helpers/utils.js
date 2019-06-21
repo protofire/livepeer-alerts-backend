@@ -322,17 +322,17 @@ const calculateNextRoundInflationRatio = (
 ) => {
   if (!inflationRate || !inflationChange || !targetBondingRate || !totalBonded || !totalSupply) {
     return 0
-  } else {
-    let nextRoundInflation
-    const currentBondingRate = calculateCurrentBondingRate(totalBonded, totalSupply)
-    // If the current bonding rate is bellow the targetBondingRate, the inflation is positive, otherwise is negative
-    if (MathBN.lt(currentBondingRate, targetBondingRate)) {
-      nextRoundInflation = MathBN.add(inflationRate, inflationChange)
-    } else {
-      nextRoundInflation = MathBN.sub(inflationRate, inflationChange)
-    }
-    return nextRoundInflation
   }
+
+  let nextRoundInflation
+  const currentBondingRate = calculateCurrentBondingRate(totalBonded, totalSupply)
+  // If the current bonding rate is bellow the targetBondingRate, the inflation is positive, otherwise is negative
+  if (MathBN.lt(currentBondingRate, targetBondingRate)) {
+    nextRoundInflation = MathBN.add(inflationRate, inflationChange)
+  } else {
+    nextRoundInflation = MathBN.sub(inflationRate, inflationChange)
+  }
+  return nextRoundInflation
 }
 
 module.exports = {
