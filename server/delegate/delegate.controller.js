@@ -3,13 +3,11 @@
  * @returns {Subscriber}
  */
 
+const { getDelegate } = require('../helpers/delegate')
+
 const { MathBN, tokenAmountInUnits } = require('../helpers/utils')
 const BN = require('bn.js')
-const {
-  getDelegate,
-  getDelegateRewards,
-  getDelegateTotalStake
-} = require('../helpers/graphql/queries/delegate')
+const { getDelegateRewards, getDelegateTotalStake } = require('../helpers/graphql/queries/delegate')
 
 const getByAddress = async (req, res, next) => {
   const { address } = req.params
