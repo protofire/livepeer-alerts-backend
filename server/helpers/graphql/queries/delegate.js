@@ -1,16 +1,7 @@
 const { client } = require('../apolloClient')
-const {
-  getMintedTokensForNextRound,
-  getTotalBonded,
-  getLivepeerDelegatorAccount
-} = require('../../livepeerAPI')
+
 const gql = require('graphql-tag')
 const _ = require('lodash')
-
-const { calculateMissedRewardCalls, tokenAmountInUnits } = require('../../utils')
-const { getCurrentRound } = require('./protocol')
-
-const { PROTOCOL_DIVISION_BASE } = require('../../../../config/constants')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
 const getDelegateSummary = async delegateAddress => {
@@ -35,19 +26,6 @@ const getDelegateSummary = async delegateAddress => {
     `
   })
   return _.get(queryResult, 'data.transcoder', null)
-}
-
-// Returns the delegate summary plus the missed reward calls
-const getDelegate = async delegateAddress => {
-  const summary = await getDelegateSummary(delegateAddress)
-  const last30MissedRewardCalls = await getMissedRewardCalls(delegateAddress)
-  return {
-    summary: {
-      ...summary,
-      totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0)),
-      last30MissedRewardCalls
-    }
-  }
 }
 
 // Returns all the delegates registered as transcoders which have reward tokens
@@ -101,74 +79,9 @@ const getDelegateTotalStake = async delegateAddress => {
   return _.get(queryResult, 'data.transcoder.totalStake', null)
 }
 
-// Receives a delegateAddress and returns the TOTAL reward (protocol reward, no the reward cut) of that delegate for the next round
-const getDelegateProtocolNextReward = async delegateAddress => {
-  // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
-  let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await Promise.all([
-    getDelegateSummary(delegateAddress),
-    getMintedTokensForNextRound(),
-    getTotalBonded()
-  ])
-  const { totalStake } = summary
-  // FORMULA: delegateTotalStake / protocolTotalBonded
-  const participationInTotalBondedRatio = MathBN.div(totalStake, totalBondedInProtocol)
-
-  return MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
-}
-
-// Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
-const getDelegateNextReward = async delegateAddress => {
-  // DelegateReward = DelegateProtocolNextReward * rewardCut
-  let [summary, protocolNextReward] = await Promise.all([
-    getDelegateSummary(delegateAddress),
-    getDelegateProtocolNextReward(delegateAddress)
-  ])
-  const { pendingRewardCut } = summary
-  const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
-  return MathBN.mul(protocolNextReward, rewardCut)
-}
-
-// For a given delegateAddress return the next reward that will be distributed towards delegators
-const getDelegateRewardToDelegators = async delegateAddress => {
-  // FORMULA: DelegateRewardToDelegators = DelegateProtocolNextReward - DelegateProtocolNextReward * rewardCut
-  let [summary, protocolNextReward] = await Promise.all([
-    getDelegateSummary(delegateAddress),
-    getDelegateProtocolNextReward(delegateAddress)
-  ])
-  const { pendingRewardCut } = summary
-  const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
-  const rewardToDelegate = MathBN.mul(protocolNextReward, rewardCut)
-  return MathBN.sub(protocolNextReward, rewardToDelegate)
-}
-
-// For a given delegatorAddress, returns the next round reward if exists
-const getDelegatorNextReturn = async delegatorAddress => {
-  // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
-  const delegator = await getLivepeerDelegatorAccount(delegatorAddress)
-  const { delegateAddress, totalStake } = delegator
-  const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
-  // FORMULA: delegateTotalStake / totalStake
-  const delegatorParticipationInTotalStake = MathBN.div(delegateTotalStake, totalStake)
-  const rewardToDelegators = await getDelegateRewardToDelegators(delegateAddress)
-  return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
-}
-
-const getMissedRewardCalls = async delegateAddress => {
-  let missedCalls = 0
-  const rewards = await getDelegateRewards(delegateAddress)
-  const currentRound = await getCurrentRound()
-
-  if (rewards) {
-    missedCalls = calculateMissedRewardCalls(rewards, currentRound)
-  }
-  return missedCalls
-}
-
 module.exports = {
-  getDelegate,
-  getDelegateRewards,
-  getDelegateTotalStake,
-  getMissedRewardCalls,
   getDelegateSummary,
-  getRegisteredDelegates
+  getRegisteredDelegates,
+  getDelegateRewards,
+  getDelegateTotalStake
 }
