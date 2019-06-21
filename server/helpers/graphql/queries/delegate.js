@@ -3,17 +3,14 @@ const {
   getMintedTokensForNextRound,
   getTotalBonded,
   getLivepeerDelegatorAccount
-} = require('../livepeerAPI')
-const { calculateMissedRewardCalls } = require('../utils')
-
-const { client } = require('./apolloClient')
+} = require('../../livepeerAPI')
 const gql = require('graphql-tag')
 const _ = require('lodash')
 
 const { calculateMissedRewardCalls, tokenAmountInUnits } = require('../../utils')
 const { getCurrentRound } = require('./protocol')
 
-const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
+const { PROTOCOL_DIVISION_BASE } = require('../../../../config/constants')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
 const getDelegateSummary = async delegateAddress => {
