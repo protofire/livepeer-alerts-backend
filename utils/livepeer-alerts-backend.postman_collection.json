@@ -424,7 +424,7 @@
 			"response": []
 		},
 		{
-			"name": "[GET] - /api/delegates/:address",
+			"name": "[GET] - /api/delegates/address/:address",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -448,14 +448,15 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/delegates/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"raw": "{{host}}/api/delegates/address/0xda43d85b8d419a9c51bbf0089c9bd5169c23f2f9",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"delegates",
-						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
+						"address",
+						"0xda43d85b8d419a9c51bbf0089c9bd5169c23f2f9"
 					]
 				}
 			},
