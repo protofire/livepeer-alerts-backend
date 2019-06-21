@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "399c2f0e-25f4-4687-9590-e385043a9599",
+		"_postman_id": "bf4d368a-1efe-4a78-9b2d-1c5372b154c0",
 		"name": "livepeer-alerts-backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -49,7 +49,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/5c23a020f090fa1abdff4a81",
+					"raw": "{{host}}/api/subscribers/5c23a020f090fa1abdff4a81?",
 					"host": [
 						"{{host}}"
 					],
@@ -418,6 +418,83 @@
 						"api",
 						"telegrams",
 						"0x88e103b26e1a4ce226739d37d356b22afbfeed85"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegates/:address",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Fernando\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/delegates/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"delegates",
+						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegates/roi/:address",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"type": "text",
+						"value": "http://localhost:3000"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Fernando\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/delegates/roi/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"delegates",
+						"roi",
+						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
 					]
 				}
 			},
