@@ -5,6 +5,7 @@ const { tokenAmountInUnits } = require('./utils')
 const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
 
 const { calculateMissedRewardCalls } = require('./utils')
+const promiseRetry = require('promise-retry')
 
 let delegateServiceInstance
 const defaultDelegateSource = require('./graphql/queries/index')
@@ -45,11 +46,15 @@ class DelegateService {
     const { getDelegateSummary } = this.delegateSource
     const { getMintedTokensForNextRound, getTotalBonded } = this.protocolSource
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
-    let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await Promise.all([
-      getDelegateSummary(delegateAddress),
-      getMintedTokensForNextRound(),
-      getTotalBonded()
-    ])
+
+    let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(retry => {
+      return Promise.all([
+        getDelegateSummary(delegateAddress),
+        getMintedTokensForNextRound(),
+        getTotalBonded()
+      ]).catch(err => retry())
+    })
+
     const { totalStake } = summary
     // FORMULA: delegateTotalStake / protocolTotalBonded
     const participationInTotalBondedRatio = MathBN.div(totalStake, totalBondedInProtocol)
@@ -61,10 +66,13 @@ class DelegateService {
   async getDelegateNextReward(delegateAddress) {
     const { getDelegateSummary } = this.delegateSource
     // DelegateReward = DelegateProtocolNextReward * rewardCut
-    let [summary, protocolNextReward] = await Promise.all([
-      getDelegateSummary(delegateAddress),
-      this.getDelegateProtocolNextReward(delegateAddress)
-    ])
+    let [summary, protocolNextReward] = await promiseRetry(retry => {
+      return Promise.all([
+        getDelegateSummary(delegateAddress),
+        this.getDelegateProtocolNextReward(delegateAddress)
+      ]).catch(err => retry())
+    })
+
     const { pendingRewardCut } = summary
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
     return MathBN.mul(protocolNextReward, rewardCut)
@@ -74,10 +82,13 @@ class DelegateService {
   async getDelegateRewardToDelegators(delegateAddress) {
     const { getDelegateSummary } = this.delegateSource
     // FORMULA: DelegateRewardToDelegators = DelegateProtocolNextReward - DelegateProtocolNextReward * rewardCut
-    let [summary, protocolNextReward] = await Promise.all([
-      getDelegateSummary(delegateAddress),
-      this.getDelegateProtocolNextReward(delegateAddress)
-    ])
+    let [summary, protocolNextReward] = await promiseRetry(retry => {
+      return Promise.all([
+        getDelegateSummary(delegateAddress),
+        this.getDelegateProtocolNextReward(delegateAddress)
+      ]).catch(err => retry())
+    })
+
     const { pendingRewardCut } = summary
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
     const rewardToDelegate = MathBN.mul(protocolNextReward, rewardCut)
@@ -89,7 +100,13 @@ class DelegateService {
     const { getLivepeerDelegatorAccount } = this.protocolSource
     const { getDelegateTotalStake } = this.delegateSource
     // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
-    const delegator = await getLivepeerDelegatorAccount(delegatorAddress)
+    const delegator = await promiseRetry(retry => {
+      try {
+        return getLivepeerDelegatorAccount(delegatorAddress)
+      } catch (err) {
+        retry()
+      }
+    })
     const { delegateAddress, totalStake } = delegator
     const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
     // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
