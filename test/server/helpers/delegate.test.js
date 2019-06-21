@@ -1,14 +1,24 @@
-const { createRewardObject } = require('../server/helpers/test/util')
-const BN = require('bn.js')
-const { calculateMissedRewardCalls } = require('../server/helpers/utils')
-const chai = require('chai') // eslint-disable-line import/newline-after-import
-const expect = chai.expect
-const assert = chai.assert
-const { MathBN } = require('../server/helpers/utils')
+const { getDelegate } = require('../../../server/helpers/delegate')
 
-chai.config.includeStack = true
+const { createTranscoder } = require('../../../server/helpers/test/util')
+let delegatesGrapqhl = require('../../../server/helpers/graphql/queries/delegate')
+const chai = require('chai') // eslint-disable-line import/newline-after-import
+const jest = require('jest')
+/*const expect = chai.expect
+const assert = chai.assert
+const sinon = require('sinon')*/
 
 describe('## Delegate test', () => {
+  describe('# getDelegate', () => {
+    it('There are 30 rounds, 10 of them do not have reward object, result should be 10', async () => {
+      // given
+      const delegate = createTranscoder()
+      // when
+      const result = await getDelegate()
+      console.log('Get delegate ', result)
+      // then
+    })
+  })
   describe('# getDelegateProtocolNextReward', () => {
     it('There are 30 rounds, 10 of them do not have reward object, result should be 10', done => {})
   })

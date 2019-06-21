@@ -1,18 +1,17 @@
 /**
- * Activate subscriber.
- * @returns {Subscriber}
+ * Handler for delegates
+ * @returns {Delegate}
  */
-
-const { getDelegate } = require('../helpers/delegate')
 
 const { MathBN, tokenAmountInUnits } = require('../helpers/utils')
 const BN = require('bn.js')
-const { getDelegateRewards, getDelegateTotalStake } = require('../helpers/graphql/queries/delegate')
+const { getDelegateService } = require('../helpers/delegate')
 
 const getByAddress = async (req, res, next) => {
   const { address } = req.params
+  const delegateService = getDelegateService()
   try {
-    const result = await getDelegate(address)
+    const result = await delegateService.getDelegate(address)
     res.json(result)
   } catch (error) {
     next(error)
@@ -20,9 +19,10 @@ const getByAddress = async (req, res, next) => {
 }
 const getROI = async (req, res, next) => {
   const { address } = req.params
+  const delegateService = getDelegateService()
   try {
-    const rewards = await getDelegateRewards(address)
-    const totalStake = await getDelegateTotalStake(address)
+    const rewards = await delegateService.getDelegateRewards(address)
+    const totalStake = await delegateService.getDelegateTotalStake(address)
     let roi = null
     if (rewards && totalStake) {
       const totalReward = rewards.reduce((total, reward) => {
