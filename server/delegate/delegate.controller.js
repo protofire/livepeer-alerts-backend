@@ -5,7 +5,7 @@
 
 const { MathBN, tokenAmountInUnits } = require('../helpers/utils')
 const BN = require('bn.js')
-const { getDelegateService } = require('../helpers/delegate')
+const { getDelegateService } = require('../helpers/delegateService')
 
 const getByAddress = async (req, res, next) => {
   const { address } = req.params
