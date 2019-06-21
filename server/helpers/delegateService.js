@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const { MathBN } = require('../../server/helpers/utils')
 const { tokenAmountInUnits } = require('./utils')
 
 const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
