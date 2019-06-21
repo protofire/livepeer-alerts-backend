@@ -40,8 +40,31 @@ const createTranscoder = transcoderId => {
   return mockTranscoder
 }
 
+const createDelegator = delegatorId => {
+  const mockDelegator = {
+    address: delegatorId,
+    allowance: '9000000000000000000000',
+    bondedAmount: '1648721740335621049244',
+    delegateAddress: delegatorId,
+    delegatedAmount: '0',
+    fees: '0',
+    lastClaimRound: '1348',
+    pendingFees: '0',
+    pendingStake: '1880033099473791560404',
+    startRound: '1241',
+    status: 'Bonded',
+    withdrawRound: '0',
+    withdrawAmount: '0',
+    nextUnbondingLockId: '1',
+    totalStake: '1880033099473791560404'
+  }
+
+  return mockDelegator
+}
+
 module.exports = {
   createRewardObject,
   createRoundObject,
-  createTranscoder
+  createTranscoder,
+  createDelegator
 }

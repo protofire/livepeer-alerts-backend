@@ -6,10 +6,8 @@ const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
 
 const { calculateMissedRewardCalls } = require('./utils')
 
-const { getCurrentRound } = require('./graphql/queries/protocol')
-
 let delegateServiceInstance
-const defaultDelegateSource = require('./graphql/queries/delegate')
+const defaultDelegateSource = require('./graphql/queries/index')
 const defaultProtocolSource = require('./livepeerAPI')
 
 const getDelegateService = (
@@ -61,11 +59,11 @@ class DelegateService {
 
   // Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
   async getDelegateNextReward(delegateAddress) {
-    const { getDelegateSummary, getDelegateProtocolNextReward } = this.delegateSource
+    const { getDelegateSummary } = this.delegateSource
     // DelegateReward = DelegateProtocolNextReward * rewardCut
     let [summary, protocolNextReward] = await Promise.all([
       getDelegateSummary(delegateAddress),
-      getDelegateProtocolNextReward(delegateAddress)
+      this.getDelegateProtocolNextReward(delegateAddress)
     ])
     const { pendingRewardCut } = summary
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
@@ -74,11 +72,11 @@ class DelegateService {
 
   // For a given delegateAddress return the next reward that will be distributed towards delegators
   async getDelegateRewardToDelegators(delegateAddress) {
-    const { getDelegateSummary, getDelegateProtocolNextReward } = this.delegateSource
+    const { getDelegateSummary } = this.delegateSource
     // FORMULA: DelegateRewardToDelegators = DelegateProtocolNextReward - DelegateProtocolNextReward * rewardCut
     let [summary, protocolNextReward] = await Promise.all([
       getDelegateSummary(delegateAddress),
-      getDelegateProtocolNextReward(delegateAddress)
+      this.getDelegateProtocolNextReward(delegateAddress)
     ])
     const { pendingRewardCut } = summary
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
@@ -89,23 +87,22 @@ class DelegateService {
   // For a given delegatorAddress, returns the next round reward if exists
   async getDelegatorNextReturn(delegatorAddress) {
     const { getLivepeerDelegatorAccount } = this.protocolSource
-    const { getDelegateTotalStake, getDelegateRewardToDelegators } = this.delegateSource
+    const { getDelegateTotalStake } = this.delegateSource
     // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
     const delegator = await getLivepeerDelegatorAccount(delegatorAddress)
     const { delegateAddress, totalStake } = delegator
     const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
-    // FORMULA: delegateTotalStake / totalStake
-    const delegatorParticipationInTotalStake = MathBN.div(delegateTotalStake, totalStake)
-    const rewardToDelegators = await getDelegateRewardToDelegators(delegateAddress)
+    // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
+    const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    const rewardToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
     return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
   }
 
   async getMissedRewardCalls(delegateAddress) {
-    const { getDelegateRewards } = this.delegateSource
+    const { getDelegateRewards, getCurrentRound } = this.delegateSource
     let missedCalls = 0
     const rewards = await getDelegateRewards(delegateAddress)
     const currentRound = await getCurrentRound()
-
     if (rewards) {
       missedCalls = calculateMissedRewardCalls(rewards, currentRound)
     }
