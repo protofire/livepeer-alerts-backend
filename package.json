@@ -11,7 +11,8 @@
     "yarn": ">=1.5.1"
   },
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon --exec babel-node index.js ",
+    "build": "babel index.js -d dist",
     "lint": "esw *.js server config --color",
     "lint:watch": "npm run lint -- --watch",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha  test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server",
@@ -71,7 +72,11 @@
     "winston": "2.4.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
     "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
     "babel-eslint": "^10.0.1",
     "chai": "4.1.2",
     "coveralls": "^3.0.2",
