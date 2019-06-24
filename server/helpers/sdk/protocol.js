@@ -1,6 +1,8 @@
 const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 const LivepeerSDK = require('@mariano-aguero/sdk')
 
+const { MathBN } = require('../utils')
+
 const getLivepeerCurrentRound = async () => {
   const { rpc } = await LivepeerSDK.default()
   return await rpc.getCurrentRound()

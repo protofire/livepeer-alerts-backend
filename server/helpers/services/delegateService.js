@@ -43,6 +43,7 @@ class DelegateService {
     const { getDelegateSummary } = this.source
     const protocolService = getProtocolService()
     const { getMintedTokensForNextRound, getTotalBonded } = protocolService
+    console.log('protocol next rw')
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
 
     let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(retry => {
@@ -50,7 +51,10 @@ class DelegateService {
         getDelegateSummary(delegateAddress),
         getMintedTokensForNextRound(),
         getTotalBonded()
-      ]).catch(err => retry())
+      ]).catch(err => {
+        console.error(err)
+        retry()
+      })
     })
 
     const { totalStake } = summary
@@ -68,7 +72,10 @@ class DelegateService {
       return Promise.all([
         getDelegateSummary(delegateAddress),
         this.getDelegateProtocolNextReward(delegateAddress)
-      ]).catch(err => retry())
+      ]).catch(err => {
+        console.error(err)
+        retry()
+      })
     })
 
     const { pendingRewardCut } = summary
@@ -130,7 +137,7 @@ class DelegateService {
     const { getRegisteredDelegates } = this.source
     let topDelegates = []
     const delegates = await getRegisteredDelegates()
-    for (delegateIterator of delegates) {
+    for (let delegateIterator of delegates) {
       const roi = await this.getDelegateNextReward(delegateIterator.address)
       topDelegates.push({
         id: delegateIterator.id,
@@ -140,8 +147,9 @@ class DelegateService {
     }
     // Sorts in ROI descending order
     topDelegates.sort((a, b) => {
+      const aBn = MathBN.toBig(a.roi)
       const bBn = MathBN.toBig(b.roi)
-      return bBn.sub(a)
+      return bBn.sub(aBn)
     })
     return topDelegates.slice(0, topNumber)
   }
