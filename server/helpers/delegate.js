@@ -101,9 +101,10 @@ const getTopDelegates = async topNumber => {
   let topDelegates = []
   const delegates = await getRegisteredDelegates()
   for (delegateIterator of delegates) {
-    const roi = await getDelegatorNextReturn(delegateIterator.address)
+    const roi = await getDelegateNextReward(delegateIterator.address)
     topDelegates.push({
-      ...delegateIterator,
+      id: delegateIterator.id,
+      totalStake: delegateIterator.totalStake,
       roi
     })
   }

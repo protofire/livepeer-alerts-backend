@@ -5,7 +5,7 @@
 
 const { getTopDelegates } = require('../../server/helpers/delegate')
 
-const { getDelegate } = require('../helpers/graphql/delegate')
+const { getDelegate } = require('../helpers/graphql/queries/delegate')
 
 const getByAddress = async (req, res, next) => {
   const { address } = req.params
