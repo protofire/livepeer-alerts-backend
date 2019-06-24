@@ -1,35 +1,32 @@
+const { getProtocolService } = require('./protocolService')
+
 const _ = require('lodash')
-const { MathBN } = require('../../server/helpers/utils')
-const { tokenAmountInUnits } = require('./utils')
+const { MathBN } = require('../utils')
+const { tokenAmountInUnits } = require('../utils')
 
-const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
+const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
-const { calculateMissedRewardCalls } = require('./utils')
+const { calculateMissedRewardCalls } = require('../utils')
 const promiseRetry = require('promise-retry')
 
 let delegateServiceInstance
-const defaultDelegateSource = require('./graphql/queries/index')
-const defaultProtocolSource = require('./livepeerAPI')
+const delegatesSource = require('../graphql/queries') // the default source for delegates is GRAPHQL
 
-const getDelegateService = (
-  delegateSource = defaultDelegateSource,
-  protocolSource = defaultProtocolSource
-) => {
+const getDelegateService = (source = delegatesSource) => {
   if (!delegateServiceInstance) {
-    delegateServiceInstance = new DelegateService(delegateSource, protocolSource)
+    delegateServiceInstance = new DelegateService(source)
   }
   return delegateServiceInstance
 }
 
 class DelegateService {
-  constructor(delegateDataSource, protocolDataSource) {
-    this.delegateSource = delegateDataSource
-    this.protocolSource = protocolDataSource
+  constructor(source) {
+    this.source = source
   }
 
   // Returns the delegate summary plus the missed reward calls
   async getDelegate(delegateAddress) {
-    const { getDelegateSummary } = this.delegateSource
+    const { getDelegateSummary } = this.source
     const summary = await getDelegateSummary(delegateAddress)
     const last30MissedRewardCalls = await this.getMissedRewardCalls(delegateAddress)
     return {
@@ -43,8 +40,9 @@ class DelegateService {
 
   // Receives a delegateAddress and returns the TOTAL reward (protocol reward, no the reward cut) of that delegate for the next round
   async getDelegateProtocolNextReward(delegateAddress) {
-    const { getDelegateSummary } = this.delegateSource
-    const { getMintedTokensForNextRound, getTotalBonded } = this.protocolSource
+    const { getDelegateSummary } = this.source
+    const protocolService = getProtocolService()
+    const { getMintedTokensForNextRound, getTotalBonded } = protocolService
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
 
     let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(retry => {
@@ -64,7 +62,7 @@ class DelegateService {
 
   // Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
   async getDelegateNextReward(delegateAddress) {
-    const { getDelegateSummary } = this.delegateSource
+    const { getDelegateSummary } = this.source
     // DelegateReward = DelegateProtocolNextReward * rewardCut
     let [summary, protocolNextReward] = await promiseRetry(retry => {
       return Promise.all([
@@ -80,7 +78,7 @@ class DelegateService {
 
   // For a given delegateAddress return the next reward that will be distributed towards delegators
   async getDelegateRewardToDelegators(delegateAddress) {
-    const { getDelegateSummary } = this.delegateSource
+    const { getDelegateSummary } = this.source
     // FORMULA: DelegateRewardToDelegators = DelegateProtocolNextReward - DelegateProtocolNextReward * rewardCut
     let [summary, protocolNextReward] = await promiseRetry(retry => {
       return Promise.all([
@@ -97,8 +95,9 @@ class DelegateService {
 
   // For a given delegatorAddress, returns the next round reward if exists
   async getDelegatorNextReturn(delegatorAddress) {
-    const { getLivepeerDelegatorAccount } = this.protocolSource
-    const { getDelegateTotalStake } = this.delegateSource
+    const protocolService = getProtocolService()
+    const { getLivepeerDelegatorAccount } = protocolService
+    const { getDelegateTotalStake } = this.source
     // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
     const delegator = await promiseRetry(retry => {
       try {
@@ -116,7 +115,9 @@ class DelegateService {
   }
 
   async getMissedRewardCalls(delegateAddress) {
-    const { getDelegateRewards, getCurrentRound } = this.delegateSource
+    const { getDelegateRewards } = this.source
+    const protocolService = getProtocolService()
+    const { getCurrentRound } = protocolService
     let missedCalls = 0
     const rewards = await getDelegateRewards(delegateAddress)
     const currentRound = await getCurrentRound()

@@ -2,7 +2,7 @@ const { MathBN } = require('../../../server/helpers/utils')
 
 const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../../../server/helpers/utils')
 
-const { getDelegateService } = require('../../../server/helpers/delegateService')
+const { getDelegateService } = require('../../../server/helpers/services/delegateService')
 
 const {
   createTranscoder,
