@@ -1,0 +1,5 @@
+const PROTOCOL_DIVISION_BASE = 1000000
+
+module.exports = {
+  PROTOCOL_DIVISION_BASE
+}

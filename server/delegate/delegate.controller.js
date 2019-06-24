@@ -3,24 +3,14 @@
  * @returns {Subscriber}
  */
 
-const { getDelegate, getDelegateRoi, getTopDelegates } = require('../helpers/graphql/delegate')
+const { getTopDelegates } = require('../../server/helpers/delegate')
 
-const delegateByAddress = async (req, res, next) => {
-  const { address = null } = req.params
-  let result = null
-  try {
-    result = await getDelegate(address)
-    res.json(result)
-  } catch (error) {
-    next(error)
-  }
-}
+const { getDelegate } = require('../helpers/graphql/delegate')
 
-const delegateRoi = async (req, res, next) => {
-  const { address = null } = req.params
-  let result = null
+const getByAddress = async (req, res, next) => {
+  const { address } = req.params
   try {
-    result = await getDelegateRoi(address)
+    const result = await getDelegate(address)
     res.json(result)
   } catch (error) {
     next(error)
@@ -39,7 +29,6 @@ const topDelegates = async (req, res, next) => {
 }
 
 module.exports = {
-  delegateByAddress,
-  delegateRoi,
+  getByAddress,
   topDelegates
 }
