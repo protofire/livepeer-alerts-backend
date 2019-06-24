@@ -44,7 +44,7 @@ class ProtocolService {
     }, CACHE_UPDATE_INTERVAL)
   }
 
-  async getTokenTotalSupply() {
+  getTokenTotalSupply = async () => {
     if (!this.totalTokenSupply) {
       this.totalTokenSupply = await this.source.getTokenTotalSupply()
     }
@@ -52,7 +52,7 @@ class ProtocolService {
   }
 
   // Returns the inflation of the current round, the value should be divided by 1.000.000 in order to make it a ratio
-  async getInflationRate() {
+  getInflationRate = async () => {
     if (!this.inflationRate) {
       const inflation = await this.source.getInflation()
       this.inflationRate = MathBN.div(inflation, PROTOCOL_DIVISION_BASE)
@@ -61,7 +61,7 @@ class ProtocolService {
   }
 
   // Returns the change of inflation for the next round, the value should be divided by 1.000.000 in order to make it a ratio
-  async getInflationChange() {
+  getInflationChange = async () => {
     if (!this.inflationChange) {
       const inflationChange = await this.source.getInflationChange()
       this.inflationChange = MathBN.div(inflationChange, PROTOCOL_DIVISION_BASE)
@@ -69,32 +69,32 @@ class ProtocolService {
     return this.inflationChange
   }
 
-  async getLastInitializedRound() {
+  getLastInitializedRound = async () => {
     if (!this.lastInitializedRound) {
       this.lastInitializedRound = await this.source.getLastInitializedRound()
     }
     return this.lastInitializedRound
   }
 
-  async getCurrentRoundInfo() {
+  getCurrentRoundInfo = async () => {
     if (!this.currentRoundInfo) {
       this.currentRoundInfo = await this.source.getLivepeerCurrentRoundInfo()
     }
     return this.currentRoundInfo
   }
 
-  async getRoundLength() {
+  getRoundLength = async () => {
     if (!this.currentRoundLenght) {
       this.currentRoundLenght = await this.source.getRoundLength()
     }
   }
 
-  async getRoundsPerYear() {
+  getRoundsPerYear = async () => {
     if (!this.roundsPerYear) {
       this.roundsPerYear = await this.source.getRoundsPerYear()
     }
   }
-  async getCurrentRound() {
+  getCurrentRound = async () => {
     if (!this.currentRound) {
       this.currentRound = await this.source.getCurrentRound()
     }
@@ -102,7 +102,7 @@ class ProtocolService {
   }
 
   // Returns the targetBondingRate, the value should be divided by 1.000.000 in order to make it a ratio
-  async getTargetBondingRate() {
+  getTargetBondingRate = async () => {
     if (!this.targetBondingRate) {
       const target = await this.source.getTargetBondingRate()
       this.targetBondingRate = MathBN.div(target, PROTOCOL_DIVISION_BASE)
@@ -111,25 +111,25 @@ class ProtocolService {
   }
 
   // Returns the total amount of tokens bonded in the protocol
-  async getTotalBonded() {
+  getTotalBonded = async () => {
     if (!this.totalBonded) {
       this.totalBonded = await this.source.getTotalBonded()
     }
     return this.totalBonded
   }
 
-  async getLivepeerDefaultConstants() {
+  getLivepeerDefaultConstants = async () => {
     if (!this.defaultConstants) {
       this.defaultConstants = await this.source.getLivepeerDefaultConstants()
     }
     return this.defaultConstants
   }
 
-  async getLatestBlock() {
+  getLatestBlock = async () => {
     return await this.source.getLatestBlock()
   }
 
-  async getLivepeerRoundProgress() {
+  getLivepeerRoundProgress = async () => {
     const [currentRoundInfo, roundLength, latestBlock] = await Promise.all([
       this.getCurrentRoundInfo(),
       this.getRoundLength(),
@@ -158,7 +158,7 @@ class ProtocolService {
   }
 
   // Returns the amount of minted tokens for the next round (inflation * totalSupply)
-  async getMintedTokensForNextRound() {
+  getMintedTokensForNextRound = async () => {
     let [nextInflation, totalSupply] = await Promise.all([
       this.getNextRoundInflation(),
       this.getTokenTotalSupply()
@@ -168,7 +168,7 @@ class ProtocolService {
   }
 
   // Returns the inflation as a ratio for the next round, the value should be divided by 1.000.000 in order to make it a ratio
-  async getNextRoundInflation() {
+  getNextRoundInflation = async () => {
     let [
       inflationRate,
       inflationChange,

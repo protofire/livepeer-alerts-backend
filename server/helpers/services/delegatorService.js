@@ -14,17 +14,17 @@ class DelegatorService {
     this.source = source
   }
 
-  async getDelegatorAccount(address) {
+  getDelegatorAccount = async address => {
     const { getLivepeerDelegatorAccount } = this.source
     return await getLivepeerDelegatorAccount(address)
   }
 
-  async getDelegatorTokenBalance(address) {
+  getDelegatorTokenBalance = async address => {
     const { getLivepeerDelegatorTokenBalance } = this.source
     return await getLivepeerDelegatorTokenBalance(address)
   }
 
-  async getLivepeerDelegatorStake(address) {
+  getLivepeerDelegatorStake = async address => {
     const { getLivepeerDelegatorStake } = this.source
     return await getLivepeerDelegatorStake(address)
   }

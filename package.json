@@ -71,6 +71,7 @@
     "winston": "2.4.1"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
     "babel-eslint": "^10.0.1",
     "chai": "4.1.2",
     "coveralls": "^3.0.2",
