@@ -362,5 +362,6 @@ module.exports = {
   tokenAmountInUnits,
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
-  calculateNextRoundInflationRatio
+  calculateNextRoundInflationRatio,
+  calculateCurrentBondingRate
 }
