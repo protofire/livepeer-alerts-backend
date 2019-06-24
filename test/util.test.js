@@ -146,7 +146,7 @@ describe('## Utils file test', () => {
       const targetBondingRate = 50
       const totalBonded = 10
       const totalSupply = 1000
-      const resultExpected = '0'
+      const resultExpected = 0
       // when
       const nextRoundInflation = calculateNextRoundInflationRatio(
         inflationRate,
