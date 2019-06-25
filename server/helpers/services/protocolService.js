@@ -96,7 +96,7 @@ class ProtocolService {
   }
   getCurrentRound = async () => {
     if (!this.currentRound) {
-      this.currentRound = await this.source.getCurrentRound()
+      this.currentRound = await this.source.getLivepeerCurrentRound()
     }
     return this.currentRound
   }
