@@ -278,43 +278,6 @@
 			"response": []
 		},
 		{
-			"name": "[GET] - /api/earnings",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					},
-					{
-						"key": "Referer",
-						"value": "http://localhost:3000",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{host}}/api/earnings",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"api",
-						"earnings"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "[GET] - /api/telegrams",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
