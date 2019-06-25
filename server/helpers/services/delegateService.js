@@ -43,7 +43,6 @@ class DelegateService {
     const { getDelegateSummary } = this.source
     const protocolService = getProtocolService()
     const { getMintedTokensForNextRound, getTotalBonded } = protocolService
-    console.log('protocol next rw')
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
 
     let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(retry => {
@@ -51,10 +50,7 @@ class DelegateService {
         getDelegateSummary(delegateAddress),
         getMintedTokensForNextRound(),
         getTotalBonded()
-      ]).catch(err => {
-        console.error(err)
-        retry()
-      })
+      ]).catch(err => retry())
     })
 
     const { totalStake } = summary
@@ -72,10 +68,7 @@ class DelegateService {
       return Promise.all([
         getDelegateSummary(delegateAddress),
         this.getDelegateProtocolNextReward(delegateAddress)
-      ]).catch(err => {
-        console.error(err)
-        retry()
-      })
+      ]).catch(err => retry())
     })
 
     const { pendingRewardCut } = summary
