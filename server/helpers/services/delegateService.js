@@ -56,7 +56,6 @@ class DelegateService {
     const { totalStake } = summary
     // FORMULA: delegateTotalStake / protocolTotalBonded
     const participationInTotalBondedRatio = MathBN.div(totalStake, totalBondedInProtocol)
-
     return MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
   }
 
@@ -93,13 +92,32 @@ class DelegateService {
     return MathBN.sub(protocolNextReward, rewardToDelegate)
   }
 
-  getMissedRewardCalls = async delegateAddress => {
-    const { getDelegateRewards } = this.source
+  // For a given delegatorAddress, returns the next round reward if exists
+  getDelegatorNextReturn = async delegatorAddress => {
     const protocolService = getProtocolService()
-    const { getCurrentRound } = protocolService
+    const { getLivepeerDelegatorAccount } = protocolService
+    const { getDelegateTotalStake } = this.source
+    // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
+    const delegator = await promiseRetry(retry => {
+      try {
+        return getLivepeerDelegatorAccount(delegatorAddress)
+      } catch (err) {
+        retry()
+      }
+    })
+    const { delegateAddress, totalStake } = delegator
+    const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
+    // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
+    const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    const rewardToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
+    return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
+  }
+
+  getMissedRewardCalls = async delegateAddress => {
+    const protocolService = getProtocolService()
     let missedCalls = 0
-    const rewards = await getDelegateRewards(delegateAddress)
-    const currentRound = await getCurrentRound()
+    const rewards = await this.getDelegateRewards(delegateAddress)
+    const currentRound = await protocolService.getCurrentRound()
     if (rewards) {
       missedCalls = calculateMissedRewardCalls(rewards, currentRound)
     }
@@ -117,7 +135,6 @@ class DelegateService {
     const totalStake = await getDelegateTotalStake(delegateAddress)
     return totalStake
   }
-
   // Calculates how much of lptTokenRewards a delegator will obtain from a given delegator
   // Receives a amount of staked LPT (delegatorStakedAmount), the totalStake of the delegate and the delegateAdress
   // Note: delegatorStakedAmount should be on tokenUnits
