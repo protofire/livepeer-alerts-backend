@@ -289,6 +289,9 @@ const getDelegatorRoundsUntilUnbonded = data => {
 }
 
 const tokenAmountInUnits = (amount, decimals = 18) => {
+  if (!amount) {
+    return 0
+  }
   const decimalsPerToken = MathBN.pow(10, decimals)
   return MathBN.div(amount, decimalsPerToken)
 }

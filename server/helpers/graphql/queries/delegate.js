@@ -34,7 +34,7 @@ const getRegisteredDelegates = async () => {
   const queryResult = await client.query({
     query: gql`
       {
-        transcoders(where: { totalStake_gt: 0, status: "Registered", id_not: null }) {
+        transcoders(where: { totalStake_gt: 0, status: "Registered", id_not: null, active: true }) {
           id
           address: id
           totalStake
