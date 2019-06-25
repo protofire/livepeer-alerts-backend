@@ -1,6 +1,7 @@
 const { calculateNextRoundInflationRatio, tokenAmountInUnits } = require('../utils')
 
 const { CACHE_UPDATE_INTERVAL, PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
+const { MathBN } = require('../utils')
 
 const defaultProtocolSource = require('../sdk/protocol')
 let protocolServiceInstance
@@ -54,7 +55,7 @@ class ProtocolService {
   // Returns the inflation of the current round, the value should be divided by 1.000.000 in order to make it a ratio
   getInflationRate = async () => {
     if (!this.inflationRate) {
-      const inflation = await this.source.getInflation()
+      const inflation = await this.source.getInflationRate()
       this.inflationRate = MathBN.div(inflation, PROTOCOL_DIVISION_BASE)
     }
     return this.inflationRate
