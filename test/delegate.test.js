@@ -1,3 +1,6 @@
+const { createDelegator } = require('../server/helpers/test/util')
+const { getDelegatorService } = require('../server/helpers/services/delegatorService')
+
 const { getProtocolService } = require('../server/helpers/services/protocolService')
 
 const { MathBN } = require('../server/helpers/utils')
@@ -16,6 +19,7 @@ const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
 describe('## DelegateService test', () => {
   const protocolService = getProtocolService()
   const delegateService = getDelegateService(delegatesGraphql)
+  const delegatorService = getDelegatorService()
   describe('# getDelegate', () => {
     it('getDelegate should return a delegate', async () => {
       // given
@@ -387,6 +391,128 @@ describe('## DelegateService test', () => {
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
+    })
+  })
+  describe('# getDelegatorNextReturn', () => {
+    // Delegate bondedStake = 1000
+    // DelegatorBonded stake = 100 (10% participation)
+    // Delegate nextRewardToDelegators = 500
+    // Result = 50
+    it('the next reward to delegators is 500, the % of participation of the delegator is 10%, result should be 50', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(100)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(500)
+      const rewardExpected = '50'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 10%, result should be 486634150', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(100)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(4866341500)
+      const rewardExpected = '486634150'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 99%, result should be 4817678085', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(990)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(4866341500)
+      const rewardExpected = '4817678085'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 0, the % of participation of the delegator is 99%, result should be 0', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(990)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(0)
+      const rewardExpected = '0'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
     })
   })
 })
