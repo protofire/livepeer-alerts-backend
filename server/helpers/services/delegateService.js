@@ -48,7 +48,6 @@ class DelegateService {
           protocolService.getMintedTokensForNextRound(),
           protocolService.getTotalBonded()
         ]).catch(err => {
-          console.error('error ', err)
           retry()
         })
       }
@@ -111,19 +110,14 @@ class DelegateService {
   }
 
   getMissedRewardCalls = async delegateAddress => {
-    console.log('missed rewards')
     const { getDelegateRewards } = this.source
     const protocolService = getProtocolService()
     let missedCalls = 0
-    console.log('before rewards with add ', delegateAddress)
     const rewards = await getDelegateRewards(delegateAddress)
-    console.log('rewards')
     const currentRound = await protocolService.getCurrentRound()
-    console.log('round')
     if (rewards) {
       missedCalls = calculateMissedRewardCalls(rewards, currentRound)
     }
-    console.log('finish cal ', missedCalls)
     return missedCalls
   }
 
