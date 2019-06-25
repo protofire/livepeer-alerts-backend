@@ -223,14 +223,14 @@ const summary = async (req, res, next) => {
     const protocolService = getProtocolService()
     const delegateService = getDelegateService()
 
-    let [delegator, balance, constants, currentRoundInfo] = Promise.all([
+    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
       delegatorService.getDelegatorAccount(addressWithoutSubscriber),
       delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
       protocolService.getLivepeerDefaultConstants(),
       protocolService.getCurrentRoundInfo()
     ])
 
-    let [transcoderAccount] = await delegateService.getDelegate(delegator.delegateAddress)
+    let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
 
     // Detect role
     let data = {
@@ -283,6 +283,7 @@ const summary = async (req, res, next) => {
 
     res.json(data)
   } catch (error) {
+    console.error('eee ', error)
     next(error)
   }
 }
