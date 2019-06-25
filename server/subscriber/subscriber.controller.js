@@ -1,10 +1,8 @@
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
-const Earning = require('../earning/earning.model')
 const {
   getLivepeerDelegatorAccount,
-  getLivepeerCurrentRound,
   getLivepeerDelegatorTokenBalance,
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRoundInfo,
@@ -13,7 +11,6 @@ const {
 const {
   fromBaseUnit,
   formatPercentage,
-  MathBN,
   getDelegatorRoundsUntilUnbonded
 } = require('../helpers/utils')
 const promiseRetry = require('promise-retry')
@@ -73,46 +70,52 @@ const create = async (req, res, next) => {
     // Create subscriber
     const savedSubscriber = await subscriber.save()
 
-    // Create earning
-    Earning.save(savedSubscriber)
+    // Send email notification promise
+    let sendNotificationPromise = new Promise(async (resolve, reject) => {
+      try {
+        let [delegator, constants, currentRoundInfo] = await Promise.all([
+          getLivepeerDelegatorAccount(address),
+          getLivepeerDefaultConstants(),
+          getLivepeerCurrentRoundInfo()
+        ])
 
-    // Send email notification
-    let [delegator, constants, currentRoundInfo] = await Promise.all([
-      getLivepeerDelegatorAccount(address),
-      getLivepeerDefaultConstants(),
-      getLivepeerCurrentRoundInfo()
-    ])
+        let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
 
-    let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
+        // Detect role
+        let data = {
+          role:
+            delegator &&
+            delegator.status == constants.DELEGATOR_STATUS.Bonded &&
+            delegator.delegateAddress &&
+            delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+              ? constants.ROLE.TRANSCODER
+              : constants.ROLE.DELEGATOR
+        }
 
-    // Detect role
-    let data = {
-      role:
-        delegator &&
-        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-        delegator.delegateAddress &&
-        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-          ? constants.ROLE.TRANSCODER
-          : constants.ROLE.DELEGATOR
-    }
+        // Check if transcoder call reward
+        let delegateCalledReward =
+          transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
 
-    // Check if transcoder call reward
-    let delegateCalledReward =
-      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+        if (data.role === constants.ROLE.TRANSCODER) {
+          const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+          const data = {
+            subscriber: savedSubscriber,
+            delegateCalledReward: delegateCalledReward
+          }
+          await sendNotificationEmail(data)
+        }
 
-    if (data.role === constants.ROLE.TRANSCODER) {
-      const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
-      const data = {
-        subscriber: savedSubscriber,
-        delegateCalledReward: delegateCalledReward
+        if (data.role === constants.ROLE.DELEGATOR) {
+          const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+          await sendNotificationEmail(savedSubscriber)
+        }
+        resolve()
+      } catch (err) {
+        reject()
       }
-      await sendNotificationEmail(data)
-    }
+    })
 
-    if (data.role === constants.ROLE.DELEGATOR) {
-      const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
-      await sendNotificationEmail(savedSubscriber, true)
-    }
+    sendNotificationPromise.then(() => {})
 
     return res.json(savedSubscriber)
   } catch (e) {
