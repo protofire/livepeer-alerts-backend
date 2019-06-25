@@ -59,14 +59,6 @@ module.exports = {
     }
   },
 
-  // GET /api/subscribers/address/:address
-  // GET /api/delegates/address/:address
-  getByAddress: {
-    params: {
-      address: Joi.string().required()
-    }
-  },
-
   // POST /api/subscribers/activate
   activateSubscriber: {
     body: {
@@ -74,8 +66,24 @@ module.exports = {
     }
   },
 
+  // GET /api/subscribers/address/:address
+  // GET /api/delegates/address/:address
+  // GET /api/delegators/address/:address
+  getByAddress: {
+    params: {
+      address: Joi.string().required()
+    }
+  },
+
   // GET /api/delegates/roi/:address
-  getDelegateROI: {
+  getROI: {
+    params: {
+      address: Joi.string().required()
+    }
+  },
+
+  // GET /api/delegators/reward/:address
+  getNextReward: {
     params: {
       address: Joi.string().required()
     }
