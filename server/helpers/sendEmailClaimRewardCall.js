@@ -2,7 +2,6 @@ const sgMail = require('@sendgrid/mail')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
-const Earning = require('../earning/earning.model')
 
 const {
   getLivepeerDelegatorAccount,
@@ -13,10 +12,11 @@ const {
 } = require('./livepeerAPI')
 const {
   truncateStringInTheMiddle,
-  getEarningParams,
   formatBalance,
   getDelegatorRoundsUntilUnbonded
 } = require('./utils')
+
+const { getDelegatorNextReturn } = require('./delegate')
 
 const {
   sendgridAPIKEY,
@@ -79,7 +79,7 @@ const sendEmailClaimRewardCall = async data => {
   return
 }
 
-const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
+const sendNotificationEmail = async subscriber => {
   try {
     let [delegator, constants] = await promiseRetry(async retry => {
       return Promise.all([
@@ -108,14 +108,10 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
           ? sendgridTemplateIdClaimRewardCallAllGood
           : sendgridTemplateIdClaimRewardCallPayAttention
 
-        const { roundFrom, roundTo, earningToRound } = await getEarningParams({
-          transcoderAccount,
-          currentRound,
-          subscriber
-        })
+        const earningNextReturn = await getDelegatorNextReturn(delegator.address)
 
         // Calculate lpt earned tokens
-        const lptEarned = formatBalance(earningToRound, 2)
+        const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
 
         const dateYesterday = moment()
           .subtract(1, 'days')
@@ -131,8 +127,8 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
           currentRound,
           transcoderAddress: truncateStringInTheMiddle(delegateAddress),
           dateYesterday,
-          roundFrom,
-          roundTo,
+          roundFrom: currentRound,
+          roundTo: currentRound + 1,
           lptEarned,
           delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
             subscriber.address
@@ -166,10 +162,6 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
         break
       default:
         return
-    }
-
-    if (createEarningOnSend) {
-      await Earning.save(subscriber)
     }
 
     body.email = subscriber.email
