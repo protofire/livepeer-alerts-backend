@@ -9,6 +9,6 @@ cache:
 git:
   depth: 3
 script:
-  - travis_wait npm run test:coverage
+  - npm run test:coverage
 after_script:
-  - travis_wait npm run report-coverage
+  - npm run report-coverage
