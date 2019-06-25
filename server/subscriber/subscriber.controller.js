@@ -11,7 +11,6 @@ const {
   formatPercentage,
   getDelegatorRoundsUntilUnbonded
 } = require('../helpers/utils')
-const promiseRetry = require('promise-retry')
 
 /**
  * Load subscriber and append to req.
@@ -223,21 +222,15 @@ const summary = async (req, res, next) => {
     const delegatorService = getDelegatorService()
     const protocolService = getProtocolService()
     const delegateService = getDelegateService()
-    // Get delegator with promise retry, because infura
-    let [delegator, balance, constants, currentRoundInfo] = await promiseRetry(retry => {
-      return Promise.all([
-        delegatorService.getDelegatorAccount(addressWithoutSubscriber),
-        delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
-        protocolService.getLivepeerDefaultConstants(),
-        protocolService.getCurrentRoundInfo()
-      ]).catch(err => retry())
-    })
 
-    let [transcoderAccount] = await promiseRetry(retry => {
-      return Promise.all([delegateService.getDelegate(delegator.delegateAddress)]).catch(err =>
-        retry()
-      )
-    })
+    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
+      delegatorService.getDelegatorAccount(addressWithoutSubscriber),
+      delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
+      protocolService.getLivepeerDefaultConstants(),
+      protocolService.getCurrentRoundInfo()
+    ])
+
+    let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
 
     // Detect role
     let data = {
@@ -290,6 +283,7 @@ const summary = async (req, res, next) => {
 
     res.json(data)
   } catch (error) {
+    console.error('eee ', error)
     next(error)
   }
 }
