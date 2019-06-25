@@ -1,6 +1,6 @@
 const _ = require('lodash')
 
-const { tokenAmountInUnits } = require('./utils')
+const { tokenAmountInUnits, MathBN } = require('./utils')
 
 const { PROTOCOL_DIVISION_BASE } = require('../../config/constants')
 
@@ -79,8 +79,8 @@ const getDelegatorNextReturn = async delegatorAddress => {
   const delegator = await getLivepeerDelegatorAccount(delegatorAddress)
   const { delegateAddress, totalStake } = delegator
   const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
-  // FORMULA: delegateTotalStake / totalStake
-  const delegatorParticipationInTotalStake = MathBN.div(delegateTotalStake, totalStake)
+  // FORMULA:  totalStake / delegateTotalStake
+  const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
   const rewardToDelegators = await getDelegateRewardToDelegators(delegateAddress)
   return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
 }
