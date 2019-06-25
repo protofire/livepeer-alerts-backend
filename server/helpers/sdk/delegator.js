@@ -1,4 +1,5 @@
 const LivepeerSDK = require('@mariano-aguero/sdk')
+const { MathBN } = require('../utils')
 const getLivepeerDelegatorAccount = async address => {
   if (!address) {
     return null

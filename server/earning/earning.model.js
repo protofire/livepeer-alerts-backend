@@ -67,7 +67,7 @@ EarningSchema.statics = {
     const protocolService = getProtocolService()
     let [delegator, currentRoundInfo] = await Promise.all([
       delegatorService.getDelegatorAccount(address),
-      protocolService.getLivepeerCurrentRoundInfo()
+      protocolService.getCurrentRoundInfo()
     ])
 
     const { lastClaimRound, pendingStake, bondedAmount } = delegator
