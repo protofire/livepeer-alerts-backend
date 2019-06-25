@@ -23,7 +23,7 @@ const getSubscribersToSendEmails = async () => {
     if (role === constants.ROLE.TRANSCODER) {
       continue
     }
-    emailsToSend.push(sendNotificationEmail(subscriber, true))
+    emailsToSend.push(sendNotificationEmail(subscriber))
   }
 
   console.log(
@@ -48,7 +48,7 @@ const getSubscribersToSendTelegrams = async () => {
     if (role === constants.ROLE.TRANSCODER) {
       continue
     }
-    telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
+    telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
   }
 
   console.log(

@@ -104,12 +104,6 @@ const subscriptionSave = async data => {
 
   const { address, chatId } = data
 
-  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
-  const [delegatorAccount, constants] = await Promise.all([
-    getLivepeerDelegatorAccount(address),
-    getLivepeerDefaultConstants()
-  ])
-
   // Create new subscriber on button press
   let subscriber = new Subscriber({
     address: address,
@@ -117,12 +111,6 @@ const subscriptionSave = async data => {
     telegramChatId: chatId
   })
   const subscriberCreated = await subscriber.save()
-
-  // Save earning
-  const Earning = require('../earning/earning.model')
-  const earningCreated = await Earning.save({
-    address: address
-  })
 
   console.log(
     `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
@@ -215,41 +203,6 @@ const toBaseUnit = x => {
 
 const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
-}
-
-const getEarningParams = async data => {
-  const { transcoderAccount, currentRound, subscriber } = data
-
-  // Calculate fees, fromRound, toRound, earnedFromInflation
-  const Earning = require('../earning/earning.model')
-  let earnings = await Earning.find({ address: subscriber.address }).exec()
-
-  // Sort earnings
-  earnings.sort(function compare(a, b) {
-    const dateA = new Date(a.createdAt)
-    const dateB = new Date(b.createdAt)
-    return dateB - dateA
-  })
-
-  // Reduce to obtain last two rounds
-  earnings = earnings.reduce(function(r, a) {
-    r[a.round] = r[a.round] || []
-    r[a.round] = a
-    return r
-  }, Object.create(null))
-
-  // Calculate rounds and earnings
-  const earningFromValue =
-    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
-  const earningToValue =
-    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
-
-  const roundFrom = earningFromValue ? earningFromValue.round : 0
-  const roundTo = earningToValue ? earningToValue.round : roundFrom
-  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
-  const earningToRound = earningToValue ? earningToValue.earning : earningFromRound
-
-  return { roundFrom, roundTo, earningFromRound, earningToRound }
 }
 
 const getSubscriptorRole = async subscriptor => {
@@ -350,7 +303,6 @@ module.exports = {
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getEarningParams,
   getSubscriptorRole,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
