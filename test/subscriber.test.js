@@ -16,6 +16,8 @@ const getRandomId = () => {
   )
 }
 
+const TIMEOUT_THRESHOLD = 60000 // 1 minute
+
 /**
  * root level hooks
  */
@@ -29,14 +31,12 @@ after(done => {
 
 describe('## Subscriber APIs', () => {
   let activatedTest = 1
-
   describe('# POST /api/subscribers', () => {
     let subscriber = {
       email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
       frequency: 'weekly'
     }
-
     const emailToUpdate = `mariano.aguero+${getRandomId()}@altoros.com`
 
     it('should create a new subscriber', done => {
@@ -563,7 +563,6 @@ describe('## Subscriber APIs', () => {
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
         frequency: 'weekly'
       }
-
       request(app)
         .post('/api/subscribers')
         .send(subscriber)

@@ -1,3 +1,5 @@
+const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
+
 const Big = require('big.js')
 const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
@@ -244,6 +246,10 @@ const tokenAmountInUnits = (amount, decimals = 18) => {
   return MathBN.div(amount, decimalsPerToken)
 }
 
+const unitAmountInTokenUnits = amount => {
+  return MathBN.mul(amount, TOKEN_DECIMALS_MULTIPLIER)
+}
+
 const calculateMissedRewardCalls = (rewards, currentRound) => {
   if (!currentRound || !rewards) {
     return 0
@@ -306,6 +312,8 @@ module.exports = {
   getSubscriptorRole,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
+  unitAmountInTokenUnits,
   calculateMissedRewardCalls,
-  calculateNextRoundInflationRatio
+  calculateNextRoundInflationRatio,
+  calculateCurrentBondingRate
 }

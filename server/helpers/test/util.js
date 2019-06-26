@@ -23,15 +23,48 @@ const createRoundObject = roundId => {
 
 // TODO Complete with all the fields
 const createTranscoder = transcoderId => {
-  return {
+  const mockTranscoder = {
     id: transcoderId,
     active: true,
-    status: 'Registered'
+    ensName: null,
+    status: 'Registered',
+    lastRewardRound: '1092',
+    rewardCut: '100000',
+    feeShare: '450000',
+    pricePerSegment: '150000000000',
+    pendingRewardCut: '50000',
+    pendingFeeShare: '450000',
+    pendingPricePerSegment: '150000000000',
+    totalStake: '440522208151278163711606'
   }
+  return mockTranscoder
+}
+
+const createDelegator = delegatorId => {
+  const mockDelegator = {
+    address: delegatorId,
+    allowance: '9000000000000000000000',
+    bondedAmount: '1648721740335621049244',
+    delegateAddress: delegatorId,
+    delegatedAmount: '0',
+    fees: '0',
+    lastClaimRound: '1348',
+    pendingFees: '0',
+    pendingStake: '1880033099473791560404',
+    startRound: '1241',
+    status: 'Bonded',
+    withdrawRound: '0',
+    withdrawAmount: '0',
+    nextUnbondingLockId: '1',
+    totalStake: '1880033099473791560404'
+  }
+
+  return mockDelegator
 }
 
 module.exports = {
   createRewardObject,
   createRoundObject,
-  createTranscoder
+  createTranscoder,
+  createDelegator
 }
