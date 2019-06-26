@@ -283,7 +283,7 @@ const summary = async (req, res, next) => {
 
     res.json(data)
   } catch (error) {
-    console.error('eee ', error)
+    console.error(error)
     next(error)
   }
 }

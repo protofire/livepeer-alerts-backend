@@ -1,6 +1,7 @@
 const _ = require('lodash')
 let delegatorServiceInstance
-const defaultSource = require('../sdk/delegator') // the delegate information comes from the SDK as default, graphql is not implemented
+// The delegate information comes from the SDK as default, graphql is not implemented
+const defaultSource = require('../sdk/delegator')
 
 const getDelegatorService = (source = defaultSource) => {
   if (!delegatorServiceInstance) {
