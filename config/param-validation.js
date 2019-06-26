@@ -68,22 +68,10 @@ module.exports = {
 
   // GET /api/subscribers/address/:address
   // GET /api/delegates/address/:address
-  // GET /api/delegators/address/:address
-  getByAddress: {
-    params: {
-      address: Joi.string().required()
-    }
-  },
-
   // GET /api/delegates/roi/:address
-  getROI: {
-    params: {
-      address: Joi.string().required()
-    }
-  },
-
+  // GET /api/delegators/address/:address
   // GET /api/delegators/reward/:address
-  getNextReward: {
+  getByAddress: {
     params: {
       address: Joi.string().required()
     }

@@ -9,6 +9,6 @@ const { getNextReward } = require('./delegator.controller')
 router
   .route('/reward/:address')
 
-  .get(validate(paramValidation.getROI), getNextReward)
+  .get(validate(paramValidation.getByAddress), getNextReward)
 
 module.exports = router

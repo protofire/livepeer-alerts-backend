@@ -15,6 +15,6 @@ router
 router
   .route('/roi/:address')
 
-  .get(validate(paramValidation.getROI), getROI)
+  .get(validate(paramValidation.getByAddress), getROI)
 
 module.exports = router
