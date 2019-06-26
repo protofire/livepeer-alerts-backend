@@ -1,19 +1,15 @@
+const { getDelegatorService } = require('../helpers/services/delegatorService')
+const { getProtocolService } = require('../helpers/services/protocolService')
+const { getDelegateService } = require('../helpers/services/delegateService')
+
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
-const {
-  getLivepeerDelegatorAccount,
-  getLivepeerDelegatorTokenBalance,
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo,
-  getLivepeerDefaultConstants
-} = require('../helpers/livepeerAPI')
 const {
   fromBaseUnit,
   formatPercentage,
   getDelegatorRoundsUntilUnbonded
 } = require('../helpers/utils')
-const promiseRetry = require('promise-retry')
 
 /**
  * Load subscriber and append to req.
@@ -73,13 +69,17 @@ const create = async (req, res, next) => {
     // Send email notification promise
     let sendNotificationPromise = new Promise(async (resolve, reject) => {
       try {
+        const delegatorService = getDelegatorService()
+        const protocolService = getProtocolService()
+        const delegateService = getDelegateService()
+        // Send email notification
         let [delegator, constants, currentRoundInfo] = await Promise.all([
-          getLivepeerDelegatorAccount(address),
-          getLivepeerDefaultConstants(),
-          getLivepeerCurrentRoundInfo()
+          delegatorService.getDelegatorAccount(address),
+          protocolService.getLivepeerDefaultConstants(),
+          protocolService.getCurrentRoundInfo()
         ])
 
-        let transcoderAccount = await getLivepeerTranscoderAccount(delegator.delegateAddress)
+        let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
 
         // Detect role
         let data = {
@@ -225,21 +225,18 @@ const summary = async (req, res, next) => {
   try {
     const { addressWithoutSubscriber = null } = req.params
 
-    // Get delegator with promise retry, because infura
-    let [delegator, balance, constants, currentRoundInfo] = await promiseRetry(retry => {
-      return Promise.all([
-        getLivepeerDelegatorAccount(addressWithoutSubscriber),
-        getLivepeerDelegatorTokenBalance(addressWithoutSubscriber),
-        getLivepeerDefaultConstants(),
-        getLivepeerCurrentRoundInfo()
-      ]).catch(err => retry())
-    })
+    const delegatorService = getDelegatorService()
+    const protocolService = getProtocolService()
+    const delegateService = getDelegateService()
 
-    let [transcoderAccount] = await promiseRetry(retry => {
-      return Promise.all([getLivepeerTranscoderAccount(delegator.delegateAddress)]).catch(err =>
-        retry()
-      )
-    })
+    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
+      delegatorService.getDelegatorAccount(addressWithoutSubscriber),
+      delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
+      protocolService.getLivepeerDefaultConstants(),
+      protocolService.getCurrentRoundInfo()
+    ])
+
+    let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
 
     // Detect role
     let data = {

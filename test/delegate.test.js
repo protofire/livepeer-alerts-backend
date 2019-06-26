@@ -1,37 +1,34 @@
-const { MathBN } = require('../../../server/helpers/utils')
+const { createDelegator } = require('../server/helpers/test/util')
+const { getDelegatorService } = require('../server/helpers/services/delegatorService')
 
-const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../../../server/helpers/utils')
+const { getProtocolService } = require('../server/helpers/services/protocolService')
 
-const { getDelegateService } = require('../../../server/helpers/delegateService')
+const { MathBN } = require('../server/helpers/utils')
 
-const {
-  createTranscoder,
-  createDelegator,
-  createRewardObject
-} = require('../../../server/helpers/test/util')
-const delegatesGraphql = require('../../../server/helpers/graphql/queries/index')
-const protocolSdk = require('../../../server/helpers/livepeerAPI')
+const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../server/helpers/utils')
+
+const { getDelegateService } = require('../server/helpers/services/delegateService')
+
+const { createTranscoder, createRewardObject } = require('../server/helpers/test/util')
+
 const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
+const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
 
 describe('## DelegateService test', () => {
+  const protocolService = getProtocolService()
+  const delegateService = getDelegateService(delegatesGraphql)
+  const delegatorService = getDelegatorService()
   describe('# getDelegate', () => {
-    it('getDelegate should return a delegate with missedRewardCalls', async () => {
+    it('getDelegate should return a delegate', async () => {
       // given
       const delegate = createTranscoder()
-      const missedRewardCalls = 0
       // stubs the delegateGraphql service
       const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
-      // stubs getMissedRewardCalls method
-      const getMissedRewardCallsStub = sinon
-        .stub(delegateService, 'getMissedRewardCalls')
-        .returns(missedRewardCalls)
       const resultExpected = {
         ...delegate,
-        totalStake: tokenAmountInUnits(delegate.totalStake),
-        last30MissedRewardCalls: missedRewardCalls
+        totalStake: tokenAmountInUnits(delegate.totalStake)
       }
 
       // when
@@ -39,11 +36,9 @@ describe('## DelegateService test', () => {
 
       // then
       expect(getSummaryStub.called)
-      expect(getMissedRewardCallsStub.called)
       expect(result.summary).to.deep.equal(resultExpected)
       // restore stubs
       getSummaryStub.restore()
-      getMissedRewardCallsStub.restore()
     })
   })
   describe('# getDelegateProtocolNextReward', () => {
@@ -55,107 +50,117 @@ describe('## DelegateService test', () => {
     // result (delegateReward) = 14
     it('140 minted tokens for next round, protocol bondedStake is 400, the bondedStake of the delegate is 40 (10% of the totalBonded), result should be 14 (10% of 140)', async () => {
       // given
-      const delegate = createTranscoder()
-      delegate.totalStake = unitAmountInTokenUnits(40)
+      const totalStake = unitAmountInTokenUnits(40)
       const totalBondedStake = unitAmountInTokenUnits(400)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const getMintedTokensForNextRoundStub = sinon
-        .stub(protocolSdk, 'getMintedTokensForNextRound')
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
+      const mintedTokensStub = sinon
+        .stub(protocolService, 'getMintedTokensForNextRound')
         .returns(140)
-      const getTotalBondedStub = sinon.stub(protocolSdk, 'getTotalBonded').returns(totalBondedStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
       const rewardExpected = '14'
 
       // when
       const result = await delegateService.getDelegateProtocolNextReward()
 
       // then
-      expect(getSummaryStub.called)
-      expect(getMintedTokensForNextRoundStub.called)
-      expect(getTotalBondedStub.called)
+      expect(getTotalStakeStub.called)
+      expect(totalBondedStub.called)
+      expect(mintedTokensStub.called)
       expect(result).equal(rewardExpected)
       // restore stubs
-      getSummaryStub.restore()
-      getMintedTokensForNextRoundStub.restore()
-      getTotalBondedStub.restore()
+      getTotalStakeStub.restore()
+      totalBondedStub.restore()
+      mintedTokensStub.restore()
     })
     it('100 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 36.6', async () => {
       // given
-      const delegate = createTranscoder()
-      delegate.totalStake = unitAmountInTokenUnits('512.4')
+      const totalStake = unitAmountInTokenUnits('512.4')
       const totalBondedStake = unitAmountInTokenUnits(1400)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const getMintedTokensForNextRoundStub = sinon
-        .stub(protocolSdk, 'getMintedTokensForNextRound')
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon
+        .stub(protocolService, 'getMintedTokensForNextRound')
         .returns(100)
-      const getTotalBondedStub = sinon.stub(protocolSdk, 'getTotalBonded').returns(totalBondedStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
+
       const rewardExpected = '36.6'
 
       // when
       const result = await delegateService.getDelegateProtocolNextReward()
 
       // then
-      expect(getSummaryStub.called)
-      expect(getMintedTokensForNextRoundStub.called)
-      expect(getTotalBondedStub.called)
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
       expect(result).equal(rewardExpected)
       // restore stubs
-      getSummaryStub.restore()
-      getMintedTokensForNextRoundStub.restore()
-      getTotalBondedStub.restore()
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
     })
     it('0 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 0', async () => {
       // given
-      const delegate = createTranscoder()
-      delegate.totalStake = unitAmountInTokenUnits('512.4')
+      const totalStake = unitAmountInTokenUnits('512.4')
       const totalBondedStake = unitAmountInTokenUnits(1400)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const getMintedTokensForNextRoundStub = sinon
-        .stub(protocolSdk, 'getMintedTokensForNextRound')
-        .returns(0)
-      const getTotalBondedStub = sinon.stub(protocolSdk, 'getTotalBonded').returns(totalBondedStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon.stub(protocolService, 'getMintedTokensForNextRound').returns(0)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
       const rewardExpected = '0'
 
       // when
       const result = await delegateService.getDelegateProtocolNextReward()
 
       // then
-      expect(getSummaryStub.called)
-      expect(getMintedTokensForNextRoundStub.called)
-      expect(getTotalBondedStub.called)
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
       expect(result).equal(rewardExpected)
       // restore stubs
-      getSummaryStub.restore()
-      getMintedTokensForNextRoundStub.restore()
-      getTotalBondedStub.restore()
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
     })
     it('1000 minted tokens for next round, protocol bondedStake is 10000, the bondedStake of the delegate is 100 (1% of the totalBonded), result should be 10', async () => {
       // given
-      const delegate = createTranscoder()
-      delegate.totalStake = unitAmountInTokenUnits('100')
+      const totalStake = unitAmountInTokenUnits('100')
       const totalBondedStake = unitAmountInTokenUnits(10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const getMintedTokensForNextRoundStub = sinon
-        .stub(protocolSdk, 'getMintedTokensForNextRound')
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon
+        .stub(protocolService, 'getMintedTokensForNextRound')
         .returns(1000)
-      const getTotalBondedStub = sinon.stub(protocolSdk, 'getTotalBonded').returns(totalBondedStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
       const rewardExpected = '10'
 
       // when
       const result = await delegateService.getDelegateProtocolNextReward()
 
       // then
-      expect(getSummaryStub.called)
-      expect(getMintedTokensForNextRoundStub.called)
-      expect(getTotalBondedStub.called)
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
       expect(result).equal(rewardExpected)
       // restore stubs
-      getSummaryStub.restore()
-      getMintedTokensForNextRoundStub.restore()
-      getTotalBondedStub.restore()
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
     })
   })
   describe('# getDelegateNextReward', () => {
@@ -163,8 +168,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(1000)
@@ -185,8 +189,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(198761)
@@ -207,8 +210,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(0)
@@ -231,8 +233,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(1000)
@@ -253,8 +254,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(19843.21064318)
@@ -275,8 +275,7 @@ describe('## DelegateService test', () => {
       // given
       const delegate = createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
-      const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
+      const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
         .returns(0)
@@ -292,132 +291,6 @@ describe('## DelegateService test', () => {
       // restore stubs
       getSummaryStub.restore()
       getDelegateProtocolNextRewardStub.restore()
-    })
-  })
-  describe('# getDelegatorNextReturn', () => {
-    // Delegate bondedStake = 1000
-    // DelegatorBonded stake = 100 (10% participation)
-    // Delegate nextRewardToDelegators = 500
-    // Result = 50
-    it('the next reward to delegators is 500, the % of participation of the delegator is 10%, result should be 50', async () => {
-      // given
-      const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(100)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
-      const getLivepeerDelegatorAccountSub = sinon
-        .stub(protocolSdk, 'getLivepeerDelegatorAccount')
-        .returns(delegator)
-      const getDelegateTotalStakeStub = sinon
-        .stub(delegatesGraphql, 'getDelegateTotalStake')
-        .returns(delegateTotalStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
-      const getDelegateRewardToDelegatorsSub = sinon
-        .stub(delegateService, 'getDelegateRewardToDelegators')
-        .returns(500)
-      const rewardExpected = '50'
-
-      // when
-      const result = await delegateService.getDelegatorNextReturn()
-
-      // then
-      expect(getLivepeerDelegatorAccountSub.called)
-      expect(getDelegateTotalStakeStub.called)
-      expect(getDelegateRewardToDelegatorsSub.called)
-      expect(result).equal(rewardExpected)
-      // restore stubs
-      getLivepeerDelegatorAccountSub.restore()
-      getDelegateTotalStakeStub.restore()
-      getDelegateRewardToDelegatorsSub.restore()
-    })
-    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 10%, result should be 486634150', async () => {
-      // given
-      const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(100)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
-      const getLivepeerDelegatorAccountSub = sinon
-        .stub(protocolSdk, 'getLivepeerDelegatorAccount')
-        .returns(delegator)
-      const getDelegateTotalStakeStub = sinon
-        .stub(delegatesGraphql, 'getDelegateTotalStake')
-        .returns(delegateTotalStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
-      const getDelegateRewardToDelegatorsSub = sinon
-        .stub(delegateService, 'getDelegateRewardToDelegators')
-        .returns(4866341500)
-      const rewardExpected = '486634150'
-
-      // when
-      const result = await delegateService.getDelegatorNextReturn()
-
-      // then
-      expect(getLivepeerDelegatorAccountSub.called)
-      expect(getDelegateTotalStakeStub.called)
-      expect(getDelegateRewardToDelegatorsSub.called)
-      expect(result).equal(rewardExpected)
-      // restore stubs
-      getLivepeerDelegatorAccountSub.restore()
-      getDelegateTotalStakeStub.restore()
-      getDelegateRewardToDelegatorsSub.restore()
-    })
-    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 99%, result should be 4817678085', async () => {
-      // given
-      const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(990)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
-      const getLivepeerDelegatorAccountSub = sinon
-        .stub(protocolSdk, 'getLivepeerDelegatorAccount')
-        .returns(delegator)
-      const getDelegateTotalStakeStub = sinon
-        .stub(delegatesGraphql, 'getDelegateTotalStake')
-        .returns(delegateTotalStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
-      const getDelegateRewardToDelegatorsSub = sinon
-        .stub(delegateService, 'getDelegateRewardToDelegators')
-        .returns(4866341500)
-      const rewardExpected = '4817678085'
-
-      // when
-      const result = await delegateService.getDelegatorNextReturn()
-
-      // then
-      expect(getLivepeerDelegatorAccountSub.called)
-      expect(getDelegateTotalStakeStub.called)
-      expect(getDelegateRewardToDelegatorsSub.called)
-      expect(result).equal(rewardExpected)
-      // restore stubs
-      getLivepeerDelegatorAccountSub.restore()
-      getDelegateTotalStakeStub.restore()
-      getDelegateRewardToDelegatorsSub.restore()
-    })
-    it('the next reward to delegators is 0, the % of participation of the delegator is 99%, result should be 0', async () => {
-      // given
-      const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(990)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
-      const getLivepeerDelegatorAccountSub = sinon
-        .stub(protocolSdk, 'getLivepeerDelegatorAccount')
-        .returns(delegator)
-      const getDelegateTotalStakeStub = sinon
-        .stub(delegatesGraphql, 'getDelegateTotalStake')
-        .returns(delegateTotalStake)
-      const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
-      const getDelegateRewardToDelegatorsSub = sinon
-        .stub(delegateService, 'getDelegateRewardToDelegators')
-        .returns(0)
-      const rewardExpected = '0'
-
-      // when
-      const result = await delegateService.getDelegatorNextReturn()
-
-      // then
-      expect(getLivepeerDelegatorAccountSub.called)
-      expect(getDelegateTotalStakeStub.called)
-      expect(getDelegateRewardToDelegatorsSub.called)
-      expect(result).equal(rewardExpected)
-      // restore stubs
-      getLivepeerDelegatorAccountSub.restore()
-      getDelegateTotalStakeStub.restore()
-      getDelegateRewardToDelegatorsSub.restore()
     })
   })
   describe('# getMissedRewardCalls', () => {
@@ -437,12 +310,11 @@ describe('## DelegateService test', () => {
           rewards.push(newReward)
         }
         const getDelegateRewardsStub = sinon
-          .stub(delegatesGraphql, 'getDelegateRewards')
+          .stub(delegateService, 'getDelegateRewards')
           .returns(rewards)
         const getCurrentRoundStub = sinon
-          .stub(delegatesGraphql, 'getCurrentRound')
+          .stub(protocolService, 'getCurrentRound')
           .returns(currentRound)
-        const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
 
         // when
         const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
@@ -472,12 +344,11 @@ describe('## DelegateService test', () => {
           rewards.push(newReward)
         }
         const getDelegateRewardsStub = sinon
-          .stub(delegatesGraphql, 'getDelegateRewards')
+          .stub(delegateService, 'getDelegateRewards')
           .returns(rewards)
         const getCurrentRoundStub = sinon
-          .stub(delegatesGraphql, 'getCurrentRound')
+          .stub(protocolService, 'getCurrentRound')
           .returns(currentRound)
-        const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
 
         // when
         const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
@@ -503,12 +374,11 @@ describe('## DelegateService test', () => {
         }
 
         const getDelegateRewardsStub = sinon
-          .stub(delegatesGraphql, 'getDelegateRewards')
+          .stub(delegateService, 'getDelegateRewards')
           .returns(rewards)
         const getCurrentRoundStub = sinon
-          .stub(delegatesGraphql, 'getCurrentRound')
+          .stub(protocolService, 'getCurrentRound')
           .returns(currentRound)
-        const delegateService = getDelegateService(delegatesGraphql, protocolSdk)
 
         // when
         const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
@@ -521,6 +391,128 @@ describe('## DelegateService test', () => {
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
+    })
+  })
+  describe('# getDelegatorNextReturn', () => {
+    // Delegate bondedStake = 1000
+    // DelegatorBonded stake = 100 (10% participation)
+    // Delegate nextRewardToDelegators = 500
+    // Result = 50
+    it('the next reward to delegators is 500, the % of participation of the delegator is 10%, result should be 50', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(100)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(500)
+      const rewardExpected = '50'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 10%, result should be 486634150', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(100)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(4866341500)
+      const rewardExpected = '486634150'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 4866341500, the % of participation of the delegator is 99%, result should be 4817678085', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(990)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(4866341500)
+      const rewardExpected = '4817678085'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
+    })
+    it('the next reward to delegators is 0, the % of participation of the delegator is 99%, result should be 0', async () => {
+      // given
+      const delegator = createDelegator()
+      delegator.totalStake = unitAmountInTokenUnits(990)
+      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      const getLivepeerDelegatorAccountSub = sinon
+        .stub(delegatorService, 'getDelegatorAccount')
+        .returns(delegator)
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegatesGraphql, 'getDelegateTotalStake')
+        .returns(delegateTotalStake)
+      const getDelegateRewardToDelegatorsSub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .returns(0)
+      const rewardExpected = '0'
+
+      // when
+      const result = await delegatorService.getDelegatorNextReward()
+
+      // then
+      expect(getLivepeerDelegatorAccountSub.called)
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateRewardToDelegatorsSub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getLivepeerDelegatorAccountSub.restore()
+      getDelegateTotalStakeStub.restore()
+      getDelegateRewardToDelegatorsSub.restore()
     })
   })
 })
