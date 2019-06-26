@@ -48,9 +48,7 @@ class DelegateService {
           this.getDelegateTotalStake(delegateAddress),
           protocolService.getMintedTokensForNextRound(),
           protocolService.getTotalBonded()
-        ]).catch(err => {
-          retry()
-        })
+        ]).catch(err => retry())
       }
     )
 
