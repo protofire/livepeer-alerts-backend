@@ -1,16 +1,13 @@
+const { getDelegatorService } = require('./services/delegatorService')
+const { getProtocolService } = require('./services/protocolService')
+const { getDelegateService } = require('./services/delegateService')
+
 const sgMail = require('@sendgrid/mail')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
 const Earning = require('../earning/earning.model')
 
-const {
-  getLivepeerDelegatorAccount,
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRound,
-  getLivepeerDefaultConstants,
-  getLivepeerCurrentRoundInfo
-} = require('./livepeerAPI')
 const {
   truncateStringInTheMiddle,
   getEarningParams,
@@ -81,10 +78,13 @@ const sendEmailClaimRewardCall = async data => {
 
 const sendNotificationEmail = async (subscriber, createEarningOnSend = false) => {
   try {
+    const delegatorService = getDelegatorService()
+    const protocolService = getProtocolService()
+    const delegateService = getDelegateService()
     let [delegator, constants] = await promiseRetry(async retry => {
       return Promise.all([
-        getLivepeerDelegatorAccount(subscriber.address),
-        getLivepeerDefaultConstants()
+        delegatorService.getDelegatorAccount(subscriber.address),
+        protocolService.getLivepeerDefaultConstants()
       ]).catch(err => retry())
     })
 
@@ -96,8 +96,8 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
         // Check call reward
         let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
           return Promise.all([
-            getLivepeerTranscoderAccount(delegator.delegateAddress),
-            getLivepeerCurrentRound()
+            delegateService.getDelegate(delegator.delegateAddress),
+            protocolService.getCurrentRound()
           ]).catch(err => retry())
         })
 
@@ -149,7 +149,7 @@ const sendNotificationEmail = async (subscriber, createEarningOnSend = false) =>
         templateId = sendgridTemplateIdClaimRewardUnbondingState
 
         const [currentRoundInfo] = await promiseRetry(retry => {
-          return Promise.all([getLivepeerCurrentRoundInfo()]).catch(err => retry())
+          return Promise.all([protocolService.getLivepeerCurrentRoundInfo()]).catch(err => retry())
         })
 
         const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({

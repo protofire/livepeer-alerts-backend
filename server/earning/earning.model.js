@@ -1,9 +1,8 @@
+const { getProtocolService } = require('../helpers/services/protocolService')
+const { getDelegatorService } = require('../helpers/services/delegatorService')
+
 const Promise = require('bluebird')
 const mongoose = require('mongoose')
-const {
-  getLivepeerDelegatorAccount,
-  getLivepeerCurrentRoundInfo
-} = require('../helpers/livepeerAPI')
 const { MathBN } = require('../helpers/utils')
 /**
  * Earning Schema
@@ -64,9 +63,11 @@ EarningSchema.statics = {
    */
   async save(subscriber) {
     const { address, email } = subscriber
+    const delegatorService = getDelegatorService()
+    const protocolService = getProtocolService()
     let [delegator, currentRoundInfo] = await Promise.all([
-      getLivepeerDelegatorAccount(address),
-      getLivepeerCurrentRoundInfo()
+      delegatorService.getDelegatorAccount(address),
+      protocolService.getCurrentRoundInfo()
     ])
 
     const { lastClaimRound, pendingStake, bondedAmount } = delegator

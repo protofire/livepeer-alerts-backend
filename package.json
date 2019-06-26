@@ -6,17 +6,17 @@
   "main": "index.js",
   "private": false,
   "engines": {
-    "node": ">=8.10.0",
+    "node": ">=10.16.0",
     "npm": ">=5.6.0",
     "yarn": ">=1.5.1"
   },
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon --harmony index.js",
     "lint": "esw *.js server config --color",
     "lint:watch": "npm run lint -- --watch",
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha  test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server",
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha  test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server --harmony --exit",
     "test:watch": "npm run test -- --watch",
-    "test:coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server",
+    "test:coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server --exit",
     "test:check-coverage": "npm run test:coverage && istanbul check-coverage",
     "report-coverage": "coveralls < ./coverage/lcov.info"
   },
