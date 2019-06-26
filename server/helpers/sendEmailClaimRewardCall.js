@@ -111,7 +111,6 @@ const sendNotificationEmail = async subscriber => {
         const delegateService = getDelegateService()
         const earningNextReturn = await delegateService.getDelegateNextReward(delegator.address)
 
-        console.log(earningNextReturn)
         // Calculate lpt earned tokens
         const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
 
