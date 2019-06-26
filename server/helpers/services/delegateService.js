@@ -25,36 +25,33 @@ class DelegateService {
     this.source = source
   }
 
-  // Returns the delegate summary plus the missed reward calls
+  // Returns the delegate summary
   getDelegate = async delegateAddress => {
     const { getDelegateSummary } = this.source
     const summary = await getDelegateSummary(delegateAddress)
-    const last30MissedRewardCalls = await this.getMissedRewardCalls(delegateAddress)
     return {
       summary: {
         ...summary,
-        totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0)),
-        last30MissedRewardCalls
+        totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0))
       }
     }
   }
 
   // Receives a delegateAddress and returns the TOTAL reward (protocol reward, no the reward cut) of that delegate for the next round
   getDelegateProtocolNextReward = async delegateAddress => {
-    const { getDelegateSummary } = this.source
     const protocolService = getProtocolService()
-    const { getMintedTokensForNextRound, getTotalBonded } = protocolService
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
 
-    let [summary, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(retry => {
-      return Promise.all([
-        getDelegateSummary(delegateAddress),
-        getMintedTokensForNextRound(),
-        getTotalBonded()
-      ]).catch(err => retry())
-    })
+    let [totalStake, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(
+      retry => {
+        return Promise.all([
+          this.getDelegateTotalStake(delegateAddress),
+          protocolService.getMintedTokensForNextRound(),
+          protocolService.getTotalBonded()
+        ]).catch(err => retry())
+      }
+    )
 
-    const { totalStake } = summary
     // FORMULA: delegateTotalStake / protocolTotalBonded
     const participationInTotalBondedRatio = MathBN.div(totalStake, totalBondedInProtocol)
     return MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
@@ -62,11 +59,10 @@ class DelegateService {
 
   // Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
   getDelegateNextReward = async delegateAddress => {
-    const { getDelegateSummary } = this.source
     // DelegateReward = DelegateProtocolNextReward * rewardCut
     let [summary, protocolNextReward] = await promiseRetry(retry => {
       return Promise.all([
-        getDelegateSummary(delegateAddress),
+        this.getDelegate(delegateAddress),
         this.getDelegateProtocolNextReward(delegateAddress)
       ]).catch(err => retry())
     })
@@ -78,15 +74,11 @@ class DelegateService {
 
   // For a given delegateAddress return the next reward that will be distributed towards delegators
   getDelegateRewardToDelegators = async delegateAddress => {
-    const { getDelegateSummary } = this.source
     // FORMULA: DelegateRewardToDelegators = DelegateProtocolNextReward - DelegateProtocolNextReward * rewardCut
-    let [summary, protocolNextReward] = await promiseRetry(retry => {
-      return Promise.all([
-        getDelegateSummary(delegateAddress),
-        this.getDelegateProtocolNextReward(delegateAddress)
-      ]).catch(err => retry())
-    })
-
+    let [summary, protocolNextReward] = await Promise.all([
+      this.getDelegate(delegateAddress),
+      this.getDelegateProtocolNextReward(delegateAddress)
+    ])
     const { pendingRewardCut } = summary
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
     const rewardToDelegate = MathBN.mul(protocolNextReward, rewardCut)
