@@ -53,7 +53,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should not create a new subscriber with wrong email', done => {
       request(app)
@@ -69,7 +69,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should not create a new subscriber with wrong frequency', done => {
       request(app)
@@ -87,7 +87,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should not create an empty subscriber', done => {
       request(app)
@@ -101,7 +101,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# POST /api/subscribers/activate', () => {
@@ -142,7 +142,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should create a new subscriber to activate and give an error', done => {
       request(app)
@@ -169,7 +169,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# GET /api/subscribers/:subscriberId', () => {
@@ -200,7 +200,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should report error with message - Not found, when subscriber does not exists', done => {
       request(app)
@@ -211,7 +211,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# PUT /api/subscribers/:subscriberId I', () => {
@@ -250,7 +250,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber with wrong email and get an error', done => {
       let subscriber = {
@@ -284,7 +284,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber with empty email and get an error', done => {
       let subscriber = {
@@ -320,7 +320,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber address details', done => {
       let subscriber = {
@@ -353,7 +353,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# PUT /api/subscribers/:subscriberId II', () => {
@@ -389,7 +389,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber with empty address and get an error', done => {
       let subscriber = {
@@ -423,7 +423,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber frequency details', done => {
       let subscriber = {
@@ -456,7 +456,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber with wrong frequency and get an error', done => {
       let subscriber = {
@@ -492,7 +492,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should update subscriber with empty frequency and get an error', done => {
       let subscriber = {
@@ -528,7 +528,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# GET /api/subscribers/', () => {
@@ -541,7 +541,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
 
     it('should get all subscribers (with limit and skip)', done => {
       request(app)
@@ -553,7 +553,7 @@ describe('## Subscriber APIs', () => {
           done()
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# DELETE /api/subscribers/', () => {
@@ -583,7 +583,7 @@ describe('## Subscriber APIs', () => {
             .catch(done)
         })
         .catch(done)
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# GET /api/subscribers/summary/:addresss', function() {
@@ -637,7 +637,7 @@ describe('## Subscriber APIs', () => {
             })
             .catch(done)
         })
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 
   describe('# GET /api/subscribers/address/:addresss', function() {
@@ -667,6 +667,6 @@ describe('## Subscriber APIs', () => {
             })
             .catch(done)
         })
-    }).timeout(TIMEOUT_THRESHOLD)
+    })
   })
 })

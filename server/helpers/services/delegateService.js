@@ -10,7 +10,8 @@ const { calculateMissedRewardCalls } = require('../utils')
 const promiseRetry = require('promise-retry')
 
 let delegateServiceInstance
-const delegatesSource = require('../graphql/queries') // the default source for delegates is GRAPHQL
+// the default source for delegates is GRAPHQL
+const delegatesSource = require('../graphql/queries')
 
 const getDelegateService = (source = delegatesSource) => {
   if (!delegateServiceInstance) {
