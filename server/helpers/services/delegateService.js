@@ -2,7 +2,7 @@ const { getProtocolService } = require('./protocolService')
 
 const _ = require('lodash')
 const { MathBN } = require('../utils')
-const { tokenAmountInUnits } = require('../utils')
+const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../utils')
 
 const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
@@ -114,24 +114,30 @@ class DelegateService {
     const totalStake = await getDelegateTotalStake(delegateAddress)
     return totalStake
   }
+
+  // Returns an array of all the active and registered delegates
+  getRegisteredDelegates = async () => {
+    const { getRegisteredDelegates } = this.source
+    return await getRegisteredDelegates()
+  }
+
   // Calculates how much of lptTokenRewards a delegator will obtain from a given delegator
-  // Receives a amount of staked LPT (delegatorStakedAmount), the totalStake of the delegate and the delegateAdress
-  // Note: delegatorStakedAmount should be on tokenUnits
-  simulateNextReturnForGivenDelegatorStakedAmount = async (
-    delegateAddress,
-    delegateTotalStake,
-    delegatorStakedAmount
+  // Receives a amount of staked LPT (delegatorAmountToStake), the totalStake of the delegate and the rewardsToDelegators amount
+  // Note: delegatorAmountToStake should be on tokenUnits
+  // All the values should be in tokenValues (18 decimals)
+  simulateNextReturnForGivenDelegatorStakedAmount = (
+    rewardsToDelegatorsInTokens,
+    delegateTotalStakeInTokens,
+    delegatorAmountToStakeInTokens
   ) => {
-    const delegateTotalStakeUnits = tokenAmountInUnits(delegateTotalStake)
-    const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
+    const rewardsToDelegators = tokenAmountInUnits(rewardsToDelegatorsInTokens)
+    const delegateTotalStake = tokenAmountInUnits(delegateTotalStakeInTokens)
+    const delegatorAmountToStake = tokenAmountInUnits(delegatorAmountToStakeInTokens)
     // Checks that the delegatorStakedAmount is <= delegateTotalStake
-    if (MathBN.lte(delegatorStakedAmount, delegateTotalStakeUnits)) {
+    if (MathBN.lte(delegatorAmountToStake, delegateTotalStake)) {
       // Calculates the delegatorParticipation in the totalStake
       // FORMULA: delegatorStakedAmount / delegateTotalStake
-      const participationInTotalStakeRatio = MathBN.div(
-        delegatorStakedAmount,
-        delegateTotalStakeUnits
-      )
+      const participationInTotalStakeRatio = MathBN.div(delegatorAmountToStake, delegateTotalStake)
       // Then calculates the reward with FORMULA: participationInTotalStakeRatio * rewardToDelegators
       return MathBN.mul(rewardsToDelegators, participationInTotalStakeRatio)
     } else {
@@ -140,17 +146,18 @@ class DelegateService {
   }
 
   // Returns the best active and registered <topNumber> delegates based on the return that they will provide on 1000 bonded LPT
-  getTopDelegates = async topNumber => {
-    const { getRegisteredDelegates } = this.source
-    const stakedAmount = 1000
+  getTopDelegates = async (topNumber, amountToStake = 1000) => {
     let topDelegates = []
-    const delegates = await getRegisteredDelegates()
+    const delegates = await this.getRegisteredDelegates()
+    const amountToStakeInTokens = unitAmountInTokenUnits(amountToStake)
     for (let delegateIterator of delegates) {
+      const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateIterator.address)
+      const rewardsConverted = unitAmountInTokenUnits(rewardsToDelegators)
       // Best return formula = order delegates by the best amount of return that will be given towards bonded delegators
-      const roi = await this.simulateNextReturnForGivenDelegatorStakedAmount(
-        delegateIterator.address,
+      const roi = this.simulateNextReturnForGivenDelegatorStakedAmount(
+        rewardsConverted,
         delegateIterator.totalStake,
-        stakedAmount
+        amountToStakeInTokens
       )
       const totalStake = tokenAmountInUnits(delegateIterator.totalStake)
       topDelegates.push({
