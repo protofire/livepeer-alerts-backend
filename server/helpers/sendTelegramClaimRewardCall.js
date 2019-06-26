@@ -10,7 +10,8 @@ const Handlebars = require('handlebars')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
-const { NoAlertToSendError } = require('./JobsErrors')
+
+const { getDelegateService } = require('./delegateService')
 
 const {
   getLivepeerDelegatorAccount,
@@ -82,7 +83,8 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const earningNextReturn = await getDelegatorNextReturn(delegator.address)
+      const delegateService = getDelegateService()
+      const earningNextReturn = await delegateService.getDelegateNextReward(delegator.address)
 
       // Calculate earned lpt
       const lptEarned = formatBalance(earningNextReturn, 2, 'wei')

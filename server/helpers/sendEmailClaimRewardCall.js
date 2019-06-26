@@ -16,7 +16,7 @@ const {
   getDelegatorRoundsUntilUnbonded
 } = require('./utils')
 
-const { getDelegatorNextReturn } = require('./delegate')
+const { getDelegateService } = require('./delegateService')
 
 const {
   sendgridAPIKEY,
@@ -108,8 +108,10 @@ const sendNotificationEmail = async subscriber => {
           ? sendgridTemplateIdClaimRewardCallAllGood
           : sendgridTemplateIdClaimRewardCallPayAttention
 
-        const earningNextReturn = await getDelegatorNextReturn(delegator.address)
+        const delegateService = getDelegateService()
+        const earningNextReturn = await delegateService.getDelegateNextReward(delegator.address)
 
+        console.log(earningNextReturn)
         // Calculate lpt earned tokens
         const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
 
