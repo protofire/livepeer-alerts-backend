@@ -92,27 +92,6 @@ class DelegateService {
     return MathBN.sub(protocolNextReward, rewardToDelegate)
   }
 
-  // For a given delegatorAddress, returns the next round reward if exists
-  getDelegatorNextReturn = async delegatorAddress => {
-    const protocolService = getProtocolService()
-    const { getLivepeerDelegatorAccount } = protocolService
-    const { getDelegateTotalStake } = this.source
-    // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
-    const delegator = await promiseRetry(retry => {
-      try {
-        return getLivepeerDelegatorAccount(delegatorAddress)
-      } catch (err) {
-        retry()
-      }
-    })
-    const { delegateAddress, totalStake } = delegator
-    const delegateTotalStake = await getDelegateTotalStake(delegateAddress)
-    // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
-    const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
-    const rewardToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
-    return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
-  }
-
   getMissedRewardCalls = async delegateAddress => {
     const protocolService = getProtocolService()
     let missedCalls = 0
