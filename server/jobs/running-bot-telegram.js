@@ -15,14 +15,11 @@ const {
   unsubscribe,
   getInstantAlert,
   getButtonsBySubscriptor,
-  subscriptionFind,
   subscriptionRemove,
   subscriptionSave,
   getSubscriptorRole
 } = require('../helpers/utils')
 const {
-  getLivepeerDefaultConstants,
-  getLivepeerDelegatorAccount,
   getLivepeerTranscoderAccount,
   getLivepeerCurrentRoundInfo
 } = require('../helpers/livepeerAPI')
@@ -96,25 +93,12 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       await subscriberObject.save()
     }
 
-    // Clean telegrams objects
-    let telegrams = await TelegramModel.find({ chatId: msg.chat.id }).exec()
-    if (telegrams.length > 1) {
-      telegrams.shift()
-      telegrams.forEach(async telegram => {
-        await telegram.remove()
-      })
-    }
+    // Clean all existing telegrams objects
+    await TelegramModel.deleteMany({ chatId: msg.chat.id })
 
-    // Must exist only one telegram object
-    let telegramObject = await TelegramModel.findOne({ chatId: msg.chat.id }).exec()
-    if (!telegramObject) {
-      const telegramModel = new TelegramModel(subscriptorData)
-      telegramObject = await telegramModel.save()
-    } else {
-      telegramObject.chatId = msg.chat.id
-      telegramObject.address = address
-      await telegramObject.save()
-    }
+    // Create new telegram object
+    const telegramModel = new TelegramModel(subscriptorData)
+    await telegramModel.save()
 
     const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
@@ -170,7 +154,7 @@ ${body}`,
       )
       console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
     } catch (e) {
-      console.log(`[Telegram bot] - ${e}`)
+      console.error(e)
       bot.sendMessage(
         msg.chat.id,
         'There was a problem when you try to subscribe, try it again later'
@@ -205,7 +189,11 @@ ${body}`,
       )
       console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
     } catch (e) {
-      bot.sendMessage(msg.chat.id, e.message)
+      console.error(e)
+      bot.sendMessage(
+        msg.chat.id,
+        'There was a problem when you try to unsubscribe, try it again later'
+      )
     }
   }
 
@@ -214,14 +202,14 @@ ${body}`,
     try {
       const address = await findAddress(msg.chat.id)
 
-      // Find subscriptor to get telegram body
-      const subscriptorData = { address: address, chatId: msg.chat.id }
-      const subscriptor = await subscriptionFind(subscriptorData)
-
       bot.sendMessage(msg.chat.id, `Waiting for alert notification...`)
 
-      const body = await getBodyBySubscriber(subscriptor)
-      const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
+      const body = await getBodyBySubscriber({ address: address, telegramChatId: msg.chat.id })
+
+      const { buttons, welcomeText } = await getButtonsBySubscriptor({
+        address: address,
+        chatId: msg.chat.id
+      })
 
       // Buttons resetup for telegram, only show subscribe and get instant alert
       bot.sendMessage(msg.chat.id, body, {
@@ -234,8 +222,11 @@ ${body}`,
       })
       console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
     } catch (e) {
-      console.log(JSON.stringify(e))
-      bot.sendMessage(msg.chat.id, e.message)
+      console.error(e)
+      bot.sendMessage(
+        msg.chat.id,
+        'There was a problem when you try to get the instant alert, try it again later'
+      )
     }
   }
 })

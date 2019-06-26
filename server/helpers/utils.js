@@ -129,7 +129,7 @@ const subscriptionExist = async data => {
   console.log(
     `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
   )
-  return count
+  return count > 0
 }
 
 // Delete existing subscription user
