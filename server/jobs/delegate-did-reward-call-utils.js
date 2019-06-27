@@ -5,16 +5,17 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const {
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo
-} = require('../helpers/livepeerAPI')
+const { getLivepeerTranscoderAccount } = require('../helpers/sdk/delegate')
+
+const { getProtocolService } = require('../helpers/services/protocolService')
+
 const { getSubscriptorRole } = require('../helpers/utils')
 const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
 const promiseRetry = require('promise-retry')
 
 const getSubscribers = async subscribers => {
+  const protocolService = getProtocolService()
   let subscribersToNotify = []
 
   for (const subscriber of subscribers) {
@@ -38,7 +39,7 @@ const getSubscribers = async subscribers => {
     let [transcoderAccount, currentRoundInfo] = await promiseRetry(retry => {
       return Promise.all([
         getLivepeerTranscoderAccount(delegator.delegateAddress),
-        getLivepeerCurrentRoundInfo()
+        protocolService.getCurrentRoundInfo()
       ]).catch(err => retry())
     })
 

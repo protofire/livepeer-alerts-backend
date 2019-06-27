@@ -11,23 +11,16 @@ const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
 
-const { getDelegateService } = require('./delegateService')
+const { getDelegatorService } = require('./services/delegatorService')
+const { getProtocolService } = require('./services/protocolService')
+const { getLivepeerTranscoderAccount } = require('./sdk/delegate')
 
-const {
-  getLivepeerDelegatorAccount,
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo,
-  getLivepeerCurrentRound,
-  getLivepeerDefaultConstants
-} = require('./livepeerAPI')
 const {
   getButtonsBySubscriptor,
   truncateStringInTheMiddle,
   formatBalance,
   getDelegatorRoundsUntilUnbonded
 } = require('./utils')
-
-const { getDelegatorNextReturn } = require('./delegate')
 
 const sendTelegramClaimRewardCall = async data => {
   const { chatId, address, body } = data
@@ -56,10 +49,13 @@ const sendTelegramClaimRewardCall = async data => {
 }
 
 const getTelegramClaimRewardCallBody = async subscriber => {
+  const delegatorService = getDelegatorService()
+  const protocolService = getProtocolService()
+
   let [delegator, constants] = await promiseRetry(async retry => {
     return Promise.all([
-      getLivepeerDelegatorAccount(subscriber.address),
-      getLivepeerDefaultConstants()
+      delegatorService.getDelegatorAccount(subscriber.address),
+      protocolService.getLivepeerDefaultConstants()
     ]).catch(err => retry())
   })
 
@@ -70,7 +66,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
         return Promise.all([
           getLivepeerTranscoderAccount(delegator.delegateAddress),
-          getLivepeerCurrentRound()
+          protocolService.getCurrentRound()
         ]).catch(err => retry())
       })
 
@@ -83,8 +79,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const delegateService = getDelegateService()
-      const earningNextReturn = await delegateService.getDelegateNextReward(delegator.address)
+      const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
 
       // Calculate earned lpt
       const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
@@ -132,7 +127,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       // Create telegram generator
       const templateUnbonding = Handlebars.compile(sourceUnbonding)
       const [currentRoundInfo] = await promiseRetry(retry => {
-        return Promise.all([getLivepeerCurrentRoundInfo()]).catch(err => retry())
+        return Promise.all([protocolService.getCurrentRoundInfo()]).catch(err => retry())
       })
 
       const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({

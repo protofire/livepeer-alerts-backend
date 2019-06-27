@@ -13,8 +13,6 @@ const {
   getDelegatorRoundsUntilUnbonded
 } = require('./utils')
 
-const { getDelegateService } = require('./delegateService')
-
 const {
   sendgridAPIKEY,
   fromEmail,
@@ -81,6 +79,7 @@ const sendNotificationEmail = async subscriber => {
     const delegatorService = getDelegatorService()
     const protocolService = getProtocolService()
     const delegateService = getDelegateService()
+
     let [delegator, constants] = await promiseRetry(async retry => {
       return Promise.all([
         delegatorService.getDelegatorAccount(subscriber.address),
@@ -108,8 +107,7 @@ const sendNotificationEmail = async subscriber => {
           ? sendgridTemplateIdClaimRewardCallAllGood
           : sendgridTemplateIdClaimRewardCallPayAttention
 
-        const delegateService = getDelegateService()
-        const earningNextReturn = await delegateService.getDelegateNextReward(delegator.address)
+        const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
 
         // Calculate lpt earned tokens
         const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
@@ -146,7 +144,7 @@ const sendNotificationEmail = async subscriber => {
         templateId = sendgridTemplateIdClaimRewardUnbondingState
 
         const [currentRoundInfo] = await promiseRetry(retry => {
-          return Promise.all([protocolService.getLivepeerCurrentRoundInfo()]).catch(err => retry())
+          return Promise.all([protocolService.getCurrentRoundInfo()]).catch(err => retry())
         })
 
         const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({

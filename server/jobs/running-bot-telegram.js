@@ -19,10 +19,9 @@ const {
   subscriptionSave,
   getSubscriptorRole
 } = require('../helpers/utils')
-const {
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo
-} = require('../helpers/livepeerAPI')
+
+const { getLivepeerTranscoderAccount } = require('../helpers/sdk/delegate')
+const { getProtocolService } = require('../helpers/services/protocolService')
 
 const { NoAddressError } = require('../helpers/JobsErrors')
 const TelegramModel = require('../telegram/telegram.model')
@@ -45,6 +44,8 @@ const getBodyBySubscriber = async subscriptor => {
   // Starting
   let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
 
+  const protocolService = getProtocolService()
+
   let data
   if (role === constants.ROLE.TRANSCODER) {
     // OK, is a delegate, let's send notifications
@@ -53,7 +54,7 @@ const getBodyBySubscriber = async subscriptor => {
     let [transcoderAccount, currentRoundInfo] = await promiseRetry(retry => {
       return Promise.all([
         getLivepeerTranscoderAccount(delegator.delegateAddress),
-        getLivepeerCurrentRoundInfo()
+        protocolService.getCurrentRoundInfo()
       ]).catch(err => retry())
     })
 

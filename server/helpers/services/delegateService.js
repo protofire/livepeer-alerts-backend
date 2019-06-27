@@ -1,13 +1,9 @@
-const { getProtocolService } = require('./protocolService')
-
-const _ = require('lodash')
-const { MathBN } = require('../utils')
-const { tokenAmountInUnits } = require('../utils')
-
-const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
-
-const { calculateMissedRewardCalls } = require('../utils')
 const promiseRetry = require('promise-retry')
+const _ = require('lodash')
+
+const { getProtocolService } = require('./protocolService')
+const { MathBN, tokenAmountInUnits, calculateMissedRewardCalls } = require('../utils')
+const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
 let delegateServiceInstance
 // the default source for delegates is GRAPHQL

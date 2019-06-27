@@ -12,6 +12,9 @@ const {
   StatusMustBeBondedError
 } = require('./JobsErrors')
 
+const { getProtocolService } = require('./services/protocolService')
+const { getDelegatorService } = require('./services/delegatorService')
+
 const MathBN = {
   sub: (a, b) => {
     const aBN = new Big(a || '0')
@@ -208,12 +211,13 @@ const fromBaseUnit = x => {
 }
 
 const getSubscriptorRole = async subscriptor => {
-  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+  const protocolService = getProtocolService()
+  const delegatorService = getDelegatorService()
 
   let [constants, delegator] = await promiseRetry(retry => {
     return Promise.all([
-      getLivepeerDefaultConstants(),
-      getLivepeerDelegatorAccount(subscriptor.address)
+      protocolService.getLivepeerDefaultConstants(),
+      delegatorService.getDelegatorAccount(subscriptor.address)
     ]).catch(err => retry())
   })
 

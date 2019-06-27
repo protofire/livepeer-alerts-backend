@@ -1,7 +1,8 @@
+const _ = require('lodash')
+
 const { getDelegateService } = require('./delegateService')
 const { MathBN } = require('../utils')
 
-const _ = require('lodash')
 let delegatorServiceInstance
 // The delegate information comes from the SDK as default, graphql is not implemented
 const defaultSource = require('../sdk/delegator')
