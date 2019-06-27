@@ -605,7 +605,7 @@ describe('## Subscriber APIs', () => {
           expect(res.body.activated).to.equal(activatedTest)
 
           request(app)
-            .get(`/api/subscribers/summary/${subscriber.address}`)
+            .get(`/api/subscribers/summary/${res.body.address}`)
             .expect(httpStatus.OK)
             .then(res => {
               expect(res.body).to.have.property('role')
@@ -637,11 +637,12 @@ describe('## Subscriber APIs', () => {
             })
             .catch(done)
         })
+        .catch(done)
     })
   })
 
-  describe('# GET /api/subscribers/address/:addresss', function() {
-    it('should get subscribers data by address ', function(done) {
+  describe('# GET /api/subscribers/address/:addresss', () => {
+    it('should get subscribers data by address ', done => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
@@ -667,6 +668,7 @@ describe('## Subscriber APIs', () => {
             })
             .catch(done)
         })
+        .catch(done)
     })
   })
 })
