@@ -24,25 +24,24 @@ const checkProgressRound = async () => {
 
     let {
       roundId,
-      initialized,
+      isInitialized,
       lastInitializedRound,
       length,
       startBlock,
-      progress,
-      roundLength
+      progress
     } = currentRoundInfo
 
     let actualSavedRound = await Round.findOne({})
     const data = {
       roundId: roundId,
-      initialized: initialized,
+      initialized: isInitialized,
       lastInitializedRound: lastInitializedRound,
-      length: roundLength,
+      length: length,
       startBlock: startBlock
     }
 
     if (!actualSavedRound) {
-      let roundCreated = new Round(data)
+      const roundCreated = new Round(data)
       actualSavedRound = await roundCreated.save()
     }
 
