@@ -13,7 +13,7 @@
   "scripts": {
     "start": "nodemon --harmony index.js",
     "start:telegram-bot": "nodemon --harmony server/jobs/running-bot-telegram.js",
-    "start:worker-did-reward": "node --harmony ./server/jobs/worker-notification-delegator-did-reward-call.js",
+    "start:worker-did-reward": "node --harmony ./server/jobs/worker-notification-delegate-did-reward-call.js",
     "start:worker-claim-reward": "node --harmony ./server/jobs/worker-notification-delegator-claim-reward-call.js",
     "lint": "esw *.js server config --color",
     "lint:watch": "npm run lint -- --watch",
