@@ -12,9 +12,6 @@ const {
   StatusMustBeBondedError
 } = require('./JobsErrors')
 
-const { getProtocolService } = require('./services/protocolService')
-const { getDelegatorService } = require('./services/delegatorService')
-
 const MathBN = {
   sub: (a, b) => {
     const aBN = new Big(a || '0')
@@ -211,6 +208,9 @@ const fromBaseUnit = x => {
 }
 
 const getSubscriptorRole = async subscriptor => {
+  const { getProtocolService } = require('./services/protocolService')
+  const { getDelegatorService } = require('./services/delegatorService')
+
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
 
