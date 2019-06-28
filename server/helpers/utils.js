@@ -1,7 +1,3 @@
-const { getProtocolService } = require('./services/protocolService')
-
-const { getDelegateService } = require('./services/delegateService')
-
 const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
 
 const Big = require('big.js')
@@ -15,8 +11,6 @@ const {
   AlreadySubscribedError,
   StatusMustBeBondedError
 } = require('./JobsErrors')
-
-const sgMail = require('@sendgrid/mail')
 
 const MathBN = {
   sub: (a, b) => {
@@ -216,7 +210,6 @@ const fromBaseUnit = x => {
 const getSubscriptorRole = async subscriptor => {
   const { getProtocolService } = require('./services/protocolService')
   const { getDelegatorService } = require('./services/delegatorService')
-
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
 
@@ -224,7 +217,10 @@ const getSubscriptorRole = async subscriptor => {
     return Promise.all([
       protocolService.getLivepeerDefaultConstants(),
       delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
+    ]).catch(err => {
+      console.error(err)
+      retry()
+    })
   })
 
   const { status, address, delegateAddress } = delegator
@@ -237,7 +233,6 @@ const getSubscriptorRole = async subscriptor => {
     address.toLowerCase() === delegateAddress.toLowerCase()
       ? constants.ROLE.TRANSCODER
       : constants.ROLE.DELEGATOR
-
   return {
     role,
     constants,
@@ -246,16 +241,18 @@ const getSubscriptorRole = async subscriptor => {
 }
 
 const getDidDelegateCallReward = async delegateAddress => {
-  const delegateService = getDelegateService()
+  const { getProtocolService } = require('./services/protocolService')
+  const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
   const protocolService = getProtocolService()
 
   const [delegate, currentRoundInfo] = await Promise.all([
-    delegateService.getDelegate(delegateAddress),
+    getLivepeerTranscoderAccount(delegateAddress),
     protocolService.getCurrentRoundInfo()
   ])
 
   // Check if transcoder call reward
-  return delegate && delegate.lastRewardRound === currentRoundInfo.id
+  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
+  return callReward
 }
 
 const getDelegatorRoundsUntilUnbonded = data => {
@@ -319,21 +316,6 @@ const calculateNextRoundInflationRatio = (
   return nextRoundInflation
 }
 
-const sendEmail = async msg => {
-  const { sendgridAPIKEY } = config
-
-  sgMail.setApiKey(sendgridAPIKEY)
-  sgMail.setSubstitutionWrappers('{{', '}}')
-  if (!['test'].includes(config.env)) {
-    try {
-      await sgMail.send(msg)
-      console.log(`Email sended to ${email} successfully`)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-}
-
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -356,6 +338,5 @@ module.exports = {
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
-  calculateCurrentBondingRate,
-  sendEmail
+  calculateCurrentBondingRate
 }

@@ -1,8 +1,8 @@
-const { sendEmail } = require('./utils')
-
+const sgMail = require('@sendgrid/mail')
 const config = require('../../config/config')
 
 const {
+  sendgridAPIKEY,
   fromEmail,
   fromEmailName,
   bccEmail,
@@ -10,6 +10,36 @@ const {
   sendgridTemplateIdDidRewardCallAllGood,
   sendgridTemplateIdDidRewardCallPayAttention
 } = config
+
+const sendEmail = async data => {
+  const { email, templateId } = data
+
+  sgMail.setApiKey(sendgridAPIKEY)
+  sgMail.setSubstitutionWrappers('{{', '}}')
+
+  const msg = {
+    to: email,
+    bcc: bccEmail,
+    from: {
+      name: fromEmailName,
+      email: fromEmail
+    },
+    templateId: templateId,
+    dynamic_template_data: {
+      unsubscribeEmailUrl: unsubscribeEmailUrl
+    }
+  }
+  if (!['test'].includes(config.env)) {
+    try {
+      await sgMail.send(msg)
+      console.log(`Email sended to ${email} successfully`)
+    } catch (err) {
+      console.log('error on email')
+      console.log(err)
+    }
+  }
+  return
+}
 
 const sendDelegateNotificationEmail = async data => {
   try {
@@ -19,21 +49,13 @@ const sendDelegateNotificationEmail = async data => {
       ? sendgridTemplateIdDidRewardCallAllGood
       : sendgridTemplateIdDidRewardCallPayAttention
 
-    // Create email msg
-    const msg = {
-      to: subscriber.email,
-      bcc: bccEmail,
-      from: {
-        name: fromEmailName,
-        email: fromEmail
-      },
-      templateId: templateId,
-      dynamic_template_data: {
-        unsubscribeEmailUrl: unsubscribeEmailUrl
-      }
-    }
     // Send email
-    await sendEmail(msg)
+    let emailData = {
+      email: subscriber.email,
+      templateId
+    }
+
+    await sendEmail(emailData)
 
     // Save last email sent
     subscriber.lastEmailSent = Date.now()

@@ -67,7 +67,6 @@ const create = async (req, res, next) => {
 
     // Create subscriber
     const savedSubscriber = await subscriber.save()
-
     // Send email notification promise
     let sendNotificationPromise = new Promise(async (resolve, reject) => {
       try {
@@ -79,24 +78,24 @@ const create = async (req, res, next) => {
 
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
-          const { sendNotificationEmail } = require('../helpers/sendDelegateEmail')
+          const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
           const data = {
             subscriber: savedSubscriber,
             delegateCalledReward: delegateCalledReward
           }
-          await sendNotificationEmail(data)
+          await sendDelegateNotificationEmail(data)
         }
 
         if (role === constants.ROLE.DELEGATOR) {
-          const { sendNotificationEmail } = require('../helpers/sendDelegatorEmail')
+          const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
           const protocolService = getProtocolService()
           const delegatorService = getDelegatorService()
-          const { currentRound, currentRoundInfo, delegatorNextReward } = await Promise.all([
+          const [currentRound, currentRoundInfo, delegatorNextReward] = await Promise.all([
             protocolService.getCurrentRound(),
             protocolService.getCurrentRoundInfo(),
             delegatorService.getDelegatorNextReward(delegator.address)
           ])
-          await sendNotificationEmail(
+          await sendDelegatorNotificationEmail(
             subscriber,
             delegator,
             delegateCalledReward,
@@ -108,6 +107,7 @@ const create = async (req, res, next) => {
         }
         resolve()
       } catch (err) {
+        console.error(err)
         reject()
       }
     })
@@ -116,6 +116,7 @@ const create = async (req, res, next) => {
 
     return res.json(savedSubscriber)
   } catch (e) {
+    console.error(e)
     next(e)
   }
 }

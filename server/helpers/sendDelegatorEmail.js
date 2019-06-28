@@ -1,5 +1,4 @@
-const { sendEmail } = require('./utils')
-
+const sgMail = require('@sendgrid/mail')
 const config = require('../../config/config')
 const moment = require('moment')
 
@@ -10,6 +9,7 @@ const {
 } = require('./utils')
 
 const {
+  sendgridAPIKEY,
   fromEmail,
   fromEmailName,
   bccEmail,
@@ -20,7 +20,7 @@ const {
   sendgridTemplateIdClaimRewardUnbondingState
 } = config
 
-const getEmailMsg = async data => {
+const sendEmail = async data => {
   const {
     email,
     templateId,
@@ -33,6 +33,9 @@ const getEmailMsg = async data => {
     delegateAddress,
     roundsUntilUnbonded
   } = data
+
+  sgMail.setApiKey(sendgridAPIKEY)
+  sgMail.setSubstitutionWrappers('{{', '}}')
 
   const msg = {
     to: email,
@@ -55,7 +58,15 @@ const getEmailMsg = async data => {
     }
   }
 
-  return msg
+  if (!['test'].includes(config.env)) {
+    try {
+      await sgMail.send(msg)
+      console.log(`Email sended to ${email} successfully`)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  return
 }
 
 const sendDelegatorNotificationEmail = async (
@@ -131,8 +142,7 @@ const sendDelegatorNotificationEmail = async (
     body.email = subscriber.email
     body.templateId = templateId
 
-    const msg = getEmailMsg(body)
-    await sendEmail(msg)
+    await sendEmail(body)
 
     // // Save last email sent
     subscriber.lastEmailSent = Date.now()
