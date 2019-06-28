@@ -1,3 +1,5 @@
+const { getProtocolService } = require('./services/protocolService')
+
 const { getDelegateService } = require('./services/delegateService')
 
 const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
@@ -13,6 +15,8 @@ const {
   AlreadySubscribedError,
   StatusMustBeBondedError
 } = require('./JobsErrors')
+
+const sgMail = require('@sendgrid/mail')
 
 const MathBN = {
   sub: (a, b) => {
@@ -315,6 +319,21 @@ const calculateNextRoundInflationRatio = (
   return nextRoundInflation
 }
 
+const sendEmail = async msg => {
+  const { sendgridAPIKEY } = config
+
+  sgMail.setApiKey(sendgridAPIKEY)
+  sgMail.setSubstitutionWrappers('{{', '}}')
+  if (!['test'].includes(config.env)) {
+    try {
+      await sgMail.send(msg)
+      console.log(`Email sended to ${email} successfully`)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -337,5 +356,6 @@ module.exports = {
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
-  calculateCurrentBondingRate
+  calculateCurrentBondingRate,
+  sendEmail
 }

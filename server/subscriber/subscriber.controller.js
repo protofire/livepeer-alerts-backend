@@ -74,10 +74,12 @@ const create = async (req, res, next) => {
         // Detect role
         const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
+        // Check if the delegate didRewardCall
+        const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
-          const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
-          const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+          const { sendNotificationEmail } = require('../helpers/sendDelegateEmail')
           const data = {
             subscriber: savedSubscriber,
             delegateCalledReward: delegateCalledReward
@@ -86,8 +88,23 @@ const create = async (req, res, next) => {
         }
 
         if (role === constants.ROLE.DELEGATOR) {
-          const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
-          await sendNotificationEmail(savedSubscriber)
+          const { sendNotificationEmail } = require('../helpers/sendDelegatorEmail')
+          const protocolService = getProtocolService()
+          const delegatorService = getDelegatorService()
+          const { currentRound, currentRoundInfo, delegatorNextReward } = await Promise.all([
+            protocolService.getCurrentRound(),
+            protocolService.getCurrentRoundInfo(),
+            delegatorService.getDelegatorNextReward(delegator.address)
+          ])
+          await sendNotificationEmail(
+            subscriber,
+            delegator,
+            delegateCalledReward,
+            delegatorNextReward,
+            currentRound,
+            currentRoundInfo,
+            constants
+          )
         }
         resolve()
       } catch (err) {

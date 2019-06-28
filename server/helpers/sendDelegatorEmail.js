@@ -1,9 +1,5 @@
-const { getDelegatorService } = require('./services/delegatorService')
-const { getProtocolService } = require('./services/protocolService')
-const { getDelegateService } = require('./services/delegateService')
+const { sendEmail } = require('./utils')
 
-const sgMail = require('@sendgrid/mail')
-const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
 
@@ -14,7 +10,6 @@ const {
 } = require('./utils')
 
 const {
-  sendgridAPIKEY,
   fromEmail,
   fromEmailName,
   bccEmail,
@@ -25,7 +20,7 @@ const {
   sendgridTemplateIdClaimRewardUnbondingState
 } = config
 
-const sendEmailClaimRewardCall = async data => {
+const getEmailMsg = async data => {
   const {
     email,
     templateId,
@@ -38,9 +33,6 @@ const sendEmailClaimRewardCall = async data => {
     delegateAddress,
     roundsUntilUnbonded
   } = data
-
-  sgMail.setApiKey(sendgridAPIKEY)
-  sgMail.setSubstitutionWrappers('{{', '}}')
 
   const msg = {
     to: email,
@@ -63,54 +55,31 @@ const sendEmailClaimRewardCall = async data => {
     }
   }
 
-  if (!['test'].includes(config.env)) {
-    try {
-      await sgMail.send(msg)
-      console.log(`Email sended to ${email} successfully`)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-  return
+  return msg
 }
 
-const sendNotificationEmail = async subscriber => {
+const sendDelegatorNotificationEmail = async (
+  subscriber,
+  delegator,
+  delegateCalledReward,
+  delegatorNextReward,
+  currentRound,
+  currentRoundInfo,
+  constants
+) => {
   try {
-    const delegatorService = getDelegatorService()
-    const protocolService = getProtocolService()
-    const delegateService = getDelegateService()
-
-    let [delegator, constants] = await promiseRetry(async retry => {
-      return Promise.all([
-        delegatorService.getDelegatorAccount(subscriber.address),
-        protocolService.getLivepeerDefaultConstants()
-      ]).catch(err => retry())
-    })
-
     let templateId
     let body = {}
 
     switch (delegator.status) {
       case constants.DELEGATOR_STATUS.Bonded:
-        // Check call reward
-        let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
-          return Promise.all([
-            delegateService.getDelegate(delegator.delegateAddress),
-            protocolService.getCurrentRound()
-          ]).catch(err => retry())
-        })
-
-        const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
-
         // Select template based on call reward
-        templateId = callReward
+        templateId = delegateCalledReward
           ? sendgridTemplateIdClaimRewardCallAllGood
           : sendgridTemplateIdClaimRewardCallPayAttention
 
-        const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
-
         // Calculate lpt earned tokens
-        const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
+        const lptEarned = formatBalance(delegatorNextReward, 2, 'wei')
 
         const dateYesterday = moment()
           .subtract(1, 'days')
@@ -121,7 +90,7 @@ const sendNotificationEmail = async subscriber => {
 
         // Generate params for body
         body = {
-          callReward,
+          callReward: delegateCalledReward,
           totalStake,
           currentRound,
           transcoderAddress: truncateStringInTheMiddle(delegateAddress),
@@ -143,10 +112,6 @@ const sendNotificationEmail = async subscriber => {
       case constants.DELEGATOR_STATUS.Unbonding:
         templateId = sendgridTemplateIdClaimRewardUnbondingState
 
-        const [currentRoundInfo] = await promiseRetry(retry => {
-          return Promise.all([protocolService.getCurrentRoundInfo()]).catch(err => retry())
-        })
-
         const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
           delegator,
           constants,
@@ -166,7 +131,8 @@ const sendNotificationEmail = async subscriber => {
     body.email = subscriber.email
     body.templateId = templateId
 
-    await sendEmailClaimRewardCall(body)
+    const msg = getEmailMsg(body)
+    await sendEmail(msg)
 
     // // Save last email sent
     subscriber.lastEmailSent = Date.now()
@@ -177,4 +143,4 @@ const sendNotificationEmail = async subscriber => {
   }
 }
 
-module.exports = { sendNotificationEmail }
+module.exports = { sendDelegatorNotificationEmail }

@@ -6,7 +6,7 @@ Promise.config({
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
-const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
 
 const getSubscribers = async subscribers => {
@@ -54,7 +54,7 @@ const sendNotificationEmailFn = async () => {
 
   const subscribersToSendEmails = []
   for (const subscriberToNotify of subscribersToNofity) {
-    subscribersToSendEmails.push(sendNotificationEmail(subscriberToNotify))
+    subscribersToSendEmails.push(sendDelegateNotificationEmail(subscriberToNotify))
   }
 
   console.log(
