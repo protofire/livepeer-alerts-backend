@@ -1,4 +1,5 @@
 const { getProtocolService } = require('../helpers/services/protocolService')
+const { getDelegatorService } = require('../helpers/services/delegatorService')
 
 const Promise = require('bluebird')
 Promise.config({
