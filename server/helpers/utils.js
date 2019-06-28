@@ -1,3 +1,5 @@
+const { getDelegateService } = require('./services/delegateService')
+
 const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
 
 const Big = require('big.js')
@@ -221,12 +223,14 @@ const getSubscriptorRole = async subscriptor => {
     ]).catch(err => retry())
   })
 
+  const { status, address, delegateAddress } = delegator
+
   // Detect role
   const role =
     delegator &&
-    delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-    delegator.delegateAddress &&
-    delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+    status === constants.DELEGATOR_STATUS.Bonded &&
+    delegateAddress &&
+    address.toLowerCase() === delegateAddress.toLowerCase()
       ? constants.ROLE.TRANSCODER
       : constants.ROLE.DELEGATOR
 
@@ -235,6 +239,19 @@ const getSubscriptorRole = async subscriptor => {
     constants,
     delegator
   }
+}
+
+const getDidDelegateCallReward = async delegateAddress => {
+  const delegateService = getDelegateService()
+  const protocolService = getProtocolService()
+
+  const [delegate, currentRoundInfo] = await Promise.all([
+    delegateService.getDelegate(delegateAddress),
+    protocolService.getCurrentRoundInfo()
+  ])
+
+  // Check if transcoder call reward
+  return delegate && delegate.lastRewardRound === currentRoundInfo.id
 }
 
 const getDelegatorRoundsUntilUnbonded = data => {
@@ -314,6 +331,7 @@ module.exports = {
   formatBalance,
   formatPercentage,
   getSubscriptorRole,
+  getDidDelegateCallReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,

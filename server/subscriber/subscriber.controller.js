@@ -8,7 +8,9 @@ const Subscriber = require('./subscriber.model')
 const {
   fromBaseUnit,
   formatPercentage,
-  getDelegatorRoundsUntilUnbonded
+  getDelegatorRoundsUntilUnbonded,
+  getSubscriptorRole,
+  getDidDelegateCallReward
 } = require('../helpers/utils')
 
 /**
@@ -69,34 +71,12 @@ const create = async (req, res, next) => {
     // Send email notification promise
     let sendNotificationPromise = new Promise(async (resolve, reject) => {
       try {
-        const delegatorService = getDelegatorService()
-        const protocolService = getProtocolService()
-        const delegateService = getDelegateService()
-        // Send email notification
-        let [delegator, constants, currentRoundInfo] = await Promise.all([
-          delegatorService.getDelegatorAccount(address),
-          protocolService.getLivepeerDefaultConstants(),
-          protocolService.getCurrentRoundInfo()
-        ])
-
-        let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
-
         // Detect role
-        let data = {
-          role:
-            delegator &&
-            delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-            delegator.delegateAddress &&
-            delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-              ? constants.ROLE.TRANSCODER
-              : constants.ROLE.DELEGATOR
-        }
+        const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
-        // Check if transcoder call reward
-        let delegateCalledReward =
-          transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
-
-        if (data.role === constants.ROLE.TRANSCODER) {
+        // Send email notification
+        if (role === constants.ROLE.TRANSCODER) {
+          const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
           const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
           const data = {
             subscriber: savedSubscriber,
@@ -105,7 +85,7 @@ const create = async (req, res, next) => {
           await sendNotificationEmail(data)
         }
 
-        if (data.role === constants.ROLE.DELEGATOR) {
+        if (role === constants.ROLE.DELEGATOR) {
           const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
           await sendNotificationEmail(savedSubscriber)
         }
