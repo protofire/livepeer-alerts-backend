@@ -45,7 +45,10 @@ class DelegatorService {
       delegateService.getDelegateRewardToDelegators(delegateAddress)
     ])
     // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
-    const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    let delegatorParticipationInTotalStake = 0
+    if (delegateTotalStake > 0) {
+      delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    }
     return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
   }
 }
