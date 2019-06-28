@@ -5,11 +5,12 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
-const Earning = require('../earning/earning.model')
 const {
   fromBaseUnit,
   formatPercentage,
-  getDelegatorRoundsUntilUnbonded
+  getDelegatorRoundsUntilUnbonded,
+  getSubscriptorRole,
+  getDidDelegateCallReward
 } = require('../helpers/utils')
 
 /**
@@ -66,53 +67,56 @@ const create = async (req, res, next) => {
 
     // Create subscriber
     const savedSubscriber = await subscriber.save()
+    // Send email notification promise
+    let sendNotificationPromise = new Promise(async (resolve, reject) => {
+      try {
+        // Detect role
+        const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
-    // Create earning
-    Earning.save(savedSubscriber)
+        // Check if the delegate didRewardCall
+        const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
 
-    const delegatorService = getDelegatorService()
-    const protocolService = getProtocolService()
-    const delegateService = getDelegateService()
-    // Send email notification
-    let [delegator, constants, currentRoundInfo] = await Promise.all([
-      delegatorService.getDelegatorAccount(address),
-      protocolService.getLivepeerDefaultConstants(),
-      protocolService.getCurrentRoundInfo()
-    ])
+        // Send email notification
+        if (role === constants.ROLE.TRANSCODER) {
+          const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
+          const data = {
+            subscriber: savedSubscriber,
+            delegateCalledReward: delegateCalledReward
+          }
+          await sendDelegateNotificationEmail(data)
+        }
 
-    let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
-
-    // Detect role
-    let data = {
-      role:
-        delegator &&
-        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-        delegator.delegateAddress &&
-        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-          ? constants.ROLE.TRANSCODER
-          : constants.ROLE.DELEGATOR
-    }
-
-    // Check if transcoder call reward
-    let delegateCalledReward =
-      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
-
-    if (data.role === constants.ROLE.TRANSCODER) {
-      const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
-      const data = {
-        subscriber: savedSubscriber,
-        delegateCalledReward: delegateCalledReward
+        if (role === constants.ROLE.DELEGATOR) {
+          const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
+          const protocolService = getProtocolService()
+          const delegatorService = getDelegatorService()
+          const [currentRound, currentRoundInfo, delegatorNextReward] = await Promise.all([
+            protocolService.getCurrentRound(),
+            protocolService.getCurrentRoundInfo(),
+            delegatorService.getDelegatorNextReward(delegator.address)
+          ])
+          await sendDelegatorNotificationEmail(
+            subscriber,
+            delegator,
+            delegateCalledReward,
+            delegatorNextReward,
+            currentRound,
+            currentRoundInfo,
+            constants
+          )
+        }
+        resolve()
+      } catch (err) {
+        console.error(err)
+        reject()
       }
-      await sendNotificationEmail(data)
-    }
+    })
 
-    if (data.role === constants.ROLE.DELEGATOR) {
-      const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
-      await sendNotificationEmail(savedSubscriber, true)
-    }
+    sendNotificationPromise.then(() => {})
 
     return res.json(savedSubscriber)
   } catch (e) {
+    console.error(e)
     next(e)
   }
 }
@@ -283,7 +287,6 @@ const summary = async (req, res, next) => {
 
     res.json(data)
   } catch (error) {
-    console.error(error)
     next(error)
   }
 }

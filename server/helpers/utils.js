@@ -106,12 +106,6 @@ const subscriptionSave = async data => {
 
   const { address, chatId } = data
 
-  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
-  const [delegatorAccount, constants] = await Promise.all([
-    getLivepeerDelegatorAccount(address),
-    getLivepeerDefaultConstants()
-  ])
-
   // Create new subscriber on button press
   let subscriber = new Subscriber({
     address: address,
@@ -119,12 +113,6 @@ const subscriptionSave = async data => {
     telegramChatId: chatId
   })
   const subscriberCreated = await subscriber.save()
-
-  // Save earning
-  const Earning = require('../earning/earning.model')
-  const earningCreated = await Earning.save({
-    address: address
-  })
 
   console.log(
     `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
@@ -143,7 +131,7 @@ const subscriptionExist = async data => {
   console.log(
     `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
   )
-  return count
+  return count > 0
 }
 
 // Delete existing subscription user
@@ -219,65 +207,52 @@ const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
 }
 
-const getEarningParams = async data => {
-  const { transcoderAccount, currentRound, subscriber } = data
-
-  // Calculate fees, fromRound, toRound, earnedFromInflation
-  const Earning = require('../earning/earning.model')
-  let earnings = await Earning.find({ address: subscriber.address }).exec()
-
-  // Sort earnings
-  earnings.sort(function compare(a, b) {
-    const dateA = new Date(a.createdAt)
-    const dateB = new Date(b.createdAt)
-    return dateB - dateA
-  })
-
-  // Reduce to obtain last two rounds
-  earnings = earnings.reduce(function(r, a) {
-    r[a.round] = r[a.round] || []
-    r[a.round] = a
-    return r
-  }, Object.create(null))
-
-  // Calculate rounds and earnings
-  const earningFromValue =
-    Object.keys(earnings) && Object.keys(earnings)[0] ? earnings[Object.keys(earnings)[0]] : null
-  const earningToValue =
-    Object.keys(earnings) && Object.keys(earnings)[1] ? earnings[Object.keys(earnings)[1]] : null
-
-  const roundFrom = earningFromValue ? earningFromValue.round : 0
-  const roundTo = earningToValue ? earningToValue.round : roundFrom
-  const earningFromRound = earningFromValue ? earningFromValue.earning : 0
-  const earningToRound = earningToValue ? earningToValue.earning : earningFromRound
-
-  return { roundFrom, roundTo, earningFromRound, earningToRound }
-}
-
 const getSubscriptorRole = async subscriptor => {
-  const { getLivepeerDelegatorAccount, getLivepeerDefaultConstants } = require('./livepeerAPI')
+  const { getProtocolService } = require('./services/protocolService')
+  const { getDelegatorService } = require('./services/delegatorService')
+  const protocolService = getProtocolService()
+  const delegatorService = getDelegatorService()
 
   let [constants, delegator] = await promiseRetry(retry => {
     return Promise.all([
-      getLivepeerDefaultConstants(),
-      getLivepeerDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
+      protocolService.getLivepeerDefaultConstants(),
+      delegatorService.getDelegatorAccount(subscriptor.address)
+    ]).catch(err => {
+      console.error(err)
+      retry()
+    })
   })
+
+  const { status, address, delegateAddress } = delegator
 
   // Detect role
   const role =
     delegator &&
-    delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-    delegator.delegateAddress &&
-    delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
+    status === constants.DELEGATOR_STATUS.Bonded &&
+    delegateAddress &&
+    address.toLowerCase() === delegateAddress.toLowerCase()
       ? constants.ROLE.TRANSCODER
       : constants.ROLE.DELEGATOR
-
   return {
     role,
     constants,
     delegator
   }
+}
+
+const getDidDelegateCallReward = async delegateAddress => {
+  const { getProtocolService } = require('./services/protocolService')
+  const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
+  const protocolService = getProtocolService()
+
+  const [delegate, currentRoundInfo] = await Promise.all([
+    getLivepeerTranscoderAccount(delegateAddress),
+    protocolService.getCurrentRoundInfo()
+  ])
+
+  // Check if transcoder call reward
+  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
+  return callReward
 }
 
 const getDelegatorRoundsUntilUnbonded = data => {
@@ -356,8 +331,8 @@ module.exports = {
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getEarningParams,
   getSubscriptorRole,
+  getDidDelegateCallReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,

@@ -1,6 +1,4 @@
 const LivepeerSDK = require('@mariano-aguero/sdk')
-const { MathBN } = require('../utils')
-
 const getLivepeerDelegatorAccount = async address => {
   if (!address) {
     return null
@@ -31,6 +29,7 @@ const getLivepeerDelegatorStake = async address => {
 
 const getTotalStakeFromSummary = summary => {
   const { bondedAmount = 0, pendingStake = 0 } = summary
+  const { MathBN } = require('../utils')
   return MathBN.max(bondedAmount, pendingStake)
 }
 

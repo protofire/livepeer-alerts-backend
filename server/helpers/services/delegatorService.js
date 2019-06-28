@@ -1,7 +1,8 @@
+const _ = require('lodash')
+
 const { getDelegateService } = require('./delegateService')
 const { MathBN } = require('../utils')
 
-const _ = require('lodash')
 let delegatorServiceInstance
 // The delegate information comes from the SDK as default, graphql is not implemented
 const defaultSource = require('../sdk/delegator')
@@ -44,7 +45,10 @@ class DelegatorService {
       delegateService.getDelegateRewardToDelegators(delegateAddress)
     ])
     // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
-    const delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    let delegatorParticipationInTotalStake = 0
+    if (delegateTotalStake > 0) {
+      delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    }
     return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
   }
 }

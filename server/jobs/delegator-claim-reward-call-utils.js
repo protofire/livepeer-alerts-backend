@@ -1,3 +1,6 @@
+const { getProtocolService } = require('../helpers/services/protocolService')
+const { getDelegatorService } = require('../helpers/services/delegatorService')
+
 const Promise = require('bluebird')
 Promise.config({
   cancellation: true
@@ -5,9 +8,9 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { sendNotificationEmail } = require('../helpers/sendEmailClaimRewardCall')
+const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
-const { getSubscriptorRole } = require('../helpers/utils')
+const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
 
 const getSubscribersToSendEmails = async () => {
   const subscribers = await Subscriber.find({
@@ -17,13 +20,33 @@ const getSubscribersToSendEmails = async () => {
   }).exec()
 
   let emailsToSend = []
+  const protocolService = getProtocolService()
+  const delegatorService = getDelegatorService()
+  const [currentRound, currentRoundInfo] = await Promise.all([
+    protocolService.getCurrentRound(),
+    protocolService.getCurrentRoundInfo()
+  ])
   for (const subscriber of subscribers) {
     // Send notification only for delegators
-    const { role, constants } = await getSubscriptorRole(subscriber)
+    const { role, constants, delegator } = await getSubscriptorRole(subscriber)
     if (role === constants.ROLE.TRANSCODER) {
       continue
     }
-    emailsToSend.push(sendNotificationEmail(subscriber, true))
+    const [delegateCalledReward, delegatorNextReward] = await Promise.all([
+      getDidDelegateCallReward(delegator.delegateAddress),
+      delegatorService.getDelegatorNextReward(delegator.address)
+    ])
+    emailsToSend.push(
+      sendDelegatorNotificationEmail(
+        subscriber,
+        delegator,
+        delegateCalledReward,
+        delegatorNextReward,
+        currentRound,
+        currentRoundInfo,
+        constants
+      )
+    )
   }
 
   console.log(
@@ -48,7 +71,7 @@ const getSubscribersToSendTelegrams = async () => {
     if (role === constants.ROLE.TRANSCODER) {
       continue
     }
-    telegramsMessageToSend.push(sendNotificationTelegram(subscriber, true))
+    telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
   }
 
   console.log(

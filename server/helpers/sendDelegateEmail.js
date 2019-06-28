@@ -11,7 +11,7 @@ const {
   sendgridTemplateIdDidRewardCallPayAttention
 } = config
 
-const sendEmailDidRewardCall = async data => {
+const sendEmail = async data => {
   const { email, templateId } = data
 
   sgMail.setApiKey(sendgridAPIKEY)
@@ -29,19 +29,19 @@ const sendEmailDidRewardCall = async data => {
       unsubscribeEmailUrl: unsubscribeEmailUrl
     }
   }
-
   if (!['test'].includes(config.env)) {
     try {
       await sgMail.send(msg)
       console.log(`Email sended to ${email} successfully`)
     } catch (err) {
+      console.log('error on email')
       console.log(err)
     }
   }
   return
 }
 
-const sendNotificationEmail = async data => {
+const sendDelegateNotificationEmail = async data => {
   try {
     const { subscriber, delegateCalledReward } = data
 
@@ -55,7 +55,7 @@ const sendNotificationEmail = async data => {
       templateId
     }
 
-    await sendEmailDidRewardCall(emailData)
+    await sendEmail(emailData)
 
     // Save last email sent
     subscriber.lastEmailSent = Date.now()
@@ -66,4 +66,4 @@ const sendNotificationEmail = async data => {
   }
 }
 
-module.exports = { sendNotificationEmail }
+module.exports = { sendDelegateNotificationEmail }

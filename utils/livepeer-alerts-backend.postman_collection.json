@@ -118,7 +118,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero+11@altoros.com\",\n    \"address\": \"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4\",\n    \"frequency\": \"daily\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero+100@altoros.com\",\n    \"address\": \"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",

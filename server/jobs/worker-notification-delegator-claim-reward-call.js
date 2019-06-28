@@ -5,7 +5,8 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getLivepeerRoundProgress } = require('../helpers/livepeerAPI')
+const { getProtocolService } = require('../helpers/services/protocolService')
+
 const Round = require('../round/round.model')
 const { thresholdSendNotification } = config
 
@@ -18,29 +19,29 @@ const checkProgressRound = async () => {
   try {
     console.log(`[Worker notification delegator claim reward call] - Start`)
 
-    const currentRoundInfo = await getLivepeerRoundProgress()
+    const protocolService = getProtocolService()
+    const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
 
     let {
       roundId,
-      initialized,
+      isInitialized,
       lastInitializedRound,
       length,
       startBlock,
-      progress,
-      roundLength
+      progress
     } = currentRoundInfo
 
     let actualSavedRound = await Round.findOne({})
     const data = {
       roundId: roundId,
-      initialized: initialized,
+      initialized: isInitialized,
       lastInitializedRound: lastInitializedRound,
-      length: roundLength,
+      length: length,
       startBlock: startBlock
     }
 
     if (!actualSavedRound) {
-      let roundCreated = new Round(data)
+      const roundCreated = new Round(data)
       actualSavedRound = await roundCreated.save()
     }
 
