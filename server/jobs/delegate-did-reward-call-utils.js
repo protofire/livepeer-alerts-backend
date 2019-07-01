@@ -5,14 +5,9 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const {
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo
-} = require('../helpers/livepeerAPI')
-const { getSubscriptorRole } = require('../helpers/utils')
-const { sendNotificationEmail } = require('../helpers/sendEmailDidRewardCall')
+const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
+const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
-const promiseRetry = require('promise-retry')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
@@ -34,17 +29,8 @@ const getSubscribers = async subscribers => {
     }
     // OK, is a transcoder, let's send notifications
 
-    // Get delegator with promise retry, because infura
-    let [transcoderAccount, currentRoundInfo] = await promiseRetry(retry => {
-      return Promise.all([
-        getLivepeerTranscoderAccount(delegator.delegateAddress),
-        getLivepeerCurrentRoundInfo()
-      ]).catch(err => retry())
-    })
-
     // Check if transcoder call reward
-    let delegateCalledReward =
-      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
 
     let subscriberToNotify = {
       subscriber,
@@ -68,7 +54,7 @@ const sendNotificationEmailFn = async () => {
 
   const subscribersToSendEmails = []
   for (const subscriberToNotify of subscribersToNofity) {
-    subscribersToSendEmails.push(sendNotificationEmail(subscriberToNotify))
+    subscribersToSendEmails.push(sendDelegateNotificationEmail(subscriberToNotify))
   }
 
   console.log(

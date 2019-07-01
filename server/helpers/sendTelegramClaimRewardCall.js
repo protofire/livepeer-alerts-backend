@@ -10,19 +10,14 @@ const Handlebars = require('handlebars')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
-const { NoAlertToSendError } = require('./JobsErrors')
 
-const {
-  getLivepeerDelegatorAccount,
-  getLivepeerTranscoderAccount,
-  getLivepeerCurrentRoundInfo,
-  getLivepeerCurrentRound,
-  getLivepeerDefaultConstants
-} = require('./livepeerAPI')
+const { getDelegatorService } = require('./services/delegatorService')
+const { getProtocolService } = require('./services/protocolService')
+const { getLivepeerTranscoderAccount } = require('./sdk/delegate')
+
 const {
   getButtonsBySubscriptor,
   truncateStringInTheMiddle,
-  getEarningParams,
   formatBalance,
   getDelegatorRoundsUntilUnbonded
 } = require('./utils')
@@ -54,10 +49,13 @@ const sendTelegramClaimRewardCall = async data => {
 }
 
 const getTelegramClaimRewardCallBody = async subscriber => {
+  const delegatorService = getDelegatorService()
+  const protocolService = getProtocolService()
+
   let [delegator, constants] = await promiseRetry(async retry => {
     return Promise.all([
-      getLivepeerDelegatorAccount(subscriber.address),
-      getLivepeerDefaultConstants()
+      delegatorService.getDelegatorAccount(subscriber.address),
+      protocolService.getLivepeerDefaultConstants()
     ]).catch(err => retry())
   })
 
@@ -68,7 +66,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
         return Promise.all([
           getLivepeerTranscoderAccount(delegator.delegateAddress),
-          getLivepeerCurrentRound()
+          protocolService.getCurrentRound()
         ]).catch(err => retry())
       })
 
@@ -81,14 +79,10 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const { roundFrom, roundTo, earningFromRound, earningToRound } = await getEarningParams({
-        transcoderAccount,
-        currentRound,
-        subscriber
-      })
+      const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
 
       // Calculate earned lpt
-      const lptEarned = formatBalance(earningToRound, 2)
+      const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
 
       const dateYesterday = moment()
         .subtract(1, 'days')
@@ -103,8 +97,8 @@ const getTelegramClaimRewardCallBody = async subscriber => {
         transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
         transcoderAddress: truncateStringInTheMiddle(delegateAddress),
         dateYesterday: dateYesterday,
-        roundFrom: roundFrom,
-        roundTo: roundTo,
+        roundFrom: currentRound,
+        roundTo: currentRound + 1,
         lptEarned: lptEarned,
         delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
           subscriber.address
@@ -133,7 +127,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       // Create telegram generator
       const templateUnbonding = Handlebars.compile(sourceUnbonding)
       const [currentRoundInfo] = await promiseRetry(retry => {
-        return Promise.all([getLivepeerCurrentRoundInfo()]).catch(err => retry())
+        return Promise.all([protocolService.getCurrentRoundInfo()]).catch(err => retry())
       })
 
       const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
@@ -155,7 +149,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
   }
 }
 
-const sendNotificationTelegram = async (subscriber, createEarningOnSend = false) => {
+const sendNotificationTelegram = async subscriber => {
   // Get telegram body
   const data = await getTelegramClaimRewardCallBody(subscriber)
 
@@ -164,12 +158,6 @@ const sendNotificationTelegram = async (subscriber, createEarningOnSend = false)
   }
 
   const { body } = data
-
-  // Create earning
-  if (createEarningOnSend) {
-    const Earning = require('../earning/earning.model')
-    await Earning.save(subscriber)
-  }
 
   // Send telegram
   await sendTelegramClaimRewardCall({

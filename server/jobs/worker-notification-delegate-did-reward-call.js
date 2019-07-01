@@ -5,7 +5,8 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getLivepeerCurrentRoundInfo } = require('../helpers/livepeerAPI')
+const { getProtocolService } = require('../helpers/services/protocolService')
+
 const Round = require('../round/round.model')
 
 const {
@@ -16,7 +17,8 @@ const {
 const workerNotificationDelegateDidRewardCall = async () => {
   console.log(`[Worker notification delegate did reward call] - Start`)
 
-  const currentRoundInfo = await getLivepeerCurrentRoundInfo()
+  const protocolService = getProtocolService()
+  const currentRoundInfo = await protocolService.getCurrentRoundInfo()
   let { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
 
   let actualSavedRound = await Round.findOne({})

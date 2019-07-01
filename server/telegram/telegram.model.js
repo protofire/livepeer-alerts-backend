@@ -34,7 +34,7 @@ TelegramSchema.statics = {
    * List telegrams in descending order of 'createdAt' timestamp.
    * @param {number} skip - Number of telegrams to be skipped.
    * @param {number} limit - Limit number of telegrams to be returned.
-   * @returns {Promise<Earning[]>}
+   * @returns {Promise<TelegramSchema[]>}
    */
   list({ skip = 0, limit = 50 } = {}) {
     return this.find()

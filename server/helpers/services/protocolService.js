@@ -1,7 +1,6 @@
-const { calculateNextRoundInflationRatio, tokenAmountInUnits } = require('../utils')
+const { calculateNextRoundInflationRatio, tokenAmountInUnits, MathBN } = require('../utils')
 
 const { CACHE_UPDATE_INTERVAL, PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
-const { MathBN } = require('../utils')
 
 const defaultProtocolSource = require('../sdk/protocol')
 let protocolServiceInstance
@@ -72,7 +71,7 @@ class ProtocolService {
 
   getLastInitializedRound = async () => {
     if (!this.lastInitializedRound) {
-      this.lastInitializedRound = await this.source.getLastInitializedRound()
+      this.lastInitializedRound = await this.source.getLivepeerLastInitializedRound()
     }
     return this.lastInitializedRound
   }
@@ -86,13 +85,13 @@ class ProtocolService {
 
   getRoundLength = async () => {
     if (!this.currentRoundLenght) {
-      this.currentRoundLenght = await this.source.getRoundLength()
+      this.currentRoundLenght = await this.source.getLivepeerRoundLength()
     }
   }
 
   getRoundsPerYear = async () => {
     if (!this.roundsPerYear) {
-      this.roundsPerYear = await this.source.getRoundsPerYear()
+      this.roundsPerYear = await this.source.getLivepeerRoundsPerYear()
     }
   }
   getCurrentRound = async () => {
@@ -127,7 +126,7 @@ class ProtocolService {
   }
 
   getLatestBlock = async () => {
-    return await this.source.getLatestBlock()
+    return await this.source.getLivepeerLatestBlock()
   }
 
   getLivepeerRoundProgress = async () => {

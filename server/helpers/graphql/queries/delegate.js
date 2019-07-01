@@ -57,6 +57,7 @@ const getDelegateRewards = async delegateAddress => {
         rewards(
         where: { transcoder: "${delegateAddress}" }
         orderBy: id, orderDirection: desc) {
+          id,
           rewardTokens
           round {
             id
@@ -73,6 +74,7 @@ const getDelegateTotalStake = async delegateAddress => {
     query: gql`
       {
         transcoder(id: "${delegateAddress}") {
+          id,
           totalStake
         }
       }

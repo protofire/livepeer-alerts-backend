@@ -27,7 +27,7 @@ const RoundSchema = new mongoose.Schema({
   },
   notificationsForRoundSent: {
     type: Boolean,
-    deafult: false
+    default: false
   },
   createdAt: {
     type: Date,
