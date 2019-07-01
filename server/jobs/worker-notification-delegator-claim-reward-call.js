@@ -7,7 +7,7 @@ const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 const { getProtocolService } = require('../helpers/services/protocolService')
 
-const Round = require('../round/round.model')
+const Round = require('../models/round.model')
 const { thresholdSendNotification } = config
 
 const {

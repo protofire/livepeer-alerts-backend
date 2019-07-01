@@ -3,7 +3,7 @@ const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
 const Big = require('big.js')
 const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
-const Subscriber = require('../subscriber/subscriber.model')
+const Subscriber = require('../models/subscriber.model')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 const {

@@ -24,8 +24,8 @@ const { getLivepeerTranscoderAccount } = require('../helpers/sdk/delegate')
 const { getProtocolService } = require('../helpers/services/protocolService')
 
 const { NoAddressError } = require('../helpers/JobsErrors')
-const TelegramModel = require('../telegram/telegram.model')
-const SubscriberModel = require('../subscriber/subscriber.model')
+const TelegramModel = require('../models/telegram.model')
+const SubscriberModel = require('../models/subscriber.model')
 
 const { telegramBotKey } = config
 

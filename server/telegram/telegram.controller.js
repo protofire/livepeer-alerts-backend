@@ -1,4 +1,4 @@
-const Telegram = require('./telegram.model')
+const Telegram = require('../models/telegram.model')
 
 /**
  * Get telegram list.
