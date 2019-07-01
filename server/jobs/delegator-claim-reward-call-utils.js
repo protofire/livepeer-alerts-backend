@@ -7,7 +7,7 @@ Promise.config({
 })
 
 const mongoose = require('../../config/mongoose')
-const Subscriber = require('../models/subscriber.model')
+const Subscriber = require('../subscriber/subscriber.model')
 const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')

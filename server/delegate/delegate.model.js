@@ -10,7 +10,7 @@ const DelegateSchema = new mongoose.Schema({
   },
   active: {
     type: Boolean,
-    required: true
+    required: false
   },
   ensName: {
     type: String,
@@ -18,44 +18,47 @@ const DelegateSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    required: true
+    required: false
   },
   lastRewardRound: {
     type: String,
-    required: true
+    required: false
   },
   rewardCut: {
     type: String,
-    required: true
+    required: false
   },
   feeShare: {
     type: String,
-    required: true
+    required: false
   },
   pricePerSegment: {
     type: String,
-    required: true
+    required: false
   },
   pendingRewardCut: {
     type: String,
-    required: true
+    required: false
   },
   pendingFeeShare: {
     type: String,
-    required: true
+    required: false
   },
   pendingPricePerSegment: {
     type: String,
-    required: true
+    required: false
   },
   totalStake: {
     type: String,
-    required: true
+    required: false
   },
-  startBlock: {
-    type: String,
-    required: true
-  }
+  rewards: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'Reward',
+      required: false
+    }
+  ]
 })
 
 DelegateSchema.virtual('address').get(function() {

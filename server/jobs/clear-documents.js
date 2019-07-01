@@ -1,7 +1,7 @@
 const mongoose = require('../../config/mongoose')
-const Subscriber = require('../models/subscriber.model')
-const Telegram = require('../models/telegram.model')
-const Round = require('../models/round.model')
+const Subscriber = require('../subscriber/subscriber.model')
+const Telegram = require('../telegram/telegram.model')
+const Round = require('../round/round.model')
 const config = require('../../config/config')
 
 if (!['test', 'development'].includes(config.env)) {

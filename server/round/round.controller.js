@@ -1,4 +1,4 @@
-const Round = require('../models/round.model')
+const Round = require('./round.model')
 
 /**
  * Get round list.

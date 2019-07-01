@@ -3,7 +3,7 @@ const httpStatus = require('http-status')
 const chai = require('chai') // eslint-disable-line import/newline-after-import
 const expect = chai.expect
 const app = require('../index')
-const Subscriber = require('../server/models/subscriber.model')
+const Subscriber = require('../server/subscriber/subscriber.model')
 const mongoose = require('../config/mongoose')
 
 chai.config.includeStack = true

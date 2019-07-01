@@ -4,7 +4,7 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
-const Subscriber = require('../models/subscriber.model')
+const Subscriber = require('./subscriber.model')
 const {
   fromBaseUnit,
   formatPercentage,
