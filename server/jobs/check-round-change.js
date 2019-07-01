@@ -1,6 +1,6 @@
 const {
-  sendEmailNotificationToDelegators,
-  sendTelegramNotificationToDelegators
+  sendEmailRewardCallNotificationToDelegators,
+  sendTelegramRewardCallNotificationToDelegators
 } = require('./notificate-delegators-utils')
 
 const Promise = require('bluebird')
@@ -15,8 +15,8 @@ const { getProtocolService } = require('../helpers/services/protocolService')
 const Round = require('../round/round.model')
 
 const {
-  sendEmailNotificationToDelegates,
-  sendTelegramNotificationToDelegates
+  sendEmailRewardCallNotificationToDelegates,
+  sendTelegramRewardCallNotificationToDelegates
 } = require('./notificate-delegates-utils')
 
 const workerCheckRoundChange = async () => {
@@ -65,11 +65,14 @@ const workerCheckRoundChange = async () => {
         `[Check-Round-Change] - The round progress is above the threshold, sending notifications`
       )
       // Send email notifications for delegate and delegators
-      await Promise.all([sendEmailNotificationToDelegators(), sendEmailNotificationToDelegates()])
+      await Promise.all([
+        sendEmailRewardCallNotificationToDelegators(),
+        sendEmailRewardCallNotificationToDelegates()
+      ])
       // Send telegram notifications for delegates
       await Promise.all([
-        sendTelegramNotificationToDelegators(),
-        sendTelegramNotificationToDelegates()
+        sendTelegramRewardCallNotificationToDelegators(),
+        sendTelegramRewardCallNotificationToDelegates()
       ])
 
       // Once the notifications are sent, update round and lock

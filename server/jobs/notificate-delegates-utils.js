@@ -43,7 +43,7 @@ const getSubscribers = async subscribers => {
   return subscribersToNotify
 }
 
-const sendEmailNotificationToDelegates = async () => {
+const sendEmailRewardCallNotificationToDelegates = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -67,7 +67,7 @@ const sendEmailNotificationToDelegates = async () => {
   return subscribersToNofity
 }
 
-const sendTelegramNotificationToDelegates = async () => {
+const sendTelegramRewardCallNotificationToDelegates = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -92,6 +92,6 @@ const sendTelegramNotificationToDelegates = async () => {
 }
 
 module.exports = {
-  sendEmailNotificationToDelegates,
-  sendTelegramNotificationToDelegates
+  sendEmailRewardCallNotificationToDelegates,
+  sendTelegramRewardCallNotificationToDelegates
 }
