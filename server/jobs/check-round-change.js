@@ -60,7 +60,7 @@ const workerCheckRoundChange = async () => {
       }`
     )
     // If the progress if above a certain threshold and the notifications were not already sent, the notifications will be sent and the current saved round will be updated
-    if (progress >= thresholdSendNotification && !actualSavedRound.notificationsForRoundSent) {
+    if (progress <= thresholdSendNotification && !actualSavedRound.notificationsForRoundSent) {
       // Send notifications
       console.log(
         `[Check-Round-Change] - The round progress is above the threshold, sending notifications`
