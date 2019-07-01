@@ -21,18 +21,18 @@ const ShareSchema = new mongoose.Schema({
     required: true
   },
   delegator: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'Delegator'
   },
   // The address of the delegate that provided the share on that round
   delegate: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Delegate',
     required: true
   },
   round: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Round',
     required: true
   }

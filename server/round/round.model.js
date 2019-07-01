@@ -35,14 +35,14 @@ const RoundSchema = new mongoose.Schema({
   },
   pools: [
     {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Pool',
       required: false
     }
   ],
   shares: [
     {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Share',
       required: false
     }

@@ -54,14 +54,14 @@ const DelegateSchema = new mongoose.Schema({
   },
   pools: [
     {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Pool',
       required: false
     }
   ],
   delegators: [
     {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Delegator',
       required: false
     }

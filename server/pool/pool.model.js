@@ -21,12 +21,12 @@ const PoolSchema = new mongoose.Schema({
     required: true
   },
   delegate: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Delegate',
     required: true
   },
   round: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Round',
     required: true
   }
