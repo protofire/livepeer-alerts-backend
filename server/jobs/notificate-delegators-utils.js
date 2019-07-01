@@ -12,7 +12,7 @@ const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmai
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
 
-const getSubscribersToSendEmails = async () => {
+const sendEmailNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -50,14 +50,12 @@ const getSubscribersToSendEmails = async () => {
   }
 
   console.log(
-    `[Worker notification delegator claim reward call] - Emails subscribers to notify ${
-      emailsToSend.length
-    }`
+    `[Delegators Notification utils] - Emails subscribers to notify ${emailsToSend.length}`
   )
   return await Promise.all(emailsToSend)
 }
 
-const getSubscribersToSendTelegrams = async () => {
+const sendTelegramNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -75,7 +73,7 @@ const getSubscribersToSendTelegrams = async () => {
   }
 
   console.log(
-    `[Worker notification delegator claim reward call] - Telegrams subscribers to notify ${
+    `[Delegators Notification utils] - Telegrams subscribers to notify ${
       telegramsMessageToSend.length
     }`
   )
@@ -83,6 +81,6 @@ const getSubscribersToSendTelegrams = async () => {
 }
 
 module.exports = {
-  getSubscribersToSendEmails,
-  getSubscribersToSendTelegrams
+  sendEmailNotificationToDelegators,
+  sendTelegramNotificationToDelegators
 }

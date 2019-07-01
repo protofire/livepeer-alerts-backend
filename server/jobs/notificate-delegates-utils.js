@@ -43,7 +43,7 @@ const getSubscribers = async subscribers => {
   return subscribersToNotify
 }
 
-const sendNotificationEmailFn = async () => {
+const sendEmailNotificationToDelegates = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -58,7 +58,7 @@ const sendNotificationEmailFn = async () => {
   }
 
   console.log(
-    `[Worker notification delegate did reward call] - Emails subscribers to notify ${
+    `[Delegates Notification utils] - Emails subscribers to notify ${
       subscribersToSendEmails.length
     }`
   )
@@ -67,7 +67,7 @@ const sendNotificationEmailFn = async () => {
   return subscribersToNofity
 }
 
-const sendNotificationTelegramFn = async () => {
+const sendTelegramNotificationToDelegates = async () => {
   const subscribers = await Subscriber.find({
     frequency: 'daily',
     activated: 1,
@@ -82,7 +82,7 @@ const sendNotificationTelegramFn = async () => {
   }
 
   console.log(
-    `[Worker notification delegate did reward call] - Telegrams subscribers to notify ${
+    `[Delegates Notification utils] - Telegrams subscribers to notify ${
       subscribersToSendTelegrams.length
     }`
   )
@@ -92,6 +92,6 @@ const sendNotificationTelegramFn = async () => {
 }
 
 module.exports = {
-  sendNotificationEmailFn,
-  sendNotificationTelegramFn
+  sendEmailNotificationToDelegates,
+  sendTelegramNotificationToDelegates
 }
