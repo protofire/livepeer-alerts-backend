@@ -1,8 +1,3 @@
-const {
-  sendEmailRewardCallNotificationToDelegators,
-  sendTelegramRewardCallNotificationToDelegators
-} = require('./notificate-delegators-utils')
-
 const Promise = require('bluebird')
 Promise.config({
   cancellation: true
@@ -10,9 +5,15 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
+
 const { getProtocolService } = require('../helpers/services/protocolService')
 
 const Round = require('../round/round.model')
+
+const {
+  sendEmailRewardCallNotificationToDelegators,
+  sendTelegramRewardCallNotificationToDelegators
+} = require('./notificate-delegators-utils')
 
 const {
   sendEmailRewardCallNotificationToDelegates,
