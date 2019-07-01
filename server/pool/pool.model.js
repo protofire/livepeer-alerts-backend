@@ -1,9 +1,10 @@
 const mongoose = require('mongoose')
 
 /**
- * Reward Schema
+ * Pool Schema
+ * Pool are the earnings of a round for a delegate
  */
-const RewardSchema = new mongoose.Schema({
+const PoolSchema = new mongoose.Schema({
   // Id format: DelegateAddress-RoundId
   _id: {
     type: String,
@@ -32,16 +33,16 @@ const RewardSchema = new mongoose.Schema({
 })
 
 // Mongoose compound index (delegate, round)
-RewardSchema.index({ delegate: 1, round: 1 }, { unique: true })
+PoolSchema.index({ delegator: 1, round: 1 }, { unique: true })
 
 /**
  * Methods
  */
-RewardSchema.method({})
+PoolSchema.method({})
 
 /**
- * @typedef Reward
+ * @typedef Pool
  */
-const reward = mongoose.model('Reward', RewardSchema)
+const pool = mongoose.model('Pool', PoolSchema)
 
-module.exports = reward
+module.exports = pool

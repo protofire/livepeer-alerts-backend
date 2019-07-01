@@ -32,7 +32,21 @@ const RoundSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  pools: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'Pool',
+      required: false
+    }
+  ],
+  shares: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'Share',
+      required: false
+    }
+  ]
 })
 
 /**

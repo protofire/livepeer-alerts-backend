@@ -52,10 +52,17 @@ const DelegateSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  rewards: [
+  pools: [
     {
       type: mongoose.Types.ObjectId,
-      ref: 'Reward',
+      ref: 'Pool',
+      required: false
+    }
+  ],
+  delegators: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'Delegator',
       required: false
     }
   ]
