@@ -1,10 +1,14 @@
-const createRewardObject = (transcoderId, roundId) => {
+const { unitAmountInTokenUnits } = require('../utils')
+
+const createRewardObject = (transcoderId, roundId, rewardAmount) => {
   // ID between 1 and 100
   const id = Math.floor(Math.random() * 100 + 1)
   // Reward token between 1*10.pow(21) and 99 * 10.pow(21)
   const base = Math.pow(10, 21)
   const top = 9 * Math.pow(10, 21)
-  const rewardTokens = Math.floor(Math.random() * top + base).toString()
+  const rewardTokens = rewardAmount
+    ? rewardAmount
+    : Math.floor(Math.random() * top + base).toString()
   const transcoder = createTranscoder(transcoderId)
   const round = createRoundObject(roundId)
   return {
@@ -34,6 +38,7 @@ const createTranscoder = (
 ) => {
   const mockTranscoder = {
     id: transcoderId,
+    address: transcoderId,
     active: true,
     ensName: null,
     status: 'Registered',
@@ -71,9 +76,15 @@ const createDelegator = delegatorId => {
   return mockDelegator
 }
 
+const createTotalStake = (min, max) => {
+  const stakeInUnits = Math.floor(Math.random() * max) + min
+  return unitAmountInTokenUnits(stakeInUnits)
+}
+
 module.exports = {
   createRewardObject,
   createRoundObject,
   createTranscoder,
-  createDelegator
+  createDelegator,
+  createTotalStake
 }

@@ -1,4 +1,4 @@
-const { TOKEN_DECIMALS_MULTIPLIER } = require('../../config/constants')
+const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
 
 const Big = require('big.js')
 const BN = require('bn.js')
@@ -263,13 +263,17 @@ const getDelegatorRoundsUntilUnbonded = data => {
     : 0
 }
 
-const tokenAmountInUnits = (amount, decimals = 18) => {
+const tokenAmountInUnits = (amount, decimals = TOKEN_DECIMAL_UNITS) => {
+  if (!amount) {
+    return 0
+  }
   const decimalsPerToken = MathBN.pow(10, decimals)
   return MathBN.div(amount, decimalsPerToken)
 }
 
-const unitAmountInTokenUnits = amount => {
-  return MathBN.mul(amount, TOKEN_DECIMALS_MULTIPLIER)
+const unitAmountInTokenUnits = (amount, decimals = TOKEN_DECIMAL_UNITS) => {
+  const decimalsPerToken = MathBN.pow(10, decimals)
+  return MathBN.mul(amount, decimalsPerToken)
 }
 
 const calculateMissedRewardCalls = (rewards, currentRound) => {
