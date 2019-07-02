@@ -83,23 +83,11 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
   return await Promise.all(telegramsMessageToSend)
 }
 
-const sendNotificationDelegateChangeRuleToDelegators = async (
-  subscribers,
-  typeOfNotification = 'email'
-) => {
+const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
   let subscribersToNotify = []
 
   for (const subscriber of subscribers) {
-    // Send notification only for delegators
-    const { role, constants, delegator } = await getSubscriptorRole(subscriber)
-    if (role === constants.ROLE.TRANSCODER) {
-      continue
-    }
-
-    const item =
-      typeOfNotification === 'email'
-        ? sendDelegatorNotificationDelegateChangeRulesEmail(subscriber, delegator)
-        : sendDelegatorNotificationDelegateChangeRulesTelegram(subscriber)
+    const item = sendDelegatorNotificationDelegateChangeRulesEmail(subscriber)
     subscribersToNotify.push(item)
   }
 
