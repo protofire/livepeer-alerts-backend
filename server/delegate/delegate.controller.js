@@ -17,11 +17,10 @@ const getByAddress = async (req, res, next) => {
 }
 
 const topDelegates = async (req, res, next) => {
-  const { number = null } = req.params
-  let result = null
+  const { number } = req.params
   try {
     const delegateService = getDelegateService()
-    result = await delegateService.getTopDelegates(number)
+    let result = await delegateService.getTopDelegates(number)
     res.json(result)
   } catch (error) {
     next(error)
