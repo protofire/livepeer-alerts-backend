@@ -80,7 +80,7 @@ class DelegateService {
       this.getDelegate(delegateAddress),
       this.getDelegateProtocolNextReward(delegateAddress)
     ])
-    const { pendingRewardCut } = delegate.summary
+    const { pendingRewardCut } = delegate
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
     const rewardToDelegate = MathBN.mul(protocolNextReward, rewardCut)
     return MathBN.sub(protocolNextReward, rewardToDelegate)
@@ -168,6 +168,12 @@ class DelegateService {
       return bBn.sub(aBn)
     })
     return topDelegates.slice(0, topNumber)
+  }
+
+  getDelegates = async () => {
+    const { getLivepeerTranscoders } = this.source
+    const delegates = await getLivepeerTranscoders()
+    return delegates
   }
 }
 
