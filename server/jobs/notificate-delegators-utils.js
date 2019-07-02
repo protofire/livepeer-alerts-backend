@@ -8,7 +8,10 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
+const {
+  sendDelegatorNotificationEmail,
+  sendDelegatorNotificationDelegateChangeRulesEmail
+} = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
 
@@ -80,7 +83,31 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
   return await Promise.all(telegramsMessageToSend)
 }
 
+const sendNotificationDelegateChangeRuleToDelegators = async (
+  subscribers,
+  typeOfNotification = 'email'
+) => {
+  let subscribersToNotify = []
+
+  for (const subscriber of subscribers) {
+    // Send notification only for delegators
+    const { role, constants, delegator } = await getSubscriptorRole(subscriber)
+    if (role === constants.ROLE.TRANSCODER) {
+      continue
+    }
+
+    const item =
+      typeOfNotification === 'email'
+        ? sendDelegatorNotificationDelegateChangeRulesEmail(subscriber, delegator)
+        : sendDelegatorNotificationDelegateChangeRulesTelegram(subscriber)
+    subscribersToNotify.push(item)
+  }
+
+  return await Promise.all(subscribersToNotify)
+}
+
 module.exports = {
   sendEmailRewardCallNotificationToDelegators,
-  sendTelegramRewardCallNotificationToDelegators
+  sendTelegramRewardCallNotificationToDelegators,
+  sendNotificationDelegateChangeRuleToDelegators
 }
