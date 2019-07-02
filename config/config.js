@@ -67,6 +67,9 @@ const envVarsSchema = Joi.object({
   SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDED_STATE: Joi.string()
     .required()
     .description('Sendgrid template id for notification related to the unbonded state'),
+  SENDGRID_TEMPLATE_ID_NOTIFICATION_DELEGATE_CHANGE_RULES: Joi.string()
+    .required()
+    .description('Sendgrid template id for notification related to delegate change of rule'),
   MAINNET_CONTROLLER_ADDRESS: Joi.string()
     .required()
     .description('Mainnet controller adddress'),
@@ -116,6 +119,8 @@ const config = {
     envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDING_STATE,
   sendgridTemplateIdClaimRewardUnbondedState:
     envVars.SENDGRID_TEMPLATE_ID_CLAIM_REWARD_UNBONDED_STATE,
+  sendgridTemplateIdNotificationDelegateChangeRules:
+    envVars.SENDGRID_TEMPLATE_ID_NOTIFICATION_DELEGATE_CHANGE_RULES,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
