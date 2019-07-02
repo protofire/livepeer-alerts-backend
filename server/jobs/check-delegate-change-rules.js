@@ -8,8 +8,10 @@ const mongoose = require('../../config/mongoose')
 const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 
-const { hasDelegateChangedRules } = require('../helpers/utils')
-const { notifyDelegatesChangesInDelegates } = require('../helpers/notifyDelegators')
+const {
+  notifyDelegatesChangesInDelegates,
+  hasDelegateChangedRules
+} = require('../helpers/notifyDelegators')
 
 const workerCheckDelegateChangeRules = async () => {
   const delegateService = getDelegateService()

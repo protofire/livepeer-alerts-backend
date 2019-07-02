@@ -240,27 +240,37 @@ describe('## Check-delegate-change-rules test', () => {
       const delegate2 = {
         _id: '2'
       }
+      const subscriber1 = {
+        email: 'test@test.com'
+      }
+      const subscriber2 = {
+        email: 'test2@test.com'
+      }
       const delegatorAdd1 = '10'
       const delegatorAdd2 = '20'
       const resultExpected = [
         {
           delegatorAddress: delegatorAdd1,
-          delegate: delegate1
+          delegate: delegate1,
+          subscriber: subscriber1
         },
         {
           delegatorAddress: delegatorAdd2,
-          delegate: delegate2
+          delegate: delegate2,
+          subscriber: subscriber2
         }
       ]
       const listOfChangedDelegates = [delegate1, delegate2]
       const listOfDelegatesAndDelegators = [
         {
           delegatorAddress: delegatorAdd1,
-          delegateAddress: delegate1._id
+          delegateAddress: delegate1._id,
+          subscriber: subscriber1
         },
         {
           delegatorAddress: delegatorAdd2,
-          delegateAddress: delegate2._id
+          delegateAddress: delegate2._id,
+          subscriber: subscriber2
         }
       ]
 

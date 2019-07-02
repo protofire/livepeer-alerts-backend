@@ -160,7 +160,10 @@ SubscriberSchema.statics = {
         const newRolePromise = getSubscriptorRole(subscriberIterator).then(result => {
           const { constants, role, delegator } = result
           if (role === constants.ROLE.DELEGATOR) {
-            delegatorsList.push(delegator)
+            delegatorsList.push({
+              subscriber: subscriberIterator,
+              delegator
+            })
           }
         })
         rolesCheckPromise.push(newRolePromise)
@@ -171,12 +174,14 @@ SubscriberSchema.statics = {
   },
 
   async getListOfDelegateAddressAndDelegatorAddress() {
-    const delegators = await this.getDelegatorSubscribers()
+    const subscribersDelegators = await this.getDelegatorSubscribers()
     const list = []
-    for (let delegatorIterator of delegators) {
+    for (let subscriberIterator of subscribersDelegators) {
+      const { delegator, subscriber } = subscriberIterator
       const item = {
-        delegatorAddress: delegatorIterator.address,
-        delegateAddress: delegatorIterator.delegateAddress
+        subscriber,
+        delegatorAddress: delegator.address,
+        delegateAddress: delegator.delegateAddress
       }
       list.push(item)
     }
