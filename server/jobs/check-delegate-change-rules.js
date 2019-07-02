@@ -1,11 +1,20 @@
+const Promise = require('bluebird')
+Promise.config({
+  cancellation: true
+})
+
 const mongoose = require('../../config/mongoose')
+
 const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 
-const updateDelegatesOnDb = async () => {
+const workerCheckDelegateChangeRules = async () => {
   const delegateService = getDelegateService()
   const delegatesFetched = await delegateService.getDelegates()
   const delegatesUpdated = []
+
+  console.log(`[Check-Delegate-Change-Rules] - Delegates ${delegatesFetched.length}`)
+
   for (let delegateIterator of delegatesFetched) {
     let delegateOnDbFound = await Delegate.findOne({ _id: delegateIterator.id })
     if (delegateOnDbFound) {
@@ -16,10 +25,12 @@ const updateDelegatesOnDb = async () => {
         }
         const updatedDelegate = new Delegate({ ...delegateOnDbFound })
         // Updates local delegate
-        updatedDelegate.isNew = false
         delegatesUpdated.push(updatedDelegate.save())
 
         // TODO - Dispatch notification of rules changes
+        console.log(
+          `[Check-Delegate-Change-Rules] - Send notification to delegate ${delegateOnDbFound._id}`
+        )
       }
     } else {
       // Saves new delegate on db
@@ -36,19 +47,17 @@ const updateDelegatesOnDb = async () => {
 }
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
-  let hasChanged = false
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut } = oldDelegate
-  if (
+  const hasChanged =
     feeShare !== newDelegate.feeShare ||
     pendingFeeShare !== newDelegate.pendingFeeShare ||
     rewardCut !== newDelegate.rewardCut ||
     pendingRewardCut !== newDelegate.pendingRewardCut
-  ) {
-    hasChanged = true
-  }
+
+  if (hasChanged)
+    console.log(`[Check-Delegate-Change-Rules] - Delegate ${oldDelegate._id} has changed`)
+
   return hasChanged
 }
 
-module.exports = {
-  updateDelegatesOnDb
-}
+return workerCheckDelegateChangeRules()
