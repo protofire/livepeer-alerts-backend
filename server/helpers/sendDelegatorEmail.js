@@ -17,7 +17,8 @@ const {
   sendgridTemplateIdClaimRewardCallAllGood,
   sendgridTemplateIdClaimRewardCallPayAttention,
   sendgridTemplateIdClaimRewardUnbondedState,
-  sendgridTemplateIdClaimRewardUnbondingState
+  sendgridTemplateIdClaimRewardUnbondingState,
+  sendgridTemplateIdNotificationDelegateChangeRules
 } = config
 
 const sendEmail = async data => {
@@ -153,4 +154,30 @@ const sendDelegatorNotificationEmail = async (
   }
 }
 
-module.exports = { sendDelegatorNotificationEmail }
+const sendDelegatorNotificationDelegateChangeRulesEmail = async subscriber => {
+  try {
+    let body = {
+      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
+        subscriber.address
+      }/delegating`,
+      delegateAddress: subscriber.delegator.delegate,
+      templateId: sendgridTemplateIdNotificationDelegateChangeRules,
+      email: subscriber.email
+    }
+
+    await sendEmail(body)
+
+    // // Save last email sent
+    subscriber.lastEmailSent = Date.now()
+    return await subscriber.save({ validateBeforeSave: false })
+  } catch (e) {
+    console.error(e)
+    return
+  }
+}
+
+module.exports = {
+  sendDelegatorNotificationEmail,
+  sendDelegatorNotificationDelegateChangeRulesEmail
+}

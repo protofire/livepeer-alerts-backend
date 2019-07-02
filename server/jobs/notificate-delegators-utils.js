@@ -8,7 +8,10 @@ Promise.config({
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
+const {
+  sendDelegatorNotificationEmail,
+  sendDelegatorNotificationDelegateChangeRulesEmail
+} = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
 
@@ -80,7 +83,19 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
   return await Promise.all(telegramsMessageToSend)
 }
 
+const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
+  let subscribersToNotify = []
+
+  for (const subscriber of subscribers) {
+    const item = sendDelegatorNotificationDelegateChangeRulesEmail(subscriber)
+    subscribersToNotify.push(item)
+  }
+
+  return await Promise.all(subscribersToNotify)
+}
+
 module.exports = {
   sendEmailRewardCallNotificationToDelegators,
-  sendTelegramRewardCallNotificationToDelegators
+  sendTelegramRewardCallNotificationToDelegators,
+  sendNotificationDelegateChangeRuleToDelegators
 }
