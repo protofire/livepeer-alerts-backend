@@ -144,15 +144,16 @@ class ProtocolService {
     const blocksUntilNextRound = MathBN.sub(nextRoundStartBlock - number)
 
     return {
+      id,
       roundId: id,
-      isInitialized: initialized,
-      lastInitializedRound: lastInitializedRound,
-      length: length,
-      startBlock: startBlock,
-      blocksUntilNextRound: blocksUntilNextRound,
-      nextRoundStartBlock: nextRoundStartBlock,
-      roundLength: roundLength,
-      nextRoundNum: nextRoundNum,
+      initialized,
+      lastInitializedRound,
+      length,
+      startBlock,
+      blocksUntilNextRound,
+      nextRoundStartBlock,
+      roundLength,
+      nextRoundNum,
       progress: length > 0 ? (blocksUntilNextRound * 100) / length : 0
     }
   }
