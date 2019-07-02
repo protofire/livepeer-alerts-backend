@@ -81,9 +81,34 @@ const getDelegateTotalStake = async delegateAddress => {
   return _.get(queryResult, 'data.transcoder.totalStake', null)
 }
 
+const getLivepeerTranscoders = async () => {
+  const queryResult = await client.query({
+    query: gql`
+      {
+        transcoders {
+          id
+          active
+          ensName
+          status
+          lastRewardRound
+          rewardCut
+          feeShare
+          pricePerSegment
+          pendingRewardCut
+          pendingFeeShare
+          pendingPricePerSegment
+          totalStake
+        }
+      }
+    `
+  })
+  return _.get(queryResult, 'data.transcoders', [])
+}
+
 module.exports = {
   getDelegateSummary,
   getRegisteredDelegates,
   getDelegateRewards,
-  getDelegateTotalStake
+  getDelegateTotalStake,
+  getLivepeerTranscoders
 }

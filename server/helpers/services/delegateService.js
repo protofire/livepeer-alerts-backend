@@ -103,6 +103,12 @@ class DelegateService {
     const totalStake = await getDelegateTotalStake(delegateAddress)
     return totalStake
   }
+
+  getDelegates = async () => {
+    const { getLivepeerTranscoders } = this.source
+    const delegates = await getLivepeerTranscoders()
+    return delegates
+  }
 }
 
 module.exports = {
