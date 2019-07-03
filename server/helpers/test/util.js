@@ -26,7 +26,16 @@ const createRoundObject = roundId => {
 }
 
 // TODO Complete with all the fields
-const createTranscoder = (transcoderId, totalStake = '440522208151278163711606') => {
+const createTranscoder = (
+  transcoderId,
+  rewardCut = '100000',
+  feeShare = '450000',
+  pendingRewardCut = '50000',
+  pendingFeeShare = '450000',
+  pricePerSegment = '150000000000',
+  pendingPricePerSegment = '150000000000',
+  totalStake = '440522208151278163711606'
+) => {
   const mockTranscoder = {
     id: transcoderId,
     address: transcoderId,
@@ -34,12 +43,12 @@ const createTranscoder = (transcoderId, totalStake = '440522208151278163711606')
     ensName: null,
     status: 'Registered',
     lastRewardRound: '1092',
-    rewardCut: '100000',
-    feeShare: '450000',
-    pricePerSegment: '150000000000',
-    pendingRewardCut: '50000',
-    pendingFeeShare: '450000',
-    pendingPricePerSegment: '150000000000',
+    rewardCut,
+    feeShare,
+    pricePerSegment,
+    pendingRewardCut,
+    pendingFeeShare,
+    pendingPricePerSegment,
     totalStake
   }
   return mockTranscoder
