@@ -1,8 +1,3 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 const { getProtocolService } = require('../helpers/services/protocolService')

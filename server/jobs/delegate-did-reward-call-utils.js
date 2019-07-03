@@ -1,8 +1,3 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
