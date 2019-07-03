@@ -17,11 +17,9 @@ const {
   getButtonsBySubscriptor,
   subscriptionRemove,
   subscriptionSave,
-  getSubscriptorRole
+  getSubscriptorRole,
+  getDidDelegateCallReward
 } = require('../helpers/utils')
-
-const { getLivepeerTranscoderAccount } = require('../helpers/sdk/delegate')
-const { getProtocolService } = require('../helpers/services/protocolService')
 
 const { NoAddressError } = require('../helpers/JobsErrors')
 const TelegramModel = require('../telegram/telegram.model')
@@ -44,25 +42,17 @@ const getBodyBySubscriber = async subscriptor => {
   // Starting
   let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
 
-  const protocolService = getProtocolService()
-
   let data
   if (role === constants.ROLE.TRANSCODER) {
-    // OK, is a delegate, let's send notifications
-
-    // Get transcoder with promise retry, because infura
-    let [transcoderAccount, currentRoundInfo] = await promiseRetry(retry => {
-      return Promise.all([
-        getLivepeerTranscoderAccount(delegator.delegateAddress),
-        protocolService.getCurrentRoundInfo()
-      ]).catch(err => retry())
+    // Check if the delegate didRewardCall
+    const [delegateCalledReward] = await promiseRetry(retry => {
+      return Promise.all([getDidDelegateCallReward(delegator.delegateAddress)]).catch(err =>
+        retry()
+      )
     })
 
-    // Check if transcoder call reward
-    let delegateCalledReward =
-      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
-
-    data = await getTelegramDidRewardCallBody({ delegateCalledReward })
+    // OK, is a delegate, let's send notifications
+    data = getTelegramDidRewardCallBody({ delegateCalledReward })
   } else {
     // OK, is a delegator, let's send notifications
     data = await getTelegramClaimRewardCallBody(subscriptor)
