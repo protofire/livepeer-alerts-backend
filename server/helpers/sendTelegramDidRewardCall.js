@@ -26,7 +26,7 @@ const sendTelegramClaimRewardCall = async data => {
       )
       bot = null
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return

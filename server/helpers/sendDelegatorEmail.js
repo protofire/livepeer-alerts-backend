@@ -60,10 +60,13 @@ const sendEmail = async data => {
 
   if (!['test'].includes(config.env)) {
     try {
+      console.log(`Trying to send email to ${email}`)
       await sgMail.send(msg)
       console.log(`Email sended to ${email} successfully`)
     } catch (err) {
-      console.log(err)
+      console.error(`There was an error trying to send email to ${email}`)
+      console.error(err)
+      throw err
     }
   }
   return

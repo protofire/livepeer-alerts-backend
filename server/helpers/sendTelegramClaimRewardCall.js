@@ -36,7 +36,7 @@ const sendTelegramClaimRewardCall = async data => {
         `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
       )
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return
