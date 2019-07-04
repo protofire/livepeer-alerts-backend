@@ -112,9 +112,7 @@ const sendDelegatorNotificationEmail = async (
           roundFrom: currentRound,
           roundTo: currentRound + 1,
           lptEarned,
-          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-            subscriber.address
-          }/delegating`,
+          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
           delegateAddress
         }
         break
