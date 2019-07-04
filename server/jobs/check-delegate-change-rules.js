@@ -1,28 +1,25 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const mongoose = require('../../config/mongoose')
 
 const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 
 const {
-  notifyDelegatesChangesInDelegates,
+  notifyDelegatorsWhenDelegateChangeTheRules,
   hasDelegateChangedRules
-} = require('../helpers/notifyDelegators')
+} = require('../helpers/notifyDelegatorsWhenDelegateChangeTheRules')
 
 const workerCheckDelegateChangeRules = async () => {
   const delegateService = getDelegateService()
-  const delegatesFetched = await delegateService.getDelegates()
+  const delegates = await delegateService.getDelegates()
   const delegatesUpdated = []
+
   // List of delegates address who changed their rules
   const delegatesChanged = []
 
-  console.log(`[Check-Delegate-Change-Rules] - Delegates ${delegatesFetched.length}`)
-  for (let delegateIterator of delegatesFetched) {
+  console.log(`[Check-Delegate-Change-Rules] - Delegates ${delegates.length}`)
+  for (let delegateIterator of delegates) {
     let delegateOnDbFound = await Delegate.findOne({ _id: delegateIterator.id })
+
     if (delegateOnDbFound) {
       if (hasDelegateChangedRules(delegateOnDbFound, delegateIterator)) {
         delegateOnDbFound = {
@@ -30,6 +27,7 @@ const workerCheckDelegateChangeRules = async () => {
           ...delegateIterator
         }
         const updatedDelegate = new Delegate({ ...delegateOnDbFound })
+
         // Updates local delegate
         updatedDelegate.isNew = false
         delegatesUpdated.push(updatedDelegate.save())
@@ -51,7 +49,7 @@ const workerCheckDelegateChangeRules = async () => {
   await Promise.all(delegatesUpdated)
 
   // Send notification to delegators
-  await notifyDelegatesChangesInDelegates(delegatesChanged)
+  await notifyDelegatorsWhenDelegateChangeTheRules(delegatesChanged)
 
   process.exit(0)
 }
