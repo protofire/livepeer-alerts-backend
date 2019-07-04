@@ -192,6 +192,30 @@
 
 <div style="text-align: left;">&nbsp;</div>
 
+<div style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">Your delegate old rules: </span></span></span></div>
+
+<ul>
+	<li style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">Reward cut: {{oldRewardCut}}</span></span></span></li>
+	<li style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">Fee share: {{oldFeeShare}}</span></span></span></li>
+	<li style="text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">&nbsp;{{pendingFeeShare}}</span><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;"></span></li>
+	<li style="text-align: left;"><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">Pending reward cut: {{pendingRewardCut}}</span></li>
+</ul>
+
+<div style="text-align: left;">&nbsp;</div>
+
+<div style="text-align: left;"><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">Your delegate new rules:</span></div>
+
+<div style="text-align: left;">
+<ul style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);">
+	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Reward cut: {{oldRewardCut}}</span></span></span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Fee share: {{oldFeeShare}}</span></span></span></li>
+	<li style="font-size: 16px; text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">&nbsp;{{pendingFeeShare}}</span><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);"></span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">Pending reward cut: {{pendingRewardCut}}</span></li>
+</ul>
+</div>
+
+<div style="text-align: left;">&nbsp;</div>
+
 <div style="text-align: left;">
 <div style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-size: 18px;">Check your delegating rules: {{delegatingStatusUrl}}</span></span></span></div>
 
