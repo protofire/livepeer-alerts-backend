@@ -240,7 +240,7 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
-const getDidDelegateCallReward = async delegateAddress => {
+const getDidDelegateCalledReward = async delegateAddress => {
   const { getProtocolService } = require('./services/protocolService')
   const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
   const protocolService = getProtocolService()
@@ -336,7 +336,7 @@ module.exports = {
   formatBalance,
   formatPercentage,
   getSubscriptorRole,
-  getDidDelegateCallReward,
+  getDidDelegateCallReward: getDidDelegateCalledReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,

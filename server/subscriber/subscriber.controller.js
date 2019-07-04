@@ -227,43 +227,42 @@ const summary = async (req, res, next) => {
     const protocolService = getProtocolService()
     const delegateService = getDelegateService()
 
-    let [delegator, balance, constants, currentRoundInfo] = await Promise.all([
-      delegatorService.getDelegatorAccount(addressWithoutSubscriber),
-      delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
-      protocolService.getLivepeerDefaultConstants(),
-      protocolService.getCurrentRoundInfo()
-    ])
-
-    let transcoderAccount = await delegateService.getDelegate(delegator.delegateAddress)
-
-    // Detect role
-    let data = {
-      role:
-        delegator &&
-        delegator.status == constants.DELEGATOR_STATUS.Bonded &&
-        delegator.delegateAddress &&
-        delegator.address.toLowerCase() === delegator.delegateAddress.toLowerCase()
-          ? constants.ROLE.TRANSCODER
-          : constants.ROLE.DELEGATOR
+    const subscriptor = {
+      address: addressWithoutSubscriber
     }
 
-    // Check if transcoder call reward
-    let delegateCalledReward =
-      transcoderAccount && transcoderAccount.lastRewardRound === currentRoundInfo.id
+    let [balance, currentRoundInfo, subscriptorData] = await Promise.all([
+      delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
+      protocolService.getCurrentRoundInfo(),
+      getSubscriptorRole(subscriptor)
+    ])
 
-    switch (data.role) {
+    // Detect role
+    const { constants, role, delegator } = subscriptorData
+
+    let returnData = {
+      role,
+      balance: fromBaseUnit(balance)
+    }
+
+    // Check if the delegate didRewardCall
+    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+
+    switch (role) {
       case constants.ROLE.TRANSCODER:
-        // Calculate some values for transcoder
-        transcoderAccount.delegateCalledReward = delegateCalledReward
-        transcoderAccount.totalStakeInLPT = fromBaseUnit(transcoderAccount.totalStake)
-        transcoderAccount.pendingRewardCutInPercentage = formatPercentage(
-          transcoderAccount.pendingRewardCut
-        )
-        transcoderAccount.rewardCutInPercentage = formatPercentage(transcoderAccount.rewardCut)
-        data.transcoder = transcoderAccount
+        let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
+        // Format values of the delegate for the frontend
+        transcoder.delegateCalledReward = delegateCalledReward
+        transcoder.totalStakeInLPT = fromBaseUnit(transcoder.totalStake)
+        transcoder.pendingRewardCutInPercentage = formatPercentage(transcoder.pendingRewardCut)
+        transcoder.rewardCutInPercentage = formatPercentage(transcoder.rewardCut)
+        returnData = {
+          ...returnData,
+          transcoder
+        }
         break
       case constants.ROLE.DELEGATOR:
-        // Calculate some values for delegator
+        // Format values of the delegator for the frontend
         delegator.delegateCalledReward = delegateCalledReward
         delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
         delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
@@ -276,16 +275,16 @@ const summary = async (req, res, next) => {
           constants,
           currentRoundInfo
         })
-
-        data.delegator = delegator
+        returnData = {
+          ...returnData,
+          delegator
+        }
         break
       default:
         return
     }
 
-    data.balance = fromBaseUnit(balance)
-
-    res.json(data)
+    res.json(returnData)
   } catch (error) {
     next(error)
   }
