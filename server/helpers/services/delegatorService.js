@@ -36,20 +36,25 @@ class DelegatorService {
 
   // Returns the delegator's next round-reward
   getDelegatorNextReward = async delegatorAddress => {
-    const delegateService = getDelegateService()
-    // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
-    const delegator = await this.getDelegatorAccount(delegatorAddress)
-    const { delegateAddress, totalStake } = delegator
-    let [delegateTotalStake, rewardToDelegators] = await Promise.all([
-      delegateService.getDelegateTotalStake(delegateAddress),
-      delegateService.getDelegateRewardToDelegators(delegateAddress)
-    ])
-    // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
-    let delegatorParticipationInTotalStake = 0
-    if (delegateTotalStake > 0) {
-      delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+    try {
+      const delegateService = getDelegateService()
+      // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
+      const delegator = await this.getDelegatorAccount(delegatorAddress)
+
+      const { delegateAddress, totalStake } = delegator
+      let [delegateTotalStake, rewardToDelegators] = await Promise.all([
+        delegateService.getDelegateTotalStake(delegateAddress),
+        delegateService.getDelegateRewardToDelegators(delegateAddress)
+      ])
+      // Delegator participation FORMULA: delegatorTotalStake / delegateTotalStake
+      let delegatorParticipationInTotalStake = 0
+      if (delegateTotalStake > 0) {
+        delegatorParticipationInTotalStake = MathBN.div(totalStake, delegateTotalStake)
+      }
+      return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
+    } catch (err) {
+      throw err
     }
-    return MathBN.mul(rewardToDelegators, delegatorParticipationInTotalStake)
   }
 }
 

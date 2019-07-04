@@ -1,3 +1,5 @@
+const promiseRetry = require('promise-retry')
+
 const { calculateNextRoundInflationRatio, tokenAmountInUnits, MathBN } = require('../utils')
 
 const { CACHE_UPDATE_INTERVAL, PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
@@ -130,11 +132,13 @@ class ProtocolService {
   }
 
   getLivepeerRoundProgress = async () => {
-    const [currentRoundInfo, roundLength, latestBlock] = await Promise.all([
-      this.getCurrentRoundInfo(),
-      this.getRoundLength(),
-      this.getLatestBlock()
-    ])
+    const [currentRoundInfo, roundLength, latestBlock] = await promiseRetry(retry => {
+      return Promise.all([
+        this.getCurrentRoundInfo(),
+        this.getRoundLength(),
+        this.getLatestBlock()
+      ]).catch(err => retry())
+    })
 
     const { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
     const { number } = latestBlock
