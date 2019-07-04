@@ -1,7 +1,7 @@
 const {
   hasDelegateChangedRules,
   generateNotificationList
-} = require('../server/helpers/notifyDelegators')
+} = require('../server/helpers/notifyDelegatorsWhenDelegateChangeTheRules')
 
 const { createDelegator } = require('../server/helpers/test/util')
 const { getDelegatorService } = require('../server/helpers/services/delegatorService')
