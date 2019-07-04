@@ -1,4 +1,5 @@
 const Subscriber = require('../subscriber/subscriber.model')
+const Delegate = require('../delegate/delegate.model')
 
 const notifyDelegatesChangesInDelegates = async listOfChangedDelegates => {
   console.log(`[Check-Delegate-Change-Rules] - Notifying delegators of changed delegates`)
@@ -64,8 +65,34 @@ const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   return hasChanged
 }
 
+const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
+  const delegatesChanged = []
+  for (let newDelegateIterator of newDelegates) {
+    // Founds the newDelegateIterator from the old delegates array
+    let oldDelegateIterator = oldDelegates.find(old => {
+      const found = old._id === newDelegateIterator.id
+      return found
+    })
+    if (!oldDelegateIterator) {
+      continue
+    }
+    // Then checks if the rules between the old and new version of the delegate did changed
+    if (hasDelegateChangedRules(oldDelegateIterator, newDelegateIterator)) {
+      oldDelegateIterator = {
+        _id: oldDelegateIterator._id,
+        ...newDelegateIterator
+      }
+      const updatedDelegate = new Delegate({ ...oldDelegateIterator })
+      // Saves the changed-delegate
+      delegatesChanged.push(updatedDelegate)
+    }
+  }
+  return delegatesChanged
+}
+
 module.exports = {
   notifyDelegatesChangesInDelegates,
   hasDelegateChangedRules,
-  generateNotificationList
+  generateNotificationList,
+  getListOfUpdatedDelegates
 }

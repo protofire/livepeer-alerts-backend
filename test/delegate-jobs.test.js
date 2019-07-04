@@ -1,6 +1,7 @@
 const {
   hasDelegateChangedRules,
-  generateNotificationList
+  generateNotificationList,
+  getListOfUpdatedDelegates
 } = require('../server/helpers/notifyDelegators')
 
 const { createDelegator } = require('../server/helpers/test/util')
@@ -10,7 +11,7 @@ const { getProtocolService } = require('../server/helpers/services/protocolServi
 
 const { MathBN } = require('../server/helpers/utils')
 
-const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../server/helpers/utils')
+const { unitAmountInTokenUnits } = require('../server/helpers/utils')
 
 const { getDelegateService } = require('../server/helpers/services/delegateService')
 
@@ -25,6 +26,70 @@ describe('## Check-delegate-change-rules test', () => {
   const protocolService = getProtocolService()
   const delegateService = getDelegateService(delegatesGraphql)
   const delegatorService = getDelegatorService()
+  describe('# getListOfUpdatedDelegates', () => {
+    it('Old list has 3 delegates, new list has same 3 but the last one has a different reward cut, should return the last one', done => {
+      // given
+      const delegate1 = createTranscoder('1', '10', '15', '0', '0')
+      const delegate2 = createTranscoder('2', '15', '9', '0', '0')
+      const delegate3 = createTranscoder('3', '19', '39', '10', '0')
+      const delegate3New = {
+        ...delegate3,
+        rewardCut: '25'
+      }
+      const delegateExpected = {
+        ...delegate3New
+      }
+      delete delegateExpected.id
+      delete delegateExpected.address
+      const resultExpected = [delegateExpected]
+
+      const oldDelegates = [delegate1, delegate2, delegate3]
+      const newDelegates = [delegate1, delegate2, delegate3New]
+
+      // when
+      const result = getListOfUpdatedDelegates(oldDelegates, newDelegates)
+
+      const {
+        _id,
+        active,
+        delegators,
+        ensName,
+        feeShare,
+        lastRewardRound,
+        pendingFeeShare,
+        pendingPricePerSegment,
+        pendingRewardCut,
+        pools,
+        pricePerSegment,
+        rewardCut,
+        status,
+        totalStake
+      } = result[0]
+
+      const resultWithoutDbData = [
+        {
+          _id,
+          active,
+          delegators,
+          ensName,
+          feeShare,
+          lastRewardRound,
+          pendingFeeShare,
+          pendingPricePerSegment,
+          pendingRewardCut,
+          pools,
+          pricePerSegment,
+          rewardCut,
+          status,
+          totalStake
+        }
+      ]
+
+      // then
+      expect(resultWithoutDbData).to.deep.equal(resultExpected)
+      done()
+    })
+  })
   describe('# hasDelegateChangedRules', () => {
     it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: feeShare: 100 => should return true', async () => {
       // given
