@@ -1,6 +1,6 @@
 let exitSendNotificationJob = false
 
-const LivepeerSDK = require('@mariano-aguero/sdk')
+const LivepeerSDK = require('@livepeer/sdk')
 
 LivepeerSDK.default().then(async data => {
   const { rpc } = data

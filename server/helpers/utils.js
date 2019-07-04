@@ -217,10 +217,7 @@ const getSubscriptorRole = async subscriptor => {
     return Promise.all([
       protocolService.getLivepeerDefaultConstants(),
       delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => {
-      console.error(err)
-      retry()
-    })
+    ]).catch(err => retry())
   })
 
   const { status, address, delegateAddress } = delegator
@@ -245,10 +242,12 @@ const getDidDelegateCalledReward = async delegateAddress => {
   const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
   const protocolService = getProtocolService()
 
-  const [delegate, currentRoundInfo] = await Promise.all([
-    getLivepeerTranscoderAccount(delegateAddress),
-    protocolService.getCurrentRoundInfo()
-  ])
+  const [delegate, currentRoundInfo] = await promiseRetry(retry => {
+    return Promise.all([
+      getLivepeerTranscoderAccount(delegateAddress),
+      protocolService.getCurrentRoundInfo()
+    ]).catch(err => retry())
+  })
 
   // Check if transcoder call reward
   const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id

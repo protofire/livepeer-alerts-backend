@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 const mongoose = require('mongoose')
 
 /**
