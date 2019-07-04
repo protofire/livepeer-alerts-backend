@@ -4,52 +4,42 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 
 const {
-  notifyDelegatorsWhenDelegateChangeTheRules,
-  hasDelegateChangedRules
-} = require('../helpers/notifyDelegatorsWhenDelegateChangeTheRules')
+  notifyDelegatesChangesInDelegates,
+  getListOfUpdatedDelegates
+} = require('../helpers/notifyDelegators')
 
 const workerCheckDelegateChangeRules = async () => {
   const delegateService = getDelegateService()
-  const delegates = await delegateService.getDelegates()
-  const delegatesUpdated = []
-
-  // List of delegates address who changed their rules
+  // Gets the last version of the delegates from graphql
+  let delegatesFetched = await delegateService.getDelegates()
+  // Get the local version of the delegates
+  const delegatesOnDb = await Delegate.find()
+  // Generates a list of delegates who did changed compared to their local version
+  const updatedDelegates = getListOfUpdatedDelegates(delegatesOnDb, delegatesFetched)
+  const delegatesUpdatedPromises = []
   const delegatesChanged = []
 
-  console.log(`[Check-Delegate-Change-Rules] - Delegates ${delegates.length}`)
-  for (let delegateIterator of delegates) {
-    let delegateOnDbFound = await Delegate.findOne({ _id: delegateIterator.id })
-
-    if (delegateOnDbFound) {
-      if (hasDelegateChangedRules(delegateOnDbFound, delegateIterator)) {
-        delegateOnDbFound = {
-          _id: delegateOnDbFound._id,
-          ...delegateIterator
-        }
-        const updatedDelegate = new Delegate({ ...delegateOnDbFound })
-
-        // Updates local delegate
-        updatedDelegate.isNew = false
-        delegatesUpdated.push(updatedDelegate.save())
-
-        // Saves the changed-delegate
-        delegatesChanged.push(updatedDelegate)
-      }
-    } else {
-      // Saves new delegate on db
-      const newDelegate = new Delegate({
-        _id: delegateIterator.id,
-        ...delegateIterator
-      })
-      delegatesUpdated.push(newDelegate.save())
-    }
+  // Iterates over all the changed delegates and update the local version of each one
+  for (let updateDelegateIterator of updatedDelegates) {
+    const updatedDelegate = new Delegate({
+      _id: updateDelegateIterator.id,
+      ...updateDelegateIterator
+    })
+    // Updates local delegate
+    updatedDelegate.isNew = false
+    delegatesUpdatedPromises.push(updatedDelegate.save())
+    // Saves the changed-delegate
+    delegatesChanged.push(updatedDelegate)
   }
   // Update the delegates locally
-  console.log(`[Check-Delegate-Change-Rules] - Updating changed delegates`)
-  await Promise.all(delegatesUpdated)
-
+  if (delegatesUpdatedPromises.length > 0) {
+    console.log(`[Check-Delegate-Change-Rules] - Updating changed delegates`)
+    await Promise.all(delegatesUpdatedPromises)
+  }
   // Send notification to delegators
-  await notifyDelegatorsWhenDelegateChangeTheRules(delegatesChanged)
+  if (delegatesChanged.length > 0) {
+    await notifyDelegatesChangesInDelegates(delegatesChanged)
+  }
 
   process.exit(0)
 }

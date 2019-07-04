@@ -37,6 +37,7 @@ const createTranscoder = (
   totalStake = '440522208151278163711606'
 ) => {
   const mockTranscoder = {
+    _id: transcoderId,
     id: transcoderId,
     address: transcoderId,
     active: true,
@@ -49,7 +50,9 @@ const createTranscoder = (
     pendingRewardCut,
     pendingFeeShare,
     pendingPricePerSegment,
-    totalStake
+    totalStake,
+    pools: [],
+    delegators: []
   }
   return mockTranscoder
 }
