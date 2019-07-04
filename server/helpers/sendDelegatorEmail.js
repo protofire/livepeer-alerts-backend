@@ -154,27 +154,23 @@ const sendDelegatorNotificationEmail = async (
   }
 }
 
-const sendDelegatorNotificationDelegateChangeRulesEmail = async subscriber => {
+const sendDelegatorNotificationDelegateChangeRulesEmail = async (subscriber, delegateAddress) => {
   try {
     let body = {
       transcoderAddress: truncateStringInTheMiddle(delegateAddress),
       delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
         subscriber.address
       }/delegating`,
-      delegateAddress: subscriber.delegator.delegate,
+      delegateAddress: delegateAddress,
       templateId: sendgridTemplateIdNotificationDelegateChangeRules,
       email: subscriber.email
     }
 
     await sendEmail(body)
-
-    // // Save last email sent
-    subscriber.lastEmailSent = Date.now()
-    return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)
-    return
   }
+  return
 }
 
 module.exports = {
