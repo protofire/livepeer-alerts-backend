@@ -1,6 +1,7 @@
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const Telegram = require('../telegram/telegram.model')
+const Delegate = require('../delegate/delegate.model')
 const Round = require('../round/round.model')
 const config = require('../../config/config')
 
@@ -11,7 +12,12 @@ if (!['test', 'development'].includes(config.env)) {
 
 let exitSendNotificationJob = false
 
-Promise.all([Subscriber.deleteMany({}), Telegram.deleteMany({}), Round.deleteMany({})])
+Promise.all([
+  Delegate.deleteMany({}),
+  Subscriber.deleteMany({}),
+  Telegram.deleteMany({}),
+  Round.deleteMany({})
+])
   .then(() => {
     console.log('Documents removed successfully')
     exitSendNotificationJob = true
