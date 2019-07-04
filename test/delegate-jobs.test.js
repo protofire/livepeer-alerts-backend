@@ -52,7 +52,7 @@ describe('## Check-delegate-change-rules test', () => {
       // then
       expect(result).equal(resultExpected)
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: rewardCut: 100 => should return true', async () => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: rewardCut: 100 => should return true', done => {
       // given
       const transcoderId = 1
       const resultExpected = true
@@ -77,8 +77,9 @@ describe('## Check-delegate-change-rules test', () => {
 
       // then
       expect(result).equal(resultExpected)
+      done()
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingRewardCut: 100 => should return true', async () => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingRewardCut: 100 => should return true', done => {
       // given
       const transcoderId = 1
       const resultExpected = true
@@ -103,8 +104,9 @@ describe('## Check-delegate-change-rules test', () => {
 
       // then
       expect(result).equal(resultExpected)
+      done()
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingFeeShare: 100 => should return true', async () => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingFeeShare: 100 => should return true', done => {
       // given
       const transcoderId = 1
       const resultExpected = true
@@ -129,8 +131,9 @@ describe('## Check-delegate-change-rules test', () => {
 
       // then
       expect(result).equal(resultExpected)
+      done()
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; totalStake: 1, new delegate: totalStake: 100 => should return false', async () => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; totalStake: 1, new delegate: totalStake: 100 => should return false', done => {
       // given
       const transcoderId = 1
       const resultExpected = false
@@ -159,8 +162,9 @@ describe('## Check-delegate-change-rules test', () => {
 
       // then
       expect(result).equal(resultExpected)
+      done()
     })
-    it('Old delegate: has the same values on rewardCut, feeShare, pendingRewardCut and pendingFeeShare as the new delegate, the other properties are different => should return false', async () => {
+    it('Old delegate: has the same values on rewardCut, feeShare, pendingRewardCut and pendingFeeShare as the new delegate, the other properties are different => should return false', done => {
       // given
       const transcoderId = 1
       const resultExpected = false
@@ -199,40 +203,37 @@ describe('## Check-delegate-change-rules test', () => {
 
       // then
       expect(result).equal(resultExpected)
+      done()
     })
   })
   describe('# generateNotificationList', () => {
-    it('if receives an empty list returns []', async () => {
+    it('if receives an empty list returns []', done => {
       // given
       const resultExpected = []
       const listOfChangedDelegates = []
       const listOfDelegatesAndDelegators = []
 
       // when
-      const result = await generateNotificationList(
-        listOfChangedDelegates,
-        listOfDelegatesAndDelegators
-      )
+      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
 
       // then
       expect(result).to.deep.equal(resultExpected)
+      done()
     })
-    it('if receive a null object returns []', async () => {
+    it('if receive a null object returns []', done => {
       // given
       const resultExpected = []
       const listOfChangedDelegates = null
       const listOfDelegatesAndDelegators = null
 
       // when
-      const result = await generateNotificationList(
-        listOfChangedDelegates,
-        listOfDelegatesAndDelegators
-      )
+      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
 
       // then
       expect(result).to.deep.equal(resultExpected)
+      done()
     })
-    it('receives two changed delegates, with two different delegators, should generate two notifications', async () => {
+    it('receives two changed delegates, with two different delegators, should generate two notifications', done => {
       // given
       const delegate1 = {
         _id: '1'
@@ -251,11 +252,13 @@ describe('## Check-delegate-change-rules test', () => {
       const resultExpected = [
         {
           delegatorAddress: delegatorAdd1,
+          delegateAddress: delegate1._id,
           delegate: delegate1,
           subscriber: subscriber1
         },
         {
           delegatorAddress: delegatorAdd2,
+          delegateAddress: delegate2._id,
           delegate: delegate2,
           subscriber: subscriber2
         }
@@ -275,13 +278,11 @@ describe('## Check-delegate-change-rules test', () => {
       ]
 
       // when
-      const result = await generateNotificationList(
-        listOfChangedDelegates,
-        listOfDelegatesAndDelegators
-      )
+      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
 
       // then
       expect(result).to.deep.equal(resultExpected)
+      done()
     })
     it('100 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 36.6', async () => {
       // given
