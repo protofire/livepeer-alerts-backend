@@ -8,22 +8,30 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async listOfChangedDelegates 
     return null
   }
 
-  // Gets a list of delegators and their delegates
-  const listOfDelegatesAndDelegators = await Subscriber.getListOfDelegateAddressAndDelegatorAddress()
+  try {
+    // Gets a list of delegators and their delegates
+    const listOfDelegatesAndDelegators = await Subscriber.getListOfDelegateAddressAndDelegatorAddress()
 
-  const notificationList = generateNotificationList(
-    listOfChangedDelegates,
-    listOfDelegatesAndDelegators
-  )
-  for (let iterator of notificationList) {
-    // Send notification to the delegator
-    const { subscriber, delegateAddress, delegatorAddress } = iterator
-    console.log(
-      `[Check-Delegate-Change-Rules] - Send notification to delegator ${delegatorAddress} with email ${
-        subscriber.email
-      }`
+    const notificationList = generateNotificationList(
+      listOfChangedDelegates,
+      listOfDelegatesAndDelegators
     )
-    await sendDelegatorNotificationDelegateChangeRulesEmail(subscriber, delegateAddress)
+    for (let iterator of notificationList) {
+      // Send notification to the delegator
+      const { subscriber, delegateAddress, delegatorAddress } = iterator
+      console.log(
+        `[Check-Delegate-Change-Rules] - Send notification to delegator ${delegatorAddress} with email ${
+          subscriber.email
+        }`
+      )
+
+      await sendDelegatorNotificationDelegateChangeRulesEmail(subscriber, delegateAddress)
+    }
+  } catch (err) {
+    console.error(
+      `[Check-Delegate-Change-Rules] - Error while trying to send notification to delegators: ${err}`
+    )
+    throw err
   }
 }
 

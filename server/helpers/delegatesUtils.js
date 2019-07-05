@@ -17,7 +17,7 @@ const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
 }
 
 const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
-  const delegatesChanged = []
+  const updatedDelegates = []
   for (let newDelegateIterator of newDelegates) {
     // Founds the newDelegateIterator from the old delegates array
     let oldDelegateIterator = oldDelegates.find(old => {
@@ -41,10 +41,10 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
       }
       const updatedDelegate = new Delegate({ ...oldDelegateIterator })
       // Saves the changed-delegate
-      delegatesChanged.push(updatedDelegate)
+      updatedDelegates.push(updatedDelegate)
     }
   }
-  return delegatesChanged
+  return updatedDelegates
 }
 
 const updateDelegatesLocally = async listOfDelegatesToUpdate => {
@@ -58,6 +58,7 @@ const updateDelegatesLocally = async listOfDelegatesToUpdate => {
   // Iterates over all the changed delegates and update the local version of each one
   for (let updateDelegateIterator of listOfDelegatesToUpdate) {
     const id = updateDelegateIterator.id
+
     const {
       active,
       ensName,
@@ -88,12 +89,26 @@ const updateDelegatesLocally = async listOfDelegatesToUpdate => {
           totalStake
         }
       },
-      { useFindAndModify: false }
+      {
+        // MongoDB findAndModify is deprecated, this should be used to disable it
+        useFindAndModify: false,
+        // Sets the replica concern to 0, default is 1
+        // See: https://docs.mongodb.com/manual/reference/write-concern/
+        writeConcern: {
+          w: 0
+        }
+      }
     )
 
     delegatesUpdatedPromises.push(updatedDelegatePromise)
   }
-  updatedDelegates = await Promise.all(delegatesUpdatedPromises)
+  try {
+    updatedDelegates = await Promise.all(delegatesUpdatedPromises)
+  } catch (err) {
+    console.error(`[Update-Delegates-Locally] - Error: ${err}`)
+    throw err
+  }
+
   console.log(`[Update-Delegates-Locally] - Finish with ${updatedDelegates.length} updates`)
   return updatedDelegates
 }
