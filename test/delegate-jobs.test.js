@@ -1,7 +1,10 @@
 const {
-  hasDelegateChangedRules,
-  generateNotificationList,
-  getListOfUpdatedDelegates
+  getListOfUpdatedDelegates,
+  hasDelegateChangedRules
+} = require('../server/helpers/delegatesUtils')
+
+const {
+  generateNotificationList
 } = require('../server/helpers/notifyDelegatorsWhenDelegateChangeTheRules')
 
 const { createDelegator } = require('../server/helpers/test/util')
@@ -91,7 +94,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
   })
   describe('# hasDelegateChangedRules', () => {
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: feeShare: 100 => should return true', done => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; ; new delegate: feeShare: 100 => should return true', done => {
       // given
       const transcoderId = 1
       const resultExpected = true
@@ -99,12 +102,14 @@ describe('## Check-delegate-change-rules test', () => {
       const feeShare = '1'
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
+      const active = false
       const oldDelegate = createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
         pendingRewardCut,
-        pendingFeeShare
+        pendingFeeShare,
+        active
       )
       const newDelegate = {
         ...oldDelegate,
@@ -118,7 +123,65 @@ describe('## Check-delegate-change-rules test', () => {
       expect(result).equal(resultExpected)
       done()
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: rewardCut: 100 => should return true', done => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; active: false; new delegate: rewardCut: 100 => should return true', done => {
+      // given
+      const transcoderId = 1
+      const resultExpected = true
+      const rewardCut = '1'
+      const feeShare = '1'
+      const pendingRewardCut = '1'
+      const pendingFeeShare = '1'
+      const active = false
+      const oldDelegate = createTranscoder(
+        transcoderId,
+        rewardCut,
+        feeShare,
+        pendingRewardCut,
+        pendingFeeShare,
+        active
+      )
+      const newDelegate = {
+        ...oldDelegate,
+        rewardCut: '100'
+      }
+
+      // when
+      const result = hasDelegateChangedRules(oldDelegate, newDelegate)
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; active: false; new delegate: pendingRewardCut: 100 => should return true', done => {
+      // given
+      const transcoderId = 1
+      const resultExpected = true
+      const rewardCut = '1'
+      const feeShare = '1'
+      const pendingRewardCut = '1'
+      const pendingFeeShare = '1'
+      const active = false
+      const oldDelegate = createTranscoder(
+        transcoderId,
+        rewardCut,
+        feeShare,
+        pendingRewardCut,
+        pendingFeeShare,
+        active
+      )
+      const newDelegate = {
+        ...oldDelegate,
+        rewardCut: '100'
+      }
+
+      // when
+      const result = hasDelegateChangedRules(oldDelegate, newDelegate)
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; active: false; new delegate: pendingFeeShare: 100 => should return true', done => {
       // given
       const transcoderId = 1
       const resultExpected = true
@@ -145,61 +208,7 @@ describe('## Check-delegate-change-rules test', () => {
       expect(result).equal(resultExpected)
       done()
     })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingRewardCut: 100 => should return true', done => {
-      // given
-      const transcoderId = 1
-      const resultExpected = true
-      const rewardCut = '1'
-      const feeShare = '1'
-      const pendingRewardCut = '1'
-      const pendingFeeShare = '1'
-      const oldDelegate = createTranscoder(
-        transcoderId,
-        rewardCut,
-        feeShare,
-        pendingRewardCut,
-        pendingFeeShare
-      )
-      const newDelegate = {
-        ...oldDelegate,
-        rewardCut: '100'
-      }
-
-      // when
-      const result = hasDelegateChangedRules(oldDelegate, newDelegate)
-
-      // then
-      expect(result).equal(resultExpected)
-      done()
-    })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; new delegate: pendingFeeShare: 100 => should return true', done => {
-      // given
-      const transcoderId = 1
-      const resultExpected = true
-      const rewardCut = '1'
-      const feeShare = '1'
-      const pendingRewardCut = '1'
-      const pendingFeeShare = '1'
-      const oldDelegate = createTranscoder(
-        transcoderId,
-        rewardCut,
-        feeShare,
-        pendingRewardCut,
-        pendingFeeShare
-      )
-      const newDelegate = {
-        ...oldDelegate,
-        rewardCut: '100'
-      }
-
-      // when
-      const result = hasDelegateChangedRules(oldDelegate, newDelegate)
-
-      // then
-      expect(result).equal(resultExpected)
-      done()
-    })
-    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; totalStake: 1, new delegate: totalStake: 100 => should return false', done => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; totalStake: 1, active: false, new delegate: totalStake: 100 => should return false', done => {
       // given
       const transcoderId = 1
       const resultExpected = false
@@ -208,12 +217,14 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
       const totalStake = '1'
+      const active = false
       const oldDelegate = createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
         pendingRewardCut,
         pendingFeeShare,
+        active,
         null,
         null,
         totalStake
@@ -230,7 +241,40 @@ describe('## Check-delegate-change-rules test', () => {
       expect(result).equal(resultExpected)
       done()
     })
-    it('Old delegate: has the same values on rewardCut, feeShare, pendingRewardCut and pendingFeeShare as the new delegate, the other properties are different => should return false', done => {
+    it('Old delegate: rewardCut: 1, feeShare: 1, pendingRewardCut: 1, pendingFeeShare: 1; totalStake: 1, active: false, new delegate: active: true => should return true', done => {
+      // given
+      const transcoderId = 1
+      const resultExpected = true
+      const rewardCut = '1'
+      const feeShare = '1'
+      const pendingRewardCut = '1'
+      const pendingFeeShare = '1'
+      const totalStake = '1'
+      const active = false
+      const oldDelegate = createTranscoder(
+        transcoderId,
+        rewardCut,
+        feeShare,
+        pendingRewardCut,
+        pendingFeeShare,
+        active,
+        null,
+        null,
+        totalStake
+      )
+      const newDelegate = {
+        ...oldDelegate,
+        active: true
+      }
+
+      // when
+      const result = hasDelegateChangedRules(oldDelegate, newDelegate)
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Old delegate: has the same values on rewardCut, feeShare, pendingRewardCut, pendingFeeShare and active as the new delegate, the other properties are different => should return false', done => {
       // given
       const transcoderId = 1
       const resultExpected = false
@@ -239,26 +283,26 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
       const totalStake = '1'
+      const active = false
       let oldDelegate = createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
         pendingRewardCut,
         pendingFeeShare,
+        active,
         null,
         null,
         totalStake
       )
       oldDelegate = {
         ...oldDelegate,
-        active: true,
         ensName: null,
         status: 'Registered',
         lastRewardRound: '1092'
       }
       const newDelegate = {
         ...oldDelegate,
-        active: false,
         ensName: 'charles',
         status: 'NotRegistered',
         lastRewardRound: '1990'

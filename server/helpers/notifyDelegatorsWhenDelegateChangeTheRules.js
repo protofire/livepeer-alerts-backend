@@ -58,7 +58,5 @@ const generateNotificationList = (listOfChangedDelegates, listOfDelegatesAndDele
 
 module.exports = {
   notifyDelegatorsWhenDelegateChangeTheRules,
-  hasDelegateChangedRules,
-  generateNotificationList,
-  getListOfUpdatedDelegates
+  generateNotificationList
 }

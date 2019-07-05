@@ -3,12 +3,12 @@ const mongoose = require('../../config/mongoose')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
-  // TODO -- add check active property
   const hasChanged =
     feeShare !== newDelegate.feeShare ||
     pendingFeeShare !== newDelegate.pendingFeeShare ||
     rewardCut !== newDelegate.rewardCut ||
-    pendingRewardCut !== newDelegate.pendingRewardCut
+    pendingRewardCut !== newDelegate.pendingRewardCut ||
+    active !== newDelegate.active
 
   if (hasChanged)
     console.log(`[Check-Delegate-Change-Rules] - Delegate ${oldDelegate._id} has changed`)
@@ -100,7 +100,7 @@ const updateDelegatesLocally = async listOfDelegatesToUpdate => {
 
 // Receives all the delegates that are stored locally and the delegates from the graph
 // If there are delegates who are not stored locally, save them on the db
-// TODO -- This should be executed as a JOB periodically, not inside the workerCheckDelegateChangeRules() function
+// TODO -- Maybe this could be an always-running proccess with it's subscribed to the graph
 const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   if (!fetchedDelegates || fetchedDelegates.length === 0) {
     console.error(
