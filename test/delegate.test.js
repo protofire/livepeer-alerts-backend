@@ -40,10 +40,31 @@ describe('## DelegateService test', () => {
 
       // then
       expect(getSummaryStub.called)
-      expect(result.summary).to.deep.equal(resultExpected)
+      expect(result).to.deep.equal(resultExpected)
       // restore stubs
       getSummaryStub.restore()
     })
+  })
+  it('getDelegateSummary should return a delegate summary', async () => {
+    // given
+    const delegate = createTranscoder()
+    // stubs the delegateGraphql service
+    const getSummaryStub = sinon.stub(delegatesGraphql, 'getDelegateSummary').returns(delegate)
+    const resultExpected = {
+      summary: {
+        ...delegate,
+        totalStake: tokenAmountInUnits(delegate.totalStake)
+      }
+    }
+
+    // when
+    const result = await delegateService.getDelegateSummary()
+
+    // then
+    expect(getSummaryStub.called)
+    expect(result).to.deep.equal(resultExpected)
+    // restore stubs
+    getSummaryStub.restore()
   })
   describe('# getDelegateProtocolNextReward', () => {
     // bondedStake = 400
