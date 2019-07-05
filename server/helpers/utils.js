@@ -7,10 +7,7 @@ const moment = require('moment')
 
 const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
 const Subscriber = require('../subscriber/subscriber.model')
-const {
-  NotSubscribedError,
-  AlreadySubscribedError
-} = require('./JobsErrors')
+const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
 
 const MathBN = {
   sub: (a, b) => {

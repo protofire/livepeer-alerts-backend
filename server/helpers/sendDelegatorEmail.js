@@ -159,9 +159,7 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async subscriber => {
   try {
     let body = {
       transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-        subscriber.address
-      }/delegating`,
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
       delegateAddress: subscriber.delegator.delegate,
       templateId: sendgridTemplateIdNotificationDelegateChangeRules,
       email: subscriber.email

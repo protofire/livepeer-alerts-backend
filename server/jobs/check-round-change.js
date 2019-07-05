@@ -55,9 +55,7 @@ const workerCheckRoundChange = async () => {
     console.log(`[Check-Round-Change] - Round changed`)
     // The round changed, now checks new round progress
     console.log(
-      `[Check-Round-Change] - Check round progress: ${progress}, threshold: ${thresholdSendNotification}, notifications were sent?: ${
-        actualSavedRound.notificationsForRoundSent
-      }`
+      `[Check-Round-Change] - Check round progress: ${progress}, threshold: ${thresholdSendNotification}, notifications were sent?: ${actualSavedRound.notificationsForRoundSent}`
     )
     // If the progress if above a certain threshold and the notifications were not already sent, the notifications will be sent and the current saved round will be updated
     if (progress <= thresholdSendNotification && !actualSavedRound.notificationsForRoundSent) {
