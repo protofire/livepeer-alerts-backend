@@ -15,7 +15,6 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async listOfChangedDelegates 
     listOfChangedDelegates,
     listOfDelegatesAndDelegators
   )
-
   for (let iterator of notificationList) {
     // Send notification to the delegator
     const { subscriber, delegateAddress, delegatorAddress } = iterator
@@ -55,45 +54,6 @@ const generateNotificationList = (listOfChangedDelegates, listOfDelegatesAndDele
     }
   }
   return notificationList
-}
-
-const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
-  const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut } = oldDelegate
-  const hasChanged =
-    feeShare !== newDelegate.feeShare ||
-    pendingFeeShare !== newDelegate.pendingFeeShare ||
-    rewardCut !== newDelegate.rewardCut ||
-    pendingRewardCut !== newDelegate.pendingRewardCut
-
-  if (hasChanged)
-    console.log(`[Check-Delegate-Change-Rules] - Delegate ${oldDelegate._id} has changed`)
-
-  return hasChanged
-}
-
-const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
-  const delegatesChanged = []
-  for (let newDelegateIterator of newDelegates) {
-    // Founds the newDelegateIterator from the old delegates array
-    let oldDelegateIterator = oldDelegates.find(old => {
-      const found = old._id === newDelegateIterator.id
-      return found
-    })
-    if (!oldDelegateIterator) {
-      continue
-    }
-    // Then checks if the rules between the old and new version of the delegate did changed
-    if (hasDelegateChangedRules(oldDelegateIterator, newDelegateIterator)) {
-      oldDelegateIterator = {
-        _id: oldDelegateIterator._id,
-        ...newDelegateIterator
-      }
-      const updatedDelegate = new Delegate({ ...oldDelegateIterator })
-      // Saves the changed-delegate
-      delegatesChanged.push(updatedDelegate)
-    }
-  }
-  return delegatesChanged
 }
 
 module.exports = {
