@@ -21,15 +21,18 @@ const workerCheckDelegateChangeRules = async () => {
     // Get the local version of the delegates
     let delegatesOnDb = await Delegate.find()
     // Generates a list of delegates who did changed compared to their local version
-    let updatedDelegates = getListOfUpdatedDelegates(delegatesOnDb, delegatesFetched)
+    let { updatedDelegates, propertiesChangedList } = getListOfUpdatedDelegates(
+      delegatesOnDb,
+      delegatesFetched
+    )
     // Updates existing local delegates with the fetched information
     if (updatedDelegates.length > 0) {
       console.log(`[Check-Delegate-Change-Rules] - Updating changed delegates`)
       updatedDelegates = await updateDelegatesLocally(updatedDelegates)
     }
     // Send notification to delegators
-    if (updatedDelegates.length > 0) {
-      await notifyDelegatorsWhenDelegateChangeTheRules(updatedDelegates)
+    if (updatedDelegates.length > 0 && propertiesChangedList.length) {
+      await notifyDelegatorsWhenDelegateChangeTheRules(updatedDelegates, propertiesChangedList)
     }
     console.log(
       `[Check-Delegate-Change-Rules] - Finish, changed delegates: ${updatedDelegates.length}`

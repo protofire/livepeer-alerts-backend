@@ -16,8 +16,44 @@ const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   return hasChanged
 }
 
+const getDelegateRulesChanged = (oldDelegate, newDelegate) => {
+  const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
+  const hasChanged =
+    feeShare !== newDelegate.feeShare ||
+    pendingFeeShare !== newDelegate.pendingFeeShare ||
+    rewardCut !== newDelegate.rewardCut ||
+    pendingRewardCut !== newDelegate.pendingRewardCut ||
+    active !== newDelegate.active
+
+  const oldProperties = {
+    feeShare,
+    pendingFeeShare,
+    rewardCut,
+    pendingRewardCut,
+    active
+  }
+
+  const newProperties = {
+    feeShare: newDelegate.feeShare,
+    pendingFeeShare: newDelegate.pendingFeeShare,
+    rewardCut: newDelegate.rewardCut,
+    pendingRewardCut: newDelegate.pendingRewardCut,
+    active: newDelegate.active
+  }
+
+  if (hasChanged)
+    console.log(`[Check-Delegate-Change-Rules] - Delegate ${oldDelegate._id} has changed`)
+
+  return {
+    hasChanged,
+    oldProperties,
+    newProperties
+  }
+}
+
 const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
   const updatedDelegates = []
+  const propertiesChangedList = []
   for (let newDelegateIterator of newDelegates) {
     // Founds the newDelegateIterator from the old delegates array
     let oldDelegateIterator = oldDelegates.find(old => {
@@ -34,7 +70,9 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
       continue
     }
     // Then checks if the rules between the old and new version of the delegate did changed
-    if (hasDelegateChangedRules(oldDelegateIterator, newDelegateIterator)) {
+    const propertiesChanged = getDelegateRulesChanged(oldDelegateIterator, newDelegateIterator)
+    // if (hasDelegateChangedRules(oldDelegateIterator, newDelegateIterator)) {
+    if (propertiesChanged.hasChanged) {
       oldDelegateIterator = {
         _id: oldDelegateIterator._id,
         ...newDelegateIterator
@@ -42,9 +80,19 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
       const updatedDelegate = new Delegate({ ...oldDelegateIterator })
       // Saves the changed-delegate
       updatedDelegates.push(updatedDelegate)
+
+      // Save the changed-properties
+      propertiesChangedList.push({
+        id: oldDelegateIterator._id,
+        ...propertiesChanged
+      })
     }
   }
-  return updatedDelegates
+  // return updatedDelegates
+  return {
+    updatedDelegates,
+    propertiesChangedList
+  }
 }
 
 const updateDelegatesLocally = async listOfDelegatesToUpdate => {
@@ -145,5 +193,6 @@ module.exports = {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   updateDelegatesLocally,
-  checkAndUpdateMissingLocalDelegates
+  checkAndUpdateMissingLocalDelegates,
+  getDelegateRulesChanged
 }

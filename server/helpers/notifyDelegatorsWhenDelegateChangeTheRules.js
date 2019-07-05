@@ -2,30 +2,41 @@ const Subscriber = require('../subscriber/subscriber.model')
 const Delegate = require('../delegate/delegate.model')
 const { sendDelegatorNotificationDelegateChangeRulesEmail } = require('./sendDelegatorEmail')
 
-const notifyDelegatorsWhenDelegateChangeTheRules = async listOfChangedDelegates => {
+const notifyDelegatorsWhenDelegateChangeTheRules = async (
+  listOfChangedDelegates,
+  listOfPropertiesChanged
+) => {
   console.log(`[Check-Delegate-Change-Rules] - Notifying delegators of changed delegates`)
-  if (!listOfChangedDelegates || listOfChangedDelegates.length === 0) {
+  if (
+    !listOfChangedDelegates ||
+    listOfChangedDelegates.length === 0 ||
+    !listOfPropertiesChanged ||
+    listOfPropertiesChanged.length === 0
+  ) {
     return null
   }
 
   try {
     // Gets a list of delegators and their delegates
     const listOfDelegatesAndDelegators = await Subscriber.getListOfDelegateAddressAndDelegatorAddress()
-
     const notificationList = generateNotificationList(
       listOfChangedDelegates,
-      listOfDelegatesAndDelegators
+      listOfDelegatesAndDelegators,
+      listOfPropertiesChanged
     )
     for (let iterator of notificationList) {
       // Send notification to the delegator
-      const { subscriber, delegateAddress, delegatorAddress } = iterator
+      const { subscriber, delegateAddress, delegatorAddress, propertiesChanged } = iterator
       console.log(
         `[Check-Delegate-Change-Rules] - Send notification to delegator ${delegatorAddress} with email ${
           subscriber.email
         }`
       )
-
-      await sendDelegatorNotificationDelegateChangeRulesEmail(subscriber, delegateAddress)
+      await sendDelegatorNotificationDelegateChangeRulesEmail(
+        subscriber,
+        delegateAddress,
+        propertiesChanged
+      )
     }
   } catch (err) {
     console.error(
@@ -35,13 +46,19 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async listOfChangedDelegates 
   }
 }
 
-const generateNotificationList = (listOfChangedDelegates, listOfDelegatesAndDelegators) => {
+const generateNotificationList = (
+  listOfChangedDelegates,
+  listOfDelegatesAndDelegators,
+  listOfPropertiesChanged
+) => {
   const notificationList = []
   if (
     !listOfChangedDelegates ||
     listOfChangedDelegates.length === 0 ||
     !listOfDelegatesAndDelegators ||
-    listOfDelegatesAndDelegators.length === 0
+    listOfDelegatesAndDelegators.length === 0 ||
+    !listOfPropertiesChanged ||
+    listOfPropertiesChanged.length === 0
   ) {
     return notificationList
   }
@@ -52,12 +69,16 @@ const generateNotificationList = (listOfChangedDelegates, listOfDelegatesAndDele
     const delegateChanged = listOfChangedDelegates.find(element => {
       return element._id === delegateAddress
     })
+    const propertiesChanged = listOfPropertiesChanged.find(element => {
+      return element.id === delegateAddress
+    })
     if (delegateChanged) {
       notificationList.push({
         delegateAddress,
         delegatorAddress,
         delegate: delegateChanged,
-        subscriber
+        subscriber,
+        propertiesChanged
       })
     }
   }

@@ -1,6 +1,7 @@
 const {
   getListOfUpdatedDelegates,
-  hasDelegateChangedRules
+  hasDelegateChangedRules,
+  getDelegateRulesChanged
 } = require('../server/helpers/delegatesUtils')
 
 const {
@@ -42,9 +43,24 @@ describe('## Check-delegate-change-rules test', () => {
       const delegateExpected = {
         ...delegate3New
       }
-      delete delegateExpected.id
-      delete delegateExpected.address
-      const resultExpected = [delegateExpected]
+      const resultExpected = {
+        hasChanged: true,
+        id: delegateExpected._id,
+        oldProperties: {
+          active: delegate3.active,
+          feeShare: delegate3.feeShare,
+          pendingFeeShare: delegate3.pendingFeeShare,
+          pendingRewardCut: delegate3.pendingRewardCut,
+          rewardCut: delegate3.rewardCut
+        },
+        newProperties: {
+          active: delegate3New.active,
+          feeShare: delegate3New.feeShare,
+          pendingFeeShare: delegate3New.pendingFeeShare,
+          pendingRewardCut: delegate3New.pendingRewardCut,
+          rewardCut: delegate3New.rewardCut
+        }
+      }
 
       const oldDelegates = [delegate1, delegate2, delegate3]
       const newDelegates = [delegate1, delegate2, delegate3New]
@@ -52,44 +68,46 @@ describe('## Check-delegate-change-rules test', () => {
       // when
       const result = getListOfUpdatedDelegates(oldDelegates, newDelegates)
 
-      const {
-        _id,
-        active,
-        delegators,
-        ensName,
-        feeShare,
-        lastRewardRound,
-        pendingFeeShare,
-        pendingPricePerSegment,
-        pendingRewardCut,
-        pools,
-        pricePerSegment,
-        rewardCut,
-        status,
-        totalStake
-      } = result[0]
-
-      const resultWithoutDbData = [
-        {
-          _id,
-          active,
-          delegators,
-          ensName,
-          feeShare,
-          lastRewardRound,
-          pendingFeeShare,
-          pendingPricePerSegment,
-          pendingRewardCut,
-          pools,
-          pricePerSegment,
-          rewardCut,
-          status,
-          totalStake
-        }
-      ]
+      const resultFix = {
+        ...result.propertiesChangedList[0]
+      }
 
       // then
-      expect(resultWithoutDbData).to.deep.equal(resultExpected)
+      expect(resultFix).to.deep.equal(resultExpected)
+      done()
+    })
+  })
+  describe('# getDelegateRulesChanged', () => {
+    it('Old delegate and new delegate have the same properties ; new has same but with different active property => result should be true with property active', done => {
+      // given
+      const delegate3 = createTranscoder('3', '19', '39', '10', '0')
+      const delegate3New = {
+        ...delegate3,
+        active: !delegate3.active
+      }
+      const resultExpected = {
+        hasChanged: true,
+        oldProperties: {
+          active: delegate3.active,
+          feeShare: delegate3.feeShare,
+          pendingFeeShare: delegate3.pendingFeeShare,
+          pendingRewardCut: delegate3.pendingRewardCut,
+          rewardCut: delegate3.rewardCut
+        },
+        newProperties: {
+          active: delegate3New.active,
+          feeShare: delegate3New.feeShare,
+          pendingFeeShare: delegate3New.pendingFeeShare,
+          pendingRewardCut: delegate3New.pendingRewardCut,
+          rewardCut: delegate3New.rewardCut
+        }
+      }
+
+      // when
+      const result = getDelegateRulesChanged(delegate3, delegate3New)
+
+      // then
+      expect(result).to.deep.equal(resultExpected)
       done()
     })
   })
@@ -322,9 +340,14 @@ describe('## Check-delegate-change-rules test', () => {
       const resultExpected = []
       const listOfChangedDelegates = []
       const listOfDelegatesAndDelegators = []
+      const listOfPropertiesChanged = []
 
       // when
-      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
 
       // then
       expect(result).to.deep.equal(resultExpected)
@@ -335,9 +358,14 @@ describe('## Check-delegate-change-rules test', () => {
       const resultExpected = []
       const listOfChangedDelegates = null
       const listOfDelegatesAndDelegators = null
+      const listOfPropertiesChanged = []
 
       // when
-      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
 
       // then
       expect(result).to.deep.equal(resultExpected)
@@ -359,18 +387,36 @@ describe('## Check-delegate-change-rules test', () => {
       }
       const delegatorAdd1 = '10'
       const delegatorAdd2 = '20'
+      const propertieChanged1 = {
+        hasChanged: true,
+        id: delegate1._id,
+        newProperties: [],
+        oldProperties: {}
+      }
+      const propertieChanged2 = {
+        hasChanged: true,
+        id: delegate2._id,
+        newProperties: [],
+        oldProperties: {}
+      }
       const resultExpected = [
         {
           delegatorAddress: delegatorAdd1,
           delegateAddress: delegate1._id,
           delegate: delegate1,
-          subscriber: subscriber1
+          subscriber: subscriber1,
+          propertiesChanged: {
+            ...propertieChanged1
+          }
         },
         {
           delegatorAddress: delegatorAdd2,
           delegateAddress: delegate2._id,
           delegate: delegate2,
-          subscriber: subscriber2
+          subscriber: subscriber2,
+          propertiesChanged: {
+            ...propertieChanged2
+          }
         }
       ]
       const listOfChangedDelegates = [delegate1, delegate2]
@@ -386,9 +432,21 @@ describe('## Check-delegate-change-rules test', () => {
           subscriber: subscriber2
         }
       ]
+      const listOfPropertiesChanged = [
+        {
+          ...propertieChanged1
+        },
+        {
+          ...propertieChanged2
+        }
+      ]
 
       // when
-      const result = generateNotificationList(listOfChangedDelegates, listOfDelegatesAndDelegators)
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
 
       // then
       expect(result).to.deep.equal(resultExpected)

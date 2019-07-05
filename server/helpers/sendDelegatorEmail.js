@@ -154,7 +154,11 @@ const sendDelegatorNotificationEmail = async (
   }
 }
 
-const sendDelegatorNotificationDelegateChangeRulesEmail = async (subscriber, delegateAddress) => {
+const sendDelegatorNotificationDelegateChangeRulesEmail = async (
+  subscriber,
+  delegateAddress,
+  propertiesChanged
+) => {
   try {
     let body = {
       transcoderAddress: truncateStringInTheMiddle(delegateAddress),
