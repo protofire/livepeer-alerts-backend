@@ -27,7 +27,7 @@ class DelegateService {
   }
 
   // Returns the delegate summary
-  getDelegate = async delegateAddress => {
+  getDelegateSummary = async delegateAddress => {
     const { getDelegateSummary } = this.source
     const summary = await getDelegateSummary(delegateAddress)
     return {
@@ -35,6 +35,15 @@ class DelegateService {
         ...summary,
         totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0))
       }
+    }
+  }
+
+  // Returns the delegate
+  getDelegate = async delegateAddress => {
+    const delegateSummary = await this.getDelegateSummary(delegateAddress)
+    const { summary } = delegateSummary
+    return {
+      ...summary
     }
   }
 
@@ -61,14 +70,13 @@ class DelegateService {
   // Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
   getDelegateNextReward = async delegateAddress => {
     // DelegateReward = DelegateProtocolNextReward * rewardCut
-    let [summary, protocolNextReward] = await promiseRetry(retry => {
+    let [delegate, protocolNextReward] = await promiseRetry(retry => {
       return Promise.all([
         this.getDelegate(delegateAddress),
         this.getDelegateProtocolNextReward(delegateAddress)
       ]).catch(err => retry())
     })
-
-    const { pendingRewardCut } = summary
+    const { pendingRewardCut } = delegate
     const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
     return MathBN.mul(protocolNextReward, rewardCut)
   }
@@ -133,7 +141,6 @@ class DelegateService {
       // FORMULA: delegatorStakedAmount / delegateTotalStake
       const participationInTotalStakeRatio = MathBN.div(delegatorAmountToStake, delegateTotalStake)
       // Then calculates the reward with FORMULA: participationInTotalStakeRatio * rewardToDelegators
-      const result = MathBN.mul(rewardsToDelegators, participationInTotalStakeRatio)
       return MathBN.mul(rewardsToDelegators, participationInTotalStakeRatio)
     } else {
       return 0
