@@ -7,7 +7,6 @@ const moment = require('moment')
 
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
-const { getLivepeerTranscoderAccount } = require('./sdk/delegate')
 
 const {
   getButtonsBySubscriptor,
