@@ -96,4 +96,9 @@ const workerCheckRoundChange = async () => {
   process.exit(0)
 }
 
-return workerCheckRoundChange()
+try {
+  return workerCheckRoundChange()
+} catch (err) {
+  console.error(err)
+  process.exit(1)
+}
