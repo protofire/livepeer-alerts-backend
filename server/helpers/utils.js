@@ -1,15 +1,15 @@
-const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
-
 const Big = require('big.js')
 const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
-const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
+const moment = require('moment')
+
+const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
+const Subscriber = require('../subscriber/subscriber.model')
 const {
   NotSubscribedError,
-  AlreadySubscribedError,
-  StatusMustBeBondedError
+  AlreadySubscribedError
 } = require('./JobsErrors')
 
 const MathBN = {
@@ -319,6 +319,16 @@ const calculateNextRoundInflationRatio = (
   return nextRoundInflation
 }
 
+const calculateIntervalAsMinutes = dateEnd => {
+  const now = moment(new Date())
+  const end = moment(dateEnd)
+
+  const duration = moment.duration(now.diff(end))
+  const minutes = duration.asMinutes()
+
+  return minutes
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -341,5 +351,6 @@ module.exports = {
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
-  calculateCurrentBondingRate
+  calculateCurrentBondingRate,
+  calculateIntervalAsMinutes
 }
