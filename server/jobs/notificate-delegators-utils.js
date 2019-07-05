@@ -1,10 +1,9 @@
 const promiseRetry = require('promise-retry')
-const moment = require('moment')
 
 const mongoose = require('../../config/mongoose')
 
 const config = require('../../config/config')
-const { minutesToWaitAfterLastSentEmail } = config
+const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
 const { getProtocolService } = require('../helpers/services/protocolService')
 const { getDelegatorService } = require('../helpers/services/delegatorService')
@@ -15,7 +14,11 @@ const {
   sendDelegatorNotificationDelegateChangeRulesEmail
 } = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
-const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
+const {
+  getSubscriptorRole,
+  getDidDelegateCallReward,
+  calculateIntervalAsMinutes
+} = require('../helpers/utils')
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
@@ -35,12 +38,8 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
       const { role, constants, delegator } = await getSubscriptorRole(subscriber)
 
       if (subscriber.lastEmailSent) {
-        // Calculate hours last email sent
-        const now = moment(new Date())
-        const end = moment(subscriber.lastEmailSent)
-
-        const duration = moment.duration(now.diff(end))
-        const minutes = duration.asMinutes()
+        // Calculate minutes last email sent
+        const minutes = calculateIntervalAsMinutes(subscriber.lastEmailSent)
 
         console.log(
           `[Worker notification delegator claim reward call] - Minutes last sent email ${minutes} - Email ${subscriber.email}`
@@ -102,6 +101,22 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
 
   let telegramsMessageToSend = []
   for (const subscriber of subscribers) {
+    if (subscriber.lastTelegramSent) {
+      // Calculate minutes last telegram sent
+      const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
+
+      console.log(
+        `[Worker notification delegator claim reward call] - Minutes last sent telegram ${minutes} - Telegram chat id ${subscriber.telegramChatId}`
+      )
+
+      if (minutes < minutesToWaitAfterLastSentTelegram) {
+        console.log(
+          `[Worker notification delegator claim reward call] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
+        )
+        continue
+      }
+    }
+
     // Send notification only for delegators
     const { role, constants } = await getSubscriptorRole(subscriber)
     if (role === constants.ROLE.TRANSCODER) {
@@ -111,9 +126,7 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
   }
 
   console.log(
-    `[Delegators Notification utils] - Telegrams subscribers to notify ${
-      telegramsMessageToSend.length
-    }`
+    `[Delegators Notification utils] - Telegrams subscribers to notify ${telegramsMessageToSend.length}`
   )
   return await Promise.all(telegramsMessageToSend)
 }

@@ -1,6 +1,13 @@
+const config = require('../../config/config')
+const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
+
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const { getSubscriptorRole, getDidDelegateCallReward } = require('../helpers/utils')
+const {
+  getSubscriptorRole,
+  getDidDelegateCallReward,
+  calculateIntervalAsMinutes
+} = require('../helpers/utils')
 const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
 
@@ -49,13 +56,24 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
 
   const subscribersToSendEmails = []
   for (const subscriberToNotify of subscribersToNofity) {
+    const { subscriber } = subscriberToNotify
+    if (subscriber.lastEmailSent) {
+      // Calculate minutes last email sent
+      const minutes = calculateIntervalAsMinutes(subscriber.lastEmailSent)
+
+      if (minutes < minutesToWaitAfterLastSentEmail) {
+        console.log(
+          `[Worker notification delegate notification] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
+        )
+        continue
+      }
+    }
+
     subscribersToSendEmails.push(sendDelegateNotificationEmail(subscriberToNotify))
   }
 
   console.log(
-    `[Delegates Notification utils] - Emails subscribers to notify ${
-      subscribersToSendEmails.length
-    }`
+    `[Delegates Notification utils] - Emails subscribers to notify ${subscribersToSendEmails.length}`
   )
   await Promise.all(subscribersToSendEmails)
 
@@ -73,13 +91,24 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
 
   const subscribersToSendTelegrams = []
   for (const subscriberToNotify of subscribersToNofity) {
+    const { subscriber } = subscriberToNotify
+    if (subscriber.lastTelegramSent) {
+      // Calculate minutes last telegram sent
+      const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
+
+      if (minutes < minutesToWaitAfterLastSentTelegram) {
+        console.log(
+          `[Worker notification delegate notification] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
+        )
+        continue
+      }
+    }
+
     subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
   }
 
   console.log(
-    `[Delegates Notification utils] - Telegrams subscribers to notify ${
-      subscribersToSendTelegrams.length
-    }`
+    `[Delegates Notification utils] - Telegrams subscribers to notify ${subscribersToSendTelegrams.length}`
   )
   await Promise.all(subscribersToSendTelegrams)
 
