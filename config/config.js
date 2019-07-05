@@ -84,6 +84,9 @@ const envVarsSchema = Joi.object({
     .required(),
   MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL: Joi.string()
     .description('Minutes to wait after last sent email')
+    .required(),
+  MINUTES_TO_WAIT_AFTER_LAST_SENT_TELEGRAM: Joi.string()
+    .description('Minutes to wait after last sent telegram')
     .required()
 })
   .unknown()
@@ -128,7 +131,8 @@ const config = {
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
   apolloApiUrl: envVars.APOLLO_API_URL,
-  minutesToWaitAfterLastSentEmail: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL
+  minutesToWaitAfterLastSentEmail: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL,
+  minutesToWaitAfterLastSentTelegram: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_TELEGRAM
 }
 
 module.exports = config
