@@ -1,4 +1,4 @@
-const LivepeerSDK = require('@mariano-aguero/sdk')
+const LivepeerSDK = require('@livepeer/sdk')
 
 const getLivepeerTranscoders = async () => {
   const { rpc } = await LivepeerSDK.default()

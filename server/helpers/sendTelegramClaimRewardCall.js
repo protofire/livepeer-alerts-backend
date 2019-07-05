@@ -1,9 +1,3 @@
-// Create a bot that uses 'polling' to fetch new updates
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
@@ -42,7 +36,7 @@ const sendTelegramClaimRewardCall = async data => {
         `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
       )
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return
@@ -100,9 +94,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
         roundFrom: currentRound,
         roundTo: currentRound + 1,
         lptEarned: lptEarned,
-        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-          subscriber.address
-        }/delegating`
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
       })
       break
     case constants.DELEGATOR_STATUS.Unbonded:

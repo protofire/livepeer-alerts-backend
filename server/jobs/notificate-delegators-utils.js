@@ -1,12 +1,14 @@
+const promiseRetry = require('promise-retry')
+const moment = require('moment')
+
+const mongoose = require('../../config/mongoose')
+
+const config = require('../../config/config')
+const { minutesToWaitAfterLastSentEmail } = config
+
 const { getProtocolService } = require('../helpers/services/protocolService')
 const { getDelegatorService } = require('../helpers/services/delegatorService')
 
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
-const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const {
   sendDelegatorNotificationEmail,
@@ -25,35 +27,68 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
   let emailsToSend = []
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
-  const [currentRound, currentRoundInfo] = await Promise.all([
-    protocolService.getCurrentRound(),
-    protocolService.getCurrentRoundInfo()
-  ])
-  for (const subscriber of subscribers) {
-    // Send notification only for delegators
-    const { role, constants, delegator } = await getSubscriptorRole(subscriber)
-    if (role === constants.ROLE.TRANSCODER) {
-      continue
-    }
-    const [delegateCalledReward, delegatorNextReward] = await Promise.all([
-      getDidDelegateCallReward(delegator.delegateAddress),
-      delegatorService.getDelegatorNextReward(delegator.address)
-    ])
-    emailsToSend.push(
-      sendDelegatorNotificationEmail(
-        subscriber,
-        delegator,
-        delegateCalledReward,
-        delegatorNextReward,
-        currentRound,
-        currentRoundInfo,
-        constants
-      )
-    )
-  }
 
+  const currentRoundInfo = await protocolService.getCurrentRoundInfo()
+
+  for (const subscriber of subscribers) {
+    try {
+      const { role, constants, delegator } = await getSubscriptorRole(subscriber)
+
+      if (subscriber.lastEmailSent) {
+        // Calculate hours last email sent
+        const now = moment(new Date())
+        const end = moment(subscriber.lastEmailSent)
+
+        const duration = moment.duration(now.diff(end))
+        const minutes = duration.asMinutes()
+
+        console.log(
+          `[Worker notification delegator claim reward call] - Minutes last sent email ${minutes} - Email ${subscriber.email}`
+        )
+
+        if (minutes < minutesToWaitAfterLastSentEmail) {
+          console.log(
+            `[Worker notification delegator claim reward call] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
+          )
+          continue
+        }
+      }
+
+      // Send notification only for delegators
+      if (role === constants.ROLE.TRANSCODER) {
+        console.log(
+          `[Worker notification delegator claim reward call] - Not sending email to ${subscriber.email} because is a transcoder`
+        )
+        continue
+      }
+
+      const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
+        return Promise.all([
+          getDidDelegateCallReward(delegator.delegateAddress),
+          delegatorService.getDelegatorNextReward(delegator.address)
+        ]).catch(err => retry())
+      })
+
+      emailsToSend.push(
+        sendDelegatorNotificationEmail(
+          subscriber,
+          delegator,
+          delegateCalledReward,
+          delegatorNextReward,
+          currentRoundInfo.id,
+          currentRoundInfo,
+          constants
+        )
+      )
+    } catch (err) {
+      console.error(err)
+      console.error(
+        `[Worker notification delegator claim reward call] - An error occurred sending an email to the subscriber ${subscriber.email}`
+      )
+    }
+  }
   console.log(
-    `[Delegators Notification utils] - Emails subscribers to notify ${emailsToSend.length}`
+    `[Worker notification delegator claim reward call] - Emails subscribers to notify ${emailsToSend.length}`
   )
   return await Promise.all(emailsToSend)
 }

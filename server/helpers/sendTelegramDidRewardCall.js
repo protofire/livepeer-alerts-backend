@@ -1,8 +1,3 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
@@ -31,7 +26,7 @@ const sendTelegramClaimRewardCall = async data => {
       )
       bot = null
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return

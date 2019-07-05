@@ -81,6 +81,9 @@ const envVarsSchema = Joi.object({
     .description('Threshold to send notification'),
   APOLLO_API_URL: Joi.string()
     .description('Livepeer dgraph API url')
+    .required(),
+  MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL: Joi.string()
+    .description('Minutes to wait after last sent email')
     .required()
 })
   .unknown()
@@ -124,7 +127,8 @@ const config = {
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
-  apolloApiUrl: envVars.APOLLO_API_URL
+  apolloApiUrl: envVars.APOLLO_API_URL,
+  minutesToWaitAfterLastSentEmail: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL
 }
 
 module.exports = config
