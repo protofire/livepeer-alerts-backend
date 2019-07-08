@@ -69,6 +69,31 @@ const getDelegateRewards = async delegateAddress => {
   return _.get(queryResult, 'data.rewards', null)
 }
 
+// TODO - Once integrated with Adam's graph, 'rewards' should be replaced with 'pools'
+const getPoolsPerRound = async roundNumber => {
+  const queryResult = await client.query({
+    query: gql`
+      {
+        rounds(orderBy: id, orderDirection: desc, where: { id: "${roundNumber}" }) {
+          id
+          initialized
+          length
+          lastInitializedRound
+          startBlock
+          rewards {
+            id
+            transcoder {
+              id
+            }
+            rewardTokens
+          }
+        }
+      }
+    `
+  })
+  return _.get(queryResult, 'data.rounds[0]', null)
+}
+
 const getDelegateTotalStake = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
@@ -112,5 +137,6 @@ module.exports = {
   getRegisteredDelegates,
   getDelegateRewards,
   getDelegateTotalStake,
-  getLivepeerTranscoders
+  getLivepeerTranscoders,
+  getPoolsPerRound
 }

@@ -12,9 +12,10 @@ const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
 let delegateServiceInstance
 // the default source for delegates is GRAPHQL
-const delegatesSource = require('../graphql/queries')
+const graphqlSource = require('../graphql/queries')
+const sdkSource = require('../sdk/delegate')
 
-const getDelegateService = (source = delegatesSource) => {
+const getDelegateService = (source = graphqlSource) => {
   if (!delegateServiceInstance) {
     delegateServiceInstance = new DelegateService(source)
   }
@@ -181,6 +182,15 @@ class DelegateService {
     const { getLivepeerTranscoders } = this.source
     const delegates = await getLivepeerTranscoders()
     return delegates
+  }
+
+  getPoolsPerRound = async roundNumber => {
+    // This method sould be only executed with the graphql, is not available on the SDK
+    if (this.source !== graphqlSource) {
+      return []
+    }
+    const { getPoolsPerRound } = this.source
+    return await getPoolsPerRound(roundNumber)
   }
 }
 
