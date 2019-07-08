@@ -63,15 +63,12 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
     // This should not happen, because the job that saves new remote delegates (checkAndUpdateMissingLocalDelegates) should be executed first
     if (!oldDelegateIterator) {
       console.error(
-        `[Check-Delegate-Change-Rules] - Remote Delegate ${
-          newDelegateIterator.id
-        } not found, did you called checkAndUpdateMissingLocalDelegates() before?`
+        `[Check-Delegate-Change-Rules] - Remote Delegate ${newDelegateIterator.id} not found, did you called checkAndUpdateMissingLocalDelegates() before?`
       )
       continue
     }
     // Then checks if the rules between the old and new version of the delegate did changed
     const propertiesChanged = getDelegateRulesChanged(oldDelegateIterator, newDelegateIterator)
-    // if (hasDelegateChangedRules(oldDelegateIterator, newDelegateIterator)) {
     if (propertiesChanged.hasChanged) {
       oldDelegateIterator = {
         _id: oldDelegateIterator._id,
