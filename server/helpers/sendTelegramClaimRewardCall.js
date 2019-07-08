@@ -1,9 +1,3 @@
-// Create a bot that uses 'polling' to fetch new updates
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const fs = require('fs')
 const path = require('path')
 const Handlebars = require('handlebars')
@@ -13,13 +7,13 @@ const moment = require('moment')
 
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
-const { getLivepeerTranscoderAccount } = require('./sdk/delegate')
 
 const {
   getButtonsBySubscriptor,
   truncateStringInTheMiddle,
   formatBalance,
-  getDelegatorRoundsUntilUnbonded
+  getDelegatorRoundsUntilUnbonded,
+  getDidDelegateCallReward
 } = require('./utils')
 
 const sendTelegramClaimRewardCall = async data => {
@@ -42,7 +36,7 @@ const sendTelegramClaimRewardCall = async data => {
         `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
       )
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return
@@ -63,15 +57,12 @@ const getTelegramClaimRewardCallBody = async subscriber => {
   switch (delegator.status) {
     case constants.DELEGATOR_STATUS.Bonded:
       // Check call reward
-      let [transcoderAccount, currentRound] = await promiseRetry(async retry => {
-        return Promise.all([
-          getLivepeerTranscoderAccount(delegator.delegateAddress),
-          protocolService.getCurrentRound()
-        ]).catch(err => retry())
+      let [currentRound] = await promiseRetry(async retry => {
+        return Promise.all([protocolService.getCurrentRound()]).catch(err => retry())
       })
 
       // Check if call reward
-      const callReward = transcoderAccount && transcoderAccount.lastRewardRound === currentRound
+      const callReward = await getDidDelegateCallReward(delegator.delegateAddress)
       // Open template file
       const filenameBonded = callReward
         ? '../notifications/telegram/delegate-claim-reward-call/notification-success.hbs'
@@ -89,7 +80,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
         .startOf('day')
         .format('dddd DD, YYYY hh:mm A')
 
-      const { delegateAddress, totalStake } = delegator
+      const { delegateAddress } = delegator
 
       // Create telegram generator
       const templateBonded = Handlebars.compile(sourceBonded)
@@ -100,9 +91,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
         roundFrom: currentRound,
         roundTo: currentRound + 1,
         lptEarned: lptEarned,
-        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-          subscriber.address
-        }/delegating`
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
       })
       break
     case constants.DELEGATOR_STATUS.Unbonded:

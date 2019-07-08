@@ -34,8 +34,8 @@ const sendEmail = async data => {
       await sgMail.send(msg)
       console.log(`Email sended to ${email} successfully`)
     } catch (err) {
-      console.log('error on email')
-      console.log(err)
+      console.error('error on email')
+      console.error(err)
     }
   }
   return

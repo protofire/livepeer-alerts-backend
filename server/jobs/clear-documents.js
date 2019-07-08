@@ -7,7 +7,7 @@ const config = require('../../config/config')
 
 if (!['test', 'development'].includes(config.env)) {
   console.log('You cant use this script in this enviroment')
-  process.exit(-1)
+  process.exit(1)
 }
 
 let exitSendNotificationJob = false
@@ -23,7 +23,8 @@ Promise.all([
     exitSendNotificationJob = true
   })
   .catch(err => {
-    return console.log(err)
+    console.error(err)
+    process.exit(1)
   })
 
 // Wait until stack was empty
@@ -31,7 +32,7 @@ function wait() {
   if (!exitSendNotificationJob) {
     setTimeout(wait, 1000)
   } else {
-    process.exit(1)
+    process.exit(0)
   }
 }
 wait()

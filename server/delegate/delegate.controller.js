@@ -9,7 +9,7 @@ const getByAddress = async (req, res, next) => {
   const { address } = req.params
   const delegateService = getDelegateService()
   try {
-    const result = await delegateService.getDelegate(address)
+    const result = await delegateService.getDelegateSummary(address)
     res.json(result)
   } catch (error) {
     next(error)

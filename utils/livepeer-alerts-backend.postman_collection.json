@@ -118,7 +118,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"mariano.aguero+100@altoros.com\",\n    \"address\": \"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781\",\n    \"frequency\": \"daily\"\n}"
+					"raw": "{\n\t\"email\": \"mariano.aguero+113@altoros.com\",\n    \"address\": \"0xE19bf801A681B8Ba37Da23092c0438716D1E3415\",\n    \"frequency\": \"daily\"\n}"
 				},
 				"url": {
 					"raw": "{{host}}/api/subscribers",
@@ -450,15 +450,15 @@
 					"raw": "{\n\t\"username\": \"Fernando\"\n}"
 				},
 				"url": {
-					"raw": "{{host}}/api/delegates/roi/0x50d69f8253685999b4c74a67ccb3d240e2a56ed6",
+					"raw": "{{host}}/api/delegates/top/10",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"delegates",
-						"roi",
-						"0x50d69f8253685999b4c74a67ccb3d240e2a56ed6"
+						"top",
+						"10"
 					]
 				}
 			},

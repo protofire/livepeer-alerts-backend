@@ -1,16 +1,13 @@
-const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
-
 const Big = require('big.js')
 const BN = require('bn.js')
 const { unitMap, toWei } = require('ethjs-unit')
-const Subscriber = require('../subscriber/subscriber.model')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
-const {
-  NotSubscribedError,
-  AlreadySubscribedError,
-  StatusMustBeBondedError
-} = require('./JobsErrors')
+const moment = require('moment')
+
+const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
+const Subscriber = require('../subscriber/subscriber.model')
+const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
 
 const MathBN = {
   sub: (a, b) => {
@@ -217,10 +214,7 @@ const getSubscriptorRole = async subscriptor => {
     return Promise.all([
       protocolService.getLivepeerDefaultConstants(),
       delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => {
-      console.error(err)
-      retry()
-    })
+    ]).catch(err => retry())
   })
 
   const { status, address, delegateAddress } = delegator
@@ -240,15 +234,17 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
-const getDidDelegateCallReward = async delegateAddress => {
+const getDidDelegateCalledReward = async delegateAddress => {
   const { getProtocolService } = require('./services/protocolService')
   const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
   const protocolService = getProtocolService()
 
-  const [delegate, currentRoundInfo] = await Promise.all([
-    getLivepeerTranscoderAccount(delegateAddress),
-    protocolService.getCurrentRoundInfo()
-  ])
+  const [delegate, currentRoundInfo] = await promiseRetry(retry => {
+    return Promise.all([
+      getLivepeerTranscoderAccount(delegateAddress),
+      protocolService.getCurrentRoundInfo()
+    ]).catch(err => retry())
+  })
 
   // Check if transcoder call reward
   const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
@@ -320,6 +316,16 @@ const calculateNextRoundInflationRatio = (
   return nextRoundInflation
 }
 
+const calculateIntervalAsMinutes = dateEnd => {
+  const now = moment(new Date())
+  const end = moment(dateEnd)
+
+  const duration = moment.duration(now.diff(end))
+  const minutes = duration.asMinutes()
+
+  return minutes
+}
+
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
@@ -336,11 +342,12 @@ module.exports = {
   formatBalance,
   formatPercentage,
   getSubscriptorRole,
-  getDidDelegateCallReward,
+  getDidDelegateCallReward: getDidDelegateCalledReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
-  calculateCurrentBondingRate
+  calculateCurrentBondingRate,
+  calculateIntervalAsMinutes
 }
