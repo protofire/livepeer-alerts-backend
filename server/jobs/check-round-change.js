@@ -27,37 +27,18 @@ const workerCheckRoundChange = async () => {
   const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
   let { id, initialized, lastInitializedRound, length, startBlock, progress } = currentRoundInfo
 
-  const data = {
-    roundId: id,
-    initialized,
-    lastInitializedRound,
-    length,
-    startBlock
-  }
+  let actualSavedRound = await Round.findOne({ roundId: id })
 
-  let actualSavedRound = await Round.findOne({})
-
-  // Initializes db if there are no rounds saved
-  if (!actualSavedRound) {
-    let roundCreated = new Round(data)
-    actualSavedRound = await roundCreated.save()
-  }
-
-  if (!actualSavedRound) {
-    throw new Error(`There is no actual round`)
-  }
-
-  const { thresholdSendNotification } = config
-
-  console.log(`[Check-Round-Change] - Actual round ${id} - Last round ${actualSavedRound.roundId}`)
-  // Check if the last round if different from the actual one to know if the round changed
-  if (actualSavedRound.roundId !== id && initialized) {
-    console.log(`[Check-Round-Change] - Round changed`)
-    // The round changed, now checks new round progress
+  if (actualSavedRound) {
+    console.log(`[Check-Round-Change] - No round changed, actions will be not dispatched`)
+  } else {
+    // It's a new round -> the round changed
+    const { thresholdSendNotification } = config
+    console.log(`[Check-Round-Change] - Round changed, the new round is ${id}`)
     console.log(
-      `[Check-Round-Change] - Check round progress: ${progress}, threshold: ${thresholdSendNotification}, notifications were sent?: ${actualSavedRound.notificationsForRoundSent}`
+      `[Check-Round-Change] - Check round progress: ${progress}, threshold: ${thresholdSendNotification}`
     )
-    // If the progress if above a certain threshold and the notifications were not already sent, the notifications will be sent and the current saved round will be updated
+    // If the progress it's above a certain threshold the notifications will be sent and the current saved round will be updated
     if (progress <= thresholdSendNotification && !actualSavedRound.notificationsForRoundSent) {
       // Send notifications
       console.log(
@@ -74,21 +55,23 @@ const workerCheckRoundChange = async () => {
         sendTelegramRewardCallNotificationToDelegates()
       ])
 
-      // Once the notifications are sent, update round and lock
-      actualSavedRound.roundId = id
-      actualSavedRound.initialized = initialized
-      actualSavedRound.lastInitializedRound = lastInitializedRound
-      actualSavedRound.length = length
-      actualSavedRound.startBlock = startBlock
-      actualSavedRound.notificationsForRoundSent = true
+      // Once the notifications were sent, creates the round
+      let actualSavedRound = new Round({
+        roundId: id,
+        initialized,
+        lastInitializedRound,
+        length,
+        startBlock,
+        notificationsForRoundSent: true
+      })
       await actualSavedRound.save()
+
+      // Finally dispatchs jobs that needs the round to be updated
     } else {
       console.log(
         `[Check-Round-Change] - The round progress is bellow the threshold or the notifications were already sent, actions will be not dispatched`
       )
     }
-  } else {
-    console.log(`[Check-Round-Change] - No round changed, actions will be not dispatched`)
   }
 
   process.exit(0)
