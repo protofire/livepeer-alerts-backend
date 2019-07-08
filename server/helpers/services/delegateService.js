@@ -193,7 +193,6 @@ class DelegateService {
     return await getPoolsPerRound(roundNumber)
   }
 }
-
 module.exports = {
   getDelegateService
 }

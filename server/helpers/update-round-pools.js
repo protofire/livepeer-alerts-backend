@@ -53,10 +53,15 @@ const test = async () => {
 
 const updateDelegatePoolsOfRound = async (round, roundPools) => {
   console.log('[Update Delegates Pools] - Starts updating delegate pools')
+  if (!round) {
+    console.error('[Update Delegates Pools] - No round pools was provided')
+    throw new Error('[Update Delegates Pools] - No round pools was provided')
+  }
   if (!roundPools) {
     console.error('[Update Delegates Pools] - No round pools were provided')
-    return
+    throw new Error('[Update Delegates Pools] - No round pools were provided')
   }
+
   const delegateService = getDelegateService()
 
   // Persists the pools locally
@@ -109,6 +114,7 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
     } catch (err) {
       console.error(`[Update Delegates Pools] - Error Updating pools on delegate ${delegateId}`)
       console.error(err)
+      throw err
     }
   }
 }
@@ -131,30 +137,20 @@ const updateDelegatesPools = async newRound => {
   // Fetch the pool data for the given round
   const delegateService = getDelegateService()
   const roundWithPoolsData = await delegateService.getPoolsPerRound(newRound.roundId)
-  if (!roundWithPoolsData) {
+  if (!roundWithPoolsData || !roundWithPoolsData.rewards) {
     throw new Error('[Update Delegates Pools] - Pools per round not found')
   }
   const roundPools = roundWithPoolsData.rewards
 
   // Then updates the delegates on the current round
-  await updateDelegatePoolsOfRound(newRound, roundPools)
+  await service.updateDelegatePoolsOfRound(newRound, roundPools)
 
   console.log('[Update Delegates Pools] - Finish')
 }
 
-const currentRound = new Round({
-  _id: '1403',
-  roundId: '1403',
-  initialized: true,
-  lastInitializedRound: '1403',
-  length: '5760',
-  startBlock: '8081280',
-  pools: [],
-  shares: []
-})
-
-//return updateDelegatesPools(currentRound)
-
-module.exports = {
-  updateDelegatesPools
+const service = {
+  updateDelegatesPools,
+  updateDelegatePoolsOfRound
 }
+
+module.exports = service
