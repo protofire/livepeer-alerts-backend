@@ -56,14 +56,16 @@ const DelegateSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Pool',
-      required: false
+      required: false,
+      default: []
     }
   ],
   delegators: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Delegator',
-      required: false
+      required: false,
+      default: []
     }
   ]
 })

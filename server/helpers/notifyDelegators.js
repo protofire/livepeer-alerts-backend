@@ -14,7 +14,9 @@ const notifyDelegatesChangesInDelegates = async listOfChangedDelegates => {
   for (let iterator of notificationList) {
     // Send notification to the delegator
     console.log(
-      `[Check-Delegate-Change-Rules] - Send notification to delegator ${iterator.delegatorAddress} with email ${iterator.subscriber.email}`
+      `[Check-Delegate-Change-Rules] - Send notification to delegator ${
+        iterator.delegatorAddress
+      } with email ${iterator.subscriber.email}`
     )
     // TODO Call sendNotification fn
   }

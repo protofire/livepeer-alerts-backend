@@ -8,7 +8,10 @@ mongoose.Promise = Promise
 
 // connect to mongo db
 const mongoUri = config.mongo.host
-mongoose.connect(mongoUri, { useNewUrlParser: true, keepAlive: true, useCreateIndex: true })
+mongoose.connect(
+  mongoUri,
+  { useNewUrlParser: true, keepAlive: true, useCreateIndex: true }
+)
 mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${mongoUri}`)
 })

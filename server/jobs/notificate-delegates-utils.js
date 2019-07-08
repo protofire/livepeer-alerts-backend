@@ -63,7 +63,9 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
 
       if (minutes < minutesToWaitAfterLastSentEmail) {
         console.log(
-          `[Worker notification delegate notification] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
+          `[Worker notification delegate notification] - Not sending email to ${
+            subscriber.email
+          } because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
         )
         continue
       }
@@ -73,7 +75,9 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
   }
 
   console.log(
-    `[Delegates Notification utils] - Emails subscribers to notify ${subscribersToSendEmails.length}`
+    `[Delegates Notification utils] - Emails subscribers to notify ${
+      subscribersToSendEmails.length
+    }`
   )
   await Promise.all(subscribersToSendEmails)
 
@@ -98,7 +102,9 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
 
       if (minutes < minutesToWaitAfterLastSentTelegram) {
         console.log(
-          `[Worker notification delegate notification] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
+          `[Worker notification delegate notification] - Not sending telegram to ${
+            subscriber.address
+          } because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
         )
         continue
       }
@@ -108,7 +114,9 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
   }
 
   console.log(
-    `[Delegates Notification utils] - Telegrams subscribers to notify ${subscribersToSendTelegrams.length}`
+    `[Delegates Notification utils] - Telegrams subscribers to notify ${
+      subscribersToSendTelegrams.length
+    }`
   )
   await Promise.all(subscribersToSendTelegrams)
 
