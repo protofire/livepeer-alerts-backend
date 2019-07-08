@@ -128,11 +128,10 @@ const sendDelegatorNotificationEmail = async (
         body = {
           callReward: delegateCalledReward,
           totalStake,
-          currentRound,
           transcoderAddress: truncateStringInTheMiddle(delegateAddress),
           dateYesterday,
-          roundFrom: currentRound,
-          roundTo: currentRound + 1,
+          roundFrom: currentRound - 1,
+          roundTo: currentRound,
           lptEarned,
           delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
           delegateAddress

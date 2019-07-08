@@ -247,7 +247,7 @@ const getDidDelegateCalledReward = async delegateAddress => {
   })
 
   // Check if transcoder call reward
-  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
+  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id - 1
   return callReward
 }
 
