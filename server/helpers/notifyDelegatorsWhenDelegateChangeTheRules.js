@@ -27,10 +27,12 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async (
     for (let iterator of notificationList) {
       // Send notification to the delegator
       const { subscriber, delegateAddress, delegatorAddress, propertiesChanged } = iterator
+
+      if (!subscriber.email) {
+        continue
+      }
       console.log(
-        `[Check-Delegate-Change-Rules] - Send notification to delegator ${delegatorAddress} with email ${
-          subscriber.email
-        }`
+        `[Check-Delegate-Change-Rules] - Send notification to delegator ${delegatorAddress} with email ${subscriber.email}`
       )
       await sendDelegatorNotificationDelegateChangeRulesEmail(
         subscriber,
