@@ -30,7 +30,7 @@ const workerCheckRoundChange = async () => {
   let actualSavedRound = await Round.findOne({ roundId: id })
 
   if (actualSavedRound || !initialized) {
-    console.log(`[Check-Round-Change] - Is not the actual round or is not initialized`)
+    console.log(`[Check-Round-Change] - The round did not changed or is not initialized`)
     process.exit(0)
   }
 
