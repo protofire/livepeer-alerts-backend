@@ -197,8 +197,9 @@
 <ul>
 	<li style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">Reward cut: {{oldRewardCut}}</span></span></span></li>
 	<li style="text-align: left;"><span style="font-family:verdana,geneva,sans-serif;"><span style="color:#000000;"><span style="font-size: 18px;">Fee share: {{oldFeeShare}}</span></span></span></li>
-	<li style="text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">&nbsp;{{pendingFeeShare}}</span><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;"></span></li>
-	<li style="text-align: left;"><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">Pending reward cut: {{pendingRewardCut}}</span></li>
+	<li style="text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">&nbsp;{{oldPendingFeeShare}}</span></li>
+	<li style="text-align: left;"><span style="color: rgb(0, 0, 0); font-family: verdana, geneva, sans-serif; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; text-align: left;">Pending reward cut: {{oldPendingRewardCut}}</span></li>
+	<li style="text-align: left;"><font color="#000000"><span style="font-size: 18px;">Active: {{oldActive}}</span></font></li>
 </ul>
 
 <div style="text-align: left;">&nbsp;</div>
@@ -207,10 +208,11 @@
 
 <div style="text-align: left;">
 <ul style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 16px; color: rgb(5, 50, 87);">
-	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Reward cut: {{oldRewardCut}}</span></span></span></li>
-	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Fee share: {{oldFeeShare}}</span></span></span></li>
-	<li style="font-size: 16px; text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">&nbsp;{{pendingFeeShare}}</span><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);"></span></li>
-	<li style="font-size: 16px; text-align: left;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">Pending reward cut: {{pendingRewardCut}}</span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Reward cut: {{newRewardCut}}</span></span></span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-family: verdana, geneva, sans-serif; font-size: 16px;"><span style="font-size: 16px; color: rgb(0, 0, 0);"><span style="font-size: 18px;">Fee share: {{newFeeShare}}</span></span></span></li>
+	<li style="font-size: 16px; text-align: left;"><font color="#000000"><span style="font-size: 18px;">Pending fee share:</span></font><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">&nbsp;{{newPendingFeeShare}}</span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">Pending reward cut: {{newPendingRewardCut}}</span></li>
+	<li style="font-size: 16px; text-align: left;"><span style="font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; font-family: verdana, geneva, sans-serif; font-size: 18px; color: rgb(0, 0, 0);">Active: {{newActive}}</span></li>
 </ul>
 </div>
 
@@ -225,10 +227,11 @@
 
 <div>&nbsp;</div>
 </div>
+
         </td>
       </tr>
     </table>
-  
+
     <table class="module"
            role="module"
            data-type="divider"
@@ -270,7 +273,7 @@
         </td>
       </tr>
     </table>
-  
+
                               </td>
                             </tr>
                           </table>
