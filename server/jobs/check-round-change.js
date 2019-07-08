@@ -36,7 +36,7 @@ const workerCheckRoundChange = async () => {
 
   const { thresholdSendNotification } = config
 
-  console.log(`[Check-Round-Change] - Actual round ${id} - Last round ${actualSavedRound.roundId}`)
+  console.log(`[Check-Round-Change] - Actual round ${id}`)
   // Check if the last round if different from the actual one to know if the round changed
 
   console.log(`[Check-Round-Change] - Round changed`)
