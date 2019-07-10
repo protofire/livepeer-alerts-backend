@@ -1,3 +1,5 @@
+const { checkAndUpdateMissingLocalDelegates } = require('./delegatesUtils')
+
 const { getDelegateService } = require('../helpers/services/delegateService')
 const mongoose = require('../../config/mongoose')
 const Delegate = require('../delegate/delegate.model')
@@ -127,15 +129,14 @@ const updateDelegatesPools = async newRound => {
     return
   }
 
-  /**
-   * TODO -- Here call service to update local delegates using the new version of delegates from graphql
-   * Something like:
-   * const delegatesFetched = await delegateService.getDelegates()
-   * await checkAndUpdateMissingLocalDelegates(delegatesFetched)
-   */
+  // Updates local delegates with the new version provided from graphql
+  const delegateService = getDelegateService()
+  // Gets the last version of the delegates from graphql
+  const delegatesFetched = await delegateService.getDelegates()
+  // Then checks if all the fetched delegates exists locally, otherwise, add the ones that are missing
+  await checkAndUpdateMissingLocalDelegates(delegatesFetched)
 
   // Fetch the pool data for the given round
-  const delegateService = getDelegateService()
   const roundWithPoolsData = await delegateService.getPoolsPerRound(newRound.roundId)
   if (!roundWithPoolsData || !roundWithPoolsData.rewards) {
     throw new Error('[Update Delegates Pools] - Pools per round not found')
