@@ -28,11 +28,13 @@ class DelegateService {
 
   // Returns the delegate summary
   getDelegateSummary = async delegateAddress => {
-    const { getDelegateSummary } = this.source
-    const summary = await getDelegateSummary(delegateAddress)
+    const { getLivepeerTranscoderAccount } = this.source
+    const summary = await getLivepeerTranscoderAccount(delegateAddress)
+    const { address } = summary
     return {
       summary: {
         ...summary,
+        id: address,
         totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0))
       }
     }
