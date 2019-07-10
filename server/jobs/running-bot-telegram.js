@@ -116,13 +116,15 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
 bot.on('message', async msg => {
   // Subscribe process
   if (msg.text.toString().indexOf(subscribe) === 0) {
+    const telegramChatId = msg.chat.id
     try {
-      const address = await findAddress(msg.chat.id)
+      const address = await findAddress(telegramChatId)
+      console.log(`[Telegram bot] - Subscribe user: ${telegramChatId}, address : ${address}`)
 
-      bot.sendMessage(msg.chat.id, `Waiting for subscription...`)
+      bot.sendMessage(telegramChatId, `Waiting for subscription...`)
 
       // Subscribe user
-      const subscriptorData = { address: address, chatId: msg.chat.id }
+      const subscriptorData = { address: address, chatId: telegramChatId }
       const subscriptor = await subscriptionSave(subscriptorData)
 
       const body = await getBodyBySubscriber(subscriptor)
@@ -130,7 +132,7 @@ bot.on('message', async msg => {
 
       // Buttons resetup for telegram, only show unsubscribe and get instant alert
       bot.sendMessage(
-        msg.chat.id,
+        telegramChatId,
         `The subscription was successful, your wallet address is ${address}. 
         
 ${body}`,
@@ -143,11 +145,11 @@ ${body}`,
           parse_mode: 'HTML'
         }
       )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
+      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
-        msg.chat.id,
+        telegramChatId,
         'There was a problem when you try to subscribe, try it again later'
       )
     }
@@ -156,19 +158,21 @@ ${body}`,
   // Unsubscribe message
   if (msg.text.toString().indexOf(unsubscribe) === 0) {
     try {
-      const address = await findAddress(msg.chat.id)
+      const telegramChatId = msg.chat.id
+      console.log(`[Telegram bot] - Unsubscribe user: ${telegramChatId}`)
+      const address = await findAddress(telegramChatId)
 
-      bot.sendMessage(msg.chat.id, `Waiting for unsubscription...`)
+      bot.sendMessage(telegramChatId, `Waiting for unsubscription...`)
 
       // Remove subscribe
-      const subscriptorData = { address: address, chatId: msg.chat.id }
+      const subscriptorData = { address: address, chatId: telegramChatId }
       await subscriptionRemove(subscriptorData)
 
       const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
 
       // Buttons resetup for telegram, only show subscribe and get instant alert
       bot.sendMessage(
-        msg.chat.id,
+        telegramChatId,
         `The unsubscription was successful, your wallet address is ${address}.`,
         {
           reply_markup: {
@@ -178,11 +182,11 @@ ${body}`,
           }
         }
       )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
+      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
-        msg.chat.id,
+        telegramBotKey,
         'There was a problem when you try to unsubscribe, try it again later'
       )
     }
@@ -191,19 +195,21 @@ ${body}`,
   // Get instant alert
   if (msg.text.toString().indexOf(getInstantAlert) === 0) {
     try {
-      const address = await findAddress(msg.chat.id)
+      const telegramChatId = msg.chat.id
+      console.log(`[Telegram bot] - Sending instant alert to ${telegramChatId}`)
+      const address = await findAddress(telegramChatId)
 
-      bot.sendMessage(msg.chat.id, `Waiting for alert notification...`)
+      bot.sendMessage(telegramChatId, `Waiting for alert notification...`)
 
-      const body = await getBodyBySubscriber({ address: address, telegramChatId: msg.chat.id })
+      const body = await getBodyBySubscriber({ address: address, telegramChatId })
 
       const { buttons, welcomeText } = await getButtonsBySubscriptor({
         address: address,
-        chatId: msg.chat.id
+        chatId: telegramChatId
       })
 
       // Buttons resetup for telegram, only show subscribe and get instant alert
-      bot.sendMessage(msg.chat.id, body, {
+      bot.sendMessage(telegramChatId, body, {
         reply_markup: {
           keyboard: buttons,
           resize_keyboard: true,
@@ -211,11 +217,11 @@ ${body}`,
         },
         parse_mode: 'HTML'
       })
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
+      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
-        msg.chat.id,
+        telegramBotKey,
         'There was a problem when you try to get the instant alert, try it again later'
       )
     }
