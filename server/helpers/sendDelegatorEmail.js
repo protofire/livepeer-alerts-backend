@@ -32,7 +32,18 @@ const sendEmail = async data => {
     lptEarned,
     delegatingStatusUrl,
     delegateAddress,
-    roundsUntilUnbonded
+    roundsUntilUnbonded,
+    unsubscribeEmailUrl,
+    oldRewardCut,
+    oldFeeShare,
+    oldPendingFeeShare,
+    oldPendingRewardCut,
+    oldActive,
+    newRewardCut,
+    newFeeShare,
+    newPendingFeeShare,
+    newPendingRewardCut,
+    newActive
   } = data
 
   sgMail.setApiKey(sendgridAPIKEY)
@@ -47,15 +58,25 @@ const sendEmail = async data => {
     },
     templateId: templateId,
     dynamic_template_data: {
-      delegateAddress: delegateAddress,
-      transcoderAddress: transcoderAddress,
-      dateYesterday: dateYesterday,
-      roundFrom: roundFrom,
-      roundTo: roundTo,
-      lptEarned: lptEarned,
-      delegatingStatusUrl: delegatingStatusUrl,
-      unsubscribeEmailUrl: unsubscribeEmailUrl,
-      roundsUntilUnbonded: roundsUntilUnbonded
+      delegateAddress,
+      transcoderAddress,
+      dateYesterday,
+      roundFrom,
+      roundTo,
+      lptEarned,
+      delegatingStatusUrl,
+      unsubscribeEmailUrl,
+      roundsUntilUnbonded,
+      oldRewardCut,
+      oldFeeShare,
+      oldPendingFeeShare,
+      oldPendingRewardCut,
+      oldActive,
+      newRewardCut,
+      newFeeShare,
+      newPendingFeeShare,
+      newPendingRewardCut,
+      newActive
     }
   }
 
@@ -107,15 +128,12 @@ const sendDelegatorNotificationEmail = async (
         body = {
           callReward: delegateCalledReward,
           totalStake,
-          currentRound,
           transcoderAddress: truncateStringInTheMiddle(delegateAddress),
           dateYesterday,
-          roundFrom: currentRound,
-          roundTo: currentRound + 1,
+          roundFrom: currentRound - 1,
+          roundTo: currentRound,
           lptEarned,
-          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-            subscriber.address
-          }/delegating`,
+          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
           delegateAddress
         }
         break
@@ -157,27 +175,40 @@ const sendDelegatorNotificationEmail = async (
   }
 }
 
-const sendDelegatorNotificationDelegateChangeRulesEmail = async subscriber => {
+const sendDelegatorNotificationDelegateChangeRulesEmail = async (
+  subscriber,
+  delegateAddress,
+  propertiesChanged
+) => {
   try {
-    let body = {
-      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-        subscriber.address
-      }/delegating`,
-      delegateAddress: subscriber.delegator.delegate,
-      templateId: sendgridTemplateIdNotificationDelegateChangeRules,
-      email: subscriber.email
+    if (!subscriber.email) {
+      return
     }
 
-    await sendEmail(body)
+    let body = {
+      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
+      delegateAddress: delegateAddress,
+      templateId: sendgridTemplateIdNotificationDelegateChangeRules,
+      email: subscriber.email,
+      oldRewardCut: propertiesChanged.oldProperties.rewardCut,
+      oldFeeShare: propertiesChanged.oldProperties.feeShare,
+      oldPendingFeeShare: propertiesChanged.oldProperties.pendingFeeShare,
+      oldPendingRewardCut: propertiesChanged.oldProperties.pendingRewardCut,
+      oldActive: propertiesChanged.oldProperties.active,
+      newRewardCut: propertiesChanged.newProperties.rewardCut,
+      newFeeShare: propertiesChanged.newProperties.feeShare,
+      newPendingFeeShare: propertiesChanged.newProperties.pendingFeeShare,
+      newPendingRewardCut: propertiesChanged.newProperties.pendingRewardCut,
+      newActive: propertiesChanged.newProperties.active
+    }
 
-    // // Save last email sent
-    subscriber.lastEmailSent = Date.now()
-    return await subscriber.save({ validateBeforeSave: false })
+    console.log(`Sending email to ${subscriber.email} - Delegate change the rules`)
+    await sendEmail(body)
   } catch (e) {
     console.error(e)
-    return
   }
+  return
 }
 
 module.exports = {

@@ -88,12 +88,10 @@ const getTelegramClaimRewardCallBody = async subscriber => {
         transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
         transcoderAddress: truncateStringInTheMiddle(delegateAddress),
         dateYesterday: dateYesterday,
-        roundFrom: currentRound,
-        roundTo: currentRound + 1,
+        roundFrom: currentRound - 1,
+        roundTo: currentRound,
         lptEarned: lptEarned,
-        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${
-          subscriber.address
-        }/delegating`
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
       })
       break
     case constants.DELEGATOR_STATUS.Unbonded:
