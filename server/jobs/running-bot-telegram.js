@@ -63,6 +63,7 @@ const getBodyBySubscriber = async subscriptor => {
 
 // Start process
 bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
+  const telegramChatId = msg.chat.id
   try {
     const address = command
 
@@ -74,18 +75,18 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
     // Save address an chatId
     const subscriptorData = {
       address: address,
-      chatId: msg.chat.id
+      chatId: telegramChatId
     }
 
     // Must exist only one subscriber object
-    let subscriberObject = await SubscriberModel.findOne({ telegramChatId: msg.chat.id }).exec()
+    let subscriberObject = await SubscriberModel.findOne({ telegramChatId }).exec()
     if (subscriberObject) {
       subscriberObject.address = address
       await subscriberObject.save()
     }
 
     // Clean all existing telegrams objects
-    await TelegramModel.deleteMany({ chatId: msg.chat.id })
+    await TelegramModel.deleteMany({ chatId: telegramChatId })
 
     // Create new telegram object
     const telegramModel = new TelegramModel(subscriptorData)
@@ -95,7 +96,7 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
 
     // Buttons setup for telegram
     bot
-      .sendMessage(msg.chat.id, welcomeText, {
+      .sendMessage(telegramChatId, welcomeText, {
         reply_markup: {
           keyboard: buttons,
           resize_keyboard: true,
@@ -104,11 +105,11 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       })
       .catch(function(error) {
         if (error.response && error.response.statusCode === 403) {
-          console.log(`[Telegram bot] - BOT blocked by the user with chatId ${msg.chat.id}`)
+          console.log(`[Telegram bot] - BOT blocked by the user with chatId ${telegramChatId}`)
         }
       })
   } catch (e) {
-    bot.sendMessage(msg.chat.id, e.message)
+    bot.sendMessage(telegramChatId, e.message)
   }
 })
 
@@ -157,8 +158,8 @@ ${body}`,
 
   // Unsubscribe message
   if (msg.text.toString().indexOf(unsubscribe) === 0) {
+    const telegramChatId = msg.chat.id
     try {
-      const telegramChatId = msg.chat.id
       console.log(`[Telegram bot] - Unsubscribe user: ${telegramChatId}`)
       const address = await findAddress(telegramChatId)
 
@@ -186,7 +187,7 @@ ${body}`,
     } catch (e) {
       console.error(e)
       bot.sendMessage(
-        telegramBotKey,
+        telegramChatId,
         'There was a problem when you try to unsubscribe, try it again later'
       )
     }
@@ -194,8 +195,8 @@ ${body}`,
 
   // Get instant alert
   if (msg.text.toString().indexOf(getInstantAlert) === 0) {
+    const telegramChatId = msg.chat.id
     try {
-      const telegramChatId = msg.chat.id
       console.log(`[Telegram bot] - Sending instant alert to ${telegramChatId}`)
       const address = await findAddress(telegramChatId)
 
@@ -221,7 +222,7 @@ ${body}`,
     } catch (e) {
       console.error(e)
       bot.sendMessage(
-        telegramBotKey,
+        telegramChatId,
         'There was a problem when you try to get the instant alert, try it again later'
       )
     }
