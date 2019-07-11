@@ -236,12 +236,12 @@ const getSubscriptorRole = async subscriptor => {
 
 const getDidDelegateCalledReward = async delegateAddress => {
   const { getProtocolService } = require('./services/protocolService')
-  const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
+  const { getLivepeerDelegateAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
   const protocolService = getProtocolService()
 
   const [delegate, currentRoundInfo] = await promiseRetry(retry => {
     return Promise.all([
-      getLivepeerTranscoderAccount(delegateAddress),
+      getLivepeerDelegateAccount(delegateAddress),
       protocolService.getCurrentRoundInfo()
     ]).catch(err => retry())
   })

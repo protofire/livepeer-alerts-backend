@@ -1,11 +1,11 @@
 const LivepeerSDK = require('@livepeer/sdk')
 
-const getLivepeerTranscoders = async () => {
+const getLivepeerDelegates = async () => {
   const { rpc } = await LivepeerSDK.default()
   return await rpc.getTranscoders()
 }
 
-const getLivepeerTranscoderAccount = async address => {
+const getLivepeerDelegateAccount = async address => {
   if (!address) {
     return null
   }
@@ -14,6 +14,6 @@ const getLivepeerTranscoderAccount = async address => {
 }
 
 module.exports = {
-  getLivepeerTranscoders,
-  getLivepeerTranscoderAccount
+  getLivepeerDelegates,
+  getLivepeerDelegateAccount
 }
