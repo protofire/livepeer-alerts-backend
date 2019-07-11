@@ -15,7 +15,7 @@ describe('## UpdateRoundPools', () => {
     mongoose.connection.close()
   })
   const delegateService = getDelegateService()
-  const delegatePoolService = require('../server/helpers/update-round-pools')
+  const delegatePoolService = require('../server/helpers/updateRoundPools')
   describe('# updateDelegatesPools', () => {
     const currentRound = new Round({
       _id: '1403',
@@ -425,4 +425,9 @@ describe('## UpdateRoundPools', () => {
       getDelegateTotalStakeStub.restore()
     })
   })
+  /**
+   *  TODO -- Add at least one more tests:
+   *  1) add two pools with different id but same delegate address and round id => should throw err
+   *  should return error if try to save two pools pool with the same combination (delegate, round)
+   */
 })
