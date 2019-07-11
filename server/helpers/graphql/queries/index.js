@@ -1,17 +1,17 @@
 const {
-  getLivepeerTranscoderAccount,
+  getLivepeerDelegateAccount,
   getDelegateRewards,
   getDelegateTotalStake,
   getRegisteredDelegates,
-  getLivepeerTranscoders
+  getLivepeerDelegates
 } = require('./delegate')
 const { getCurrentRound } = require('./protocol')
 
 module.exports = {
-  getLivepeerTranscoderAccount,
+  getLivepeerDelegateAccount,
   getDelegateRewards,
   getDelegateTotalStake,
   getRegisteredDelegates,
   getCurrentRound,
-  getLivepeerTranscoders
+  getLivepeerDelegates
 }

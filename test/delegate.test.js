@@ -30,7 +30,7 @@ describe('## DelegateService test', () => {
       const delegate = createTranscoder()
       // stubs the delegateGraphql service
       const getSummaryStub = sinon
-        .stub(delegatesGraphql, 'getLivepeerTranscoderAccount')
+        .stub(delegatesGraphql, 'getLivepeerDelegateAccount')
         .returns(delegate)
       const resultExpected = {
         ...delegate,
@@ -52,7 +52,7 @@ describe('## DelegateService test', () => {
     const delegate = createTranscoder()
     // stubs the delegateGraphql service
     const getSummaryStub = sinon
-      .stub(delegatesGraphql, 'getLivepeerTranscoderAccount')
+      .stub(delegatesGraphql, 'getLivepeerDelegateAccount')
       .returns(delegate)
     const resultExpected = {
       summary: {
