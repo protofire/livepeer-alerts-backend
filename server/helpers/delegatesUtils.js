@@ -68,7 +68,10 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
       continue
     }
     // Then checks if the rules between the old and new version of the delegate did changed
-    const propertiesChanged = getDelegateRulesChanged(oldDelegateIterator, newDelegateIterator)
+    const propertiesChanged = delegateUtils.getDelegateRulesChanged(
+      oldDelegateIterator,
+      newDelegateIterator
+    )
     if (propertiesChanged.hasChanged) {
       oldDelegateIterator = {
         _id: oldDelegateIterator._id,
@@ -186,10 +189,12 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
-module.exports = {
+const delegateUtils = {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   updateDelegatesLocally,
   checkAndUpdateMissingLocalDelegates,
   getDelegateRulesChanged
 }
+
+module.exports = delegateUtils

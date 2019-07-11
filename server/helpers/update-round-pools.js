@@ -1,4 +1,4 @@
-const { checkAndUpdateMissingLocalDelegates } = require('./delegatesUtils')
+const delegateUtils = require('./delegatesUtils')
 
 const { getDelegateService } = require('../helpers/services/delegateService')
 const mongoose = require('../../config/mongoose')
@@ -63,6 +63,13 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
     console.error('[Update Delegates Pools] - No round pools were provided')
     throw new Error('[Update Delegates Pools] - No round pools were provided')
   }
+  // Checks that the round exists before continue
+  const { roundId } = round
+  round = await Round.findById(roundId)
+  if (!round) {
+    console.error('[Update Delegates Pools] - The round provided does not exists')
+    throw new Error('[Update Delegates Pools] - The round provided does not exists')
+  }
 
   const delegateService = getDelegateService()
 
@@ -93,24 +100,14 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
         round: roundId
       })
       // Saves the pool
+      console.log('[Update Delegates Pools] - Saving new pool')
       newSavedPool = await newSavedPool.save()
       // Also updates the round with the pool
       round.pools.push(newSavedPool)
-
-      round = await Round.findOneAndUpdate(
-        { _id: roundId },
-        {
-          $set: {
-            pools: round.pools
-          }
-        },
-        {
-          // MongoDB findAndModify is deprecated, this should be used to disable it
-          useFindAndModify: false
-        }
-      )
+      console.log('[Update Delegates Pools] - Updating round with pool')
+      round = await round.save()
       // Finally Updates the delegate with the new pool
-      console.log('[Update Delegates Pools] - Updating pools on delegate')
+      console.log('[Update Delegates Pools] - Updating delegate with pool')
       delegate.pools.push(newSavedPool)
       delegate = await delegate.save()
     } catch (err) {
@@ -125,8 +122,7 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
 const updateDelegatesPools = async newRound => {
   console.log('[Update Delegates Pools] - Start')
   if (!newRound) {
-    console.error('[Update Delegates Pools] - No round was provided')
-    return
+    throw new Error('[Update Delegates Pools] - No round was provided')
   }
 
   // Updates local delegates with the new version provided from graphql
@@ -134,7 +130,7 @@ const updateDelegatesPools = async newRound => {
   // Gets the last version of the delegates from graphql
   const delegatesFetched = await delegateService.getDelegates()
   // Then checks if all the fetched delegates exists locally, otherwise, add the ones that are missing
-  await checkAndUpdateMissingLocalDelegates(delegatesFetched)
+  await delegateUtils.checkAndUpdateMissingLocalDelegates(delegatesFetched)
 
   // Fetch the pool data for the given round
   const roundWithPoolsData = await delegateService.getPoolsPerRound(newRound.roundId)

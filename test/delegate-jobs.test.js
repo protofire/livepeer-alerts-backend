@@ -1,8 +1,10 @@
+const delegateUtils = require('../server/helpers/delegatesUtils')
+
 const {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   getDelegateRulesChanged
-} = require('../server/helpers/delegatesUtils')
+} = delegateUtils
 
 const {
   generateNotificationList
