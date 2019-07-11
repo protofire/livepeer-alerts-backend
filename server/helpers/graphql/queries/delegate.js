@@ -4,7 +4,7 @@ const gql = require('graphql-tag')
 const _ = require('lodash')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
-const getDelegateSummary = async delegateAddress => {
+const getLivepeerDelegateAccount = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
       {
@@ -108,7 +108,7 @@ const getDelegateTotalStake = async delegateAddress => {
   return _.get(queryResult, 'data.transcoder.totalStake', null)
 }
 
-const getLivepeerTranscoders = async () => {
+const getLivepeerDelegates = async () => {
   const queryResult = await client.query({
     query: gql`
       {
@@ -133,10 +133,10 @@ const getLivepeerTranscoders = async () => {
 }
 
 module.exports = {
-  getDelegateSummary,
+  getLivepeerDelegateAccount,
   getRegisteredDelegates,
   getDelegateRewards,
   getDelegateTotalStake,
-  getLivepeerTranscoders,
+  getLivepeerDelegates,
   getPoolsPerRound
 }

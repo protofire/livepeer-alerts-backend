@@ -42,16 +42,12 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
         const minutes = calculateIntervalAsMinutes(subscriber.lastEmailSent)
 
         console.log(
-          `[Worker notification delegator claim reward call] - Minutes last sent email ${minutes} - Email ${
-            subscriber.email
-          }`
+          `[Notificate-Delegators] - Minutes last sent email ${minutes} - Email ${subscriber.email} - Address  ${subscriber.address}`
         )
 
         if (minutes < minutesToWaitAfterLastSentEmail) {
           console.log(
-            `[Worker notification delegator claim reward call] - Not sending email to ${
-              subscriber.email
-            } because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
+            `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
           )
           continue
         }
@@ -60,9 +56,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
       // Send notification only for delegators
       if (role === constants.ROLE.TRANSCODER) {
         console.log(
-          `[Worker notification delegator claim reward call] - Not sending email to ${
-            subscriber.email
-          } because is a transcoder`
+          `[Notificate-Delegators] - Not sending email to ${subscriber.email} because is a delegate`
         )
         continue
       }
@@ -88,17 +82,11 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
     } catch (err) {
       console.error(err)
       console.error(
-        `[Worker notification delegator claim reward call] - An error occurred sending an email to the subscriber ${
-          subscriber.email
-        }`
+        `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email}`
       )
     }
   }
-  console.log(
-    `[Worker notification delegator claim reward call] - Emails subscribers to notify ${
-      emailsToSend.length
-    }`
-  )
+  console.log(`[Notificate-Delegators] - Emails subscribers to notify ${emailsToSend.length}`)
   return await Promise.all(emailsToSend)
 }
 
@@ -116,16 +104,12 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
       const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
 
       console.log(
-        `[Worker notification delegator claim reward call] - Minutes last sent telegram ${minutes} - Telegram chat id ${
-          subscriber.telegramChatId
-        }`
+        `[Notificate-Delegators] - Minutes last sent telegram ${minutes} - Telegram chat id ${subscriber.telegramChatId} - Subscriber address ${subscriber.address}`
       )
 
       if (minutes < minutesToWaitAfterLastSentTelegram) {
         console.log(
-          `[Worker notification delegator claim reward call] - Not sending telegram to ${
-            subscriber.address
-          } because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
+          `[Notificate-Delegators] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
         )
         continue
       }
@@ -134,15 +118,16 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
     // Send notification only for delegators
     const { role, constants } = await getSubscriptorRole(subscriber)
     if (role === constants.ROLE.TRANSCODER) {
+      console.log(
+        `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because is a delegate`
+      )
       continue
     }
     telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
   }
 
   console.log(
-    `[Delegators Notification utils] - Telegrams subscribers to notify ${
-      telegramsMessageToSend.length
-    }`
+    `[Notificate-Delegators] - Telegrams subscribers to notify ${telegramsMessageToSend.length}`
   )
   return await Promise.all(telegramsMessageToSend)
 }
