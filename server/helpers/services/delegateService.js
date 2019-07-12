@@ -30,11 +30,10 @@ class DelegateService {
   getDelegateSummary = async delegateAddress => {
     const { getLivepeerDelegateAccount } = this.source
     const summary = await getLivepeerDelegateAccount(delegateAddress)
-    const { address } = summary
     return {
       summary: {
         ...summary,
-        id: address,
+        id: delegateAddress,
         totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0))
       }
     }
