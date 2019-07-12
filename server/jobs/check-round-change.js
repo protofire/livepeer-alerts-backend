@@ -64,6 +64,7 @@ const workerCheckRoundChange = async () => {
 
     // Once the notifications are sent, update round and lock
     const data = {
+      _id: id,
       roundId: id,
       initialized,
       lastInitializedRound,
