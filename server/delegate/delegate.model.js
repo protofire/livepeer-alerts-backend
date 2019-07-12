@@ -54,7 +54,7 @@ const DelegateSchema = new mongoose.Schema({
   },
   pools: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Pool',
       required: false,
       default: []
