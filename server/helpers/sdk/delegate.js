@@ -13,7 +13,18 @@ const getLivepeerDelegateAccount = async address => {
   return await rpc.getTranscoder(address)
 }
 
+/**
+ * Adds compatibility with the graphql getPoolsPerRound
+ * This method sould be only executed with the graphql, is not available on the SDK
+ * @param roundNumber
+ * @returns {Promise<null>}
+ */
+const getPoolsPerRound = async roundNumber => {
+  return null
+}
+
 module.exports = {
   getLivepeerDelegates,
-  getLivepeerDelegateAccount
+  getLivepeerDelegateAccount,
+  getPoolsPerRound
 }

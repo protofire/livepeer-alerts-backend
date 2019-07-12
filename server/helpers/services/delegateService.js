@@ -187,10 +187,6 @@ class DelegateService {
   }
 
   getPoolsPerRound = async roundNumber => {
-    // This method sould be only executed with the graphql, is not available on the SDK
-    if (this.source !== graphqlSource) {
-      return []
-    }
     const { getPoolsPerRound } = this.source
     return await getPoolsPerRound(roundNumber)
   }

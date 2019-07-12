@@ -1,4 +1,4 @@
-const { getLivepeerDelegateAccount, getLivepeerDelegates } = require('./delegate')
+const { getLivepeerDelegateAccount, getLivepeerDelegates, getPoolsPerRound } = require('./delegate')
 const {
   getLivepeerCurrentRound,
   getTotalBonded,
@@ -25,6 +25,7 @@ module.exports = {
   getLivepeerDelegatorTokenBalance,
   getLivepeerDelegateAccount,
   getLivepeerDelegates,
+  getPoolsPerRound,
   getLivepeerCurrentRound,
   getTotalBonded,
   getInflationChange,
