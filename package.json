@@ -1,6 +1,6 @@
 {
   "name": "livepeer-alerts-backend",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Provide pro-active alert notifications that will help LPT token holders to be updated and understand how the transcoders they are delegating the tokens to are performing in near real time.",
   "author": "Protofire @protofire",
   "main": "index.js",
