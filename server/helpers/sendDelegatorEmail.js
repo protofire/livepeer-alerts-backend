@@ -33,7 +33,6 @@ const sendEmail = async data => {
     delegatingStatusUrl,
     delegateAddress,
     roundsUntilUnbonded,
-    unsubscribeEmailUrl,
     oldRewardCut,
     oldFeeShare,
     oldPendingFeeShare,
