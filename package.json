@@ -68,7 +68,6 @@
     "node-telegram-bot-api": "^0.30.0",
     "nodemon": ">=1.19.1",
     "promise-retry": "^1.1.1",
-    "sinon": "^7.3.2",
     "striptags": "^3.1.1",
     "web3": "github:ethereum/web3.js",
     "winston": "2.4.1"
@@ -88,6 +87,8 @@
     "istanbul": "1.1.0-alpha.1",
     "mocha": "^5.2.0",
     "prettier": "^1.15.3",
+    "sinon": "^7.3.2",
+    "sinon-mongoose": "^2.3.0",
     "supertest": "^3.0.0",
     "validate-commit-msg": "^2.14.0"
   },

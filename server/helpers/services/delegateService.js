@@ -12,9 +12,9 @@ const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
 let delegateServiceInstance
 // the default source for delegates is GRAPHQL
-const delegatesSource = require('../graphql/queries')
+const graphqlSource = require('../graphql/queries')
 
-const getDelegateService = (source = delegatesSource) => {
+const getDelegateService = (source = graphqlSource) => {
   if (!delegateServiceInstance) {
     delegateServiceInstance = new DelegateService(source)
   }
@@ -183,8 +183,12 @@ class DelegateService {
     const delegates = await getLivepeerDelegates()
     return delegates
   }
-}
 
+  getPoolsPerRound = async roundNumber => {
+    const { getPoolsPerRound } = this.source
+    return await getPoolsPerRound(roundNumber)
+  }
+}
 module.exports = {
   getDelegateService
 }

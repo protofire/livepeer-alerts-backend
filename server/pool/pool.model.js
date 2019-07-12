@@ -13,27 +13,29 @@ const PoolSchema = new mongoose.Schema({
   // The reward amount of the delegate for that round
   rewardTokens: {
     type: String,
-    required: false
+    required: false,
+    default: null
   },
   // The totalStake of the delegate on that round
   totalStakeOnRound: {
     type: String,
-    required: true
+    required: false,
+    default: null
   },
   delegate: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Delegate',
     required: true
   },
   round: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Round',
     required: true
   }
 })
 
 // Mongoose compound index (delegate, round)
-PoolSchema.index({ delegator: 1, round: 1 }, { unique: true })
+PoolSchema.index({ delegate: 1, round: 1 }, { unique: true })
 
 /**
  * Methods

@@ -7,6 +7,7 @@ const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 
 const { getProtocolService } = require('../helpers/services/protocolService')
+const roundPoolsUtils = require('../helpers/updateRoundPools')
 
 const Round = require('../round/round.model')
 
@@ -63,6 +64,7 @@ const workerCheckRoundChange = async () => {
 
     // Once the notifications are sent, update round and lock
     const data = {
+      _id: id,
       roundId: id,
       initialized,
       lastInitializedRound,
@@ -72,6 +74,9 @@ const workerCheckRoundChange = async () => {
 
     let roundCreated = new Round(data)
     await roundCreated.save()
+
+    // Dispatch updates of round pools
+    await roundPoolsUtils.updateDelegatesPools(roundCreated)
   } else {
     console.log(
       `[Check-Round-Change] - The round progress is bellow the threshold or the notifications were already sent, actions will be not dispatched`
