@@ -29,6 +29,12 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
   // Persists the pools locally
   for (let poolIterator of roundPools) {
     const delegateId = poolIterator.transcoder.id
+    if (!delegateId) {
+      console.error(
+        `[Update Delegates Pools] - The pool ${poolIterator.id} does not contain a valid delegate`
+      )
+      continue
+    }
     // Fetch the delegate current totalStake and the local delegate related to the pool
     let [totalStakeOnRound, delegate] = await Promise.all([
       delegateService.getDelegateTotalStake(delegateId),

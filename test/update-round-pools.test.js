@@ -280,6 +280,7 @@ describe('## UpdateRoundPools', () => {
       expect(delegateMock.called)
       // restore stubs
       getDelegateTotalStakeStub.restore()
+      consoleLogStub.restore()
       delegateMock.verify()
       delegateMock.restore()
       roundMock.verify()
@@ -318,7 +319,7 @@ describe('## UpdateRoundPools', () => {
       console.log('Objects created, executing tests cases')
     })
     afterEach('Removes the created round and delegate objects from the db', async function() {
-      console.log('Finish test, deleting round delegate and round')
+      console.log('Finish test, deleting round, pool and delegate')
       await round.remove()
       await delegate.remove()
       await Pool.findByIdAndRemove(poolId)
