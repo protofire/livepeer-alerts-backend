@@ -51,7 +51,7 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
     activated: 1,
     email: { $ne: null }
   }).exec()
-  console.log(`[Notificate-Delegates] - Start sending email notification to delegates}`)
+  console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
   const subscribersToNofity = await getSubscribers(subscribers)
 
   const subscribersToSendEmails = []

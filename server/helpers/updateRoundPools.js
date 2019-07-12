@@ -57,10 +57,14 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
       newSavedPool = await newSavedPool.save()
       // Also updates the round with the pool
       round.pools.push(newSavedPool)
-      console.log('[Update Delegates Pools] - Updating round with pool')
+      console.log(
+        `[Update Delegates Pools] - Updating round ${roundId} with pool ${poolIterator.id}`
+      )
       round = await round.save()
       // Finally Updates the delegate with the new pool
-      console.log('[Update Delegates Pools] - Updating delegate with pool')
+      console.log(
+        `[Update Delegates Pools] - Updating delegate ${delegateId} with pool ${poolIterator.id}`
+      )
       delegate.pools.push(newSavedPool)
       delegate = await delegate.save()
     } catch (err) {
