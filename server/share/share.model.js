@@ -47,6 +47,29 @@ ShareSchema.index({ delegator: 1, round: 1 }, { unique: true })
 ShareSchema.method({})
 
 /**
+ * Statics
+ */
+
+// TODO -- Test add two shares with same delegator and round -> should throw error
+ShareSchema.statics = {
+  async getDelegatorRoundAmount(roundId, delegatorAddress) {
+    if (!roundId || !delegatorAddress) {
+      console.error('[ShareSchema] - the roundIf or delegatorAddress provided are not defined')
+      return null
+    }
+    const roundShare = await this.findOne({ delegator: delegatorAddress, round: roundId })
+    // If there are no shares for that user, return 0 as default
+    if (!roundShare) {
+      console.error(
+        `[ShareSchema] - share for round ${roundId} of delegator ${delegatorAddress} not found`
+      )
+      return '0'
+    }
+    return roundShare.rewardTokens
+  }
+}
+
+/**
  * @typedef Share
  */
 const share = mongoose.model('Share', ShareSchema)
