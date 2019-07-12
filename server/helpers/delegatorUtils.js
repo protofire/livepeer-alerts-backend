@@ -49,6 +49,7 @@ const getDelegatorCurrentRewardTokens = async (
 // Receives all the delegates that are stored locally and the delegates from the graph
 // If there are delegates who are not stored locally, save them on the db
 const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
+  console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Start`)
   if (!fetchedDelegators || fetchedDelegators.length === 0) {
     console.error(
       '[Delegator utils] - there were no remote delegators received on checkAndUpdateMissingLocalDelegators()'
@@ -69,7 +70,7 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
       console.error(`[Delegator utils] - delegator ${remoteId} has not delegate address, skipped`)
       continue
     }
-    let localFound = await Delegator.findById(remoteId)
+    const localFound = await Delegator.findById(remoteId)
     if (!localFound) {
       console.log(`[Delegator utils] - remote delegator ${remoteId} not found locally, adding it`)
       const { startRound, totalStake } = remoteDelegatorIterator
@@ -82,14 +83,18 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
       updateDelegatorPromises.push(newDelegator.save())
     } else {
       // If found, just update it
-      localFound = {
-        ...remoteDelegatorIterator,
+      const updatedDelegator = new Delegator({
+        _id: remoteId,
+        delegate: delegateAddress,
+        startRound: remoteDelegatorIterator.startRound,
+        totalStake: remoteDelegatorIterator.totalStake,
         shares: localFound.shares
-      }
-      updateDelegatorPromises.push(localFound.save())
+      })
+      updateDelegatorPromises.push(updatedDelegator.save())
     }
   }
   await Promise.all(updateDelegatorPromises)
+  console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Finished`)
 }
 
 const delegatorUtils = {
