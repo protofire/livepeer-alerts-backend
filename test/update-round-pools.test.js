@@ -429,5 +429,6 @@ describe('## UpdateRoundPools', () => {
    *  TODO -- Add at least one more tests:
    *  1) add two pools with different id but same delegate address and round id => should throw err
    *  should return error if try to save two pools pool with the same combination (delegate, round)
+   *  2) A test that forces an exception on updateSingleDelegatePool -> should rollback the transactions on the db
    */
 })

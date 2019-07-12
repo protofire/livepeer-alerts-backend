@@ -13,7 +13,8 @@ mongoose.connect(mongoUri, {
   keepAlive: true,
   useCreateIndex: true,
   writeConcern: {
-    w: 0
+    w: 1,
+    j: true
   },
   // MongoDB findAndModify is deprecated, this should be used to disable it
   useFindAndModify: false
