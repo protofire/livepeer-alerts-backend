@@ -20,6 +20,9 @@ const getLivepeerDelegateAccount = async address => {
  * @returns {Promise<null>}
  */
 const getPoolsPerRound = async roundNumber => {
+  console.error(
+    '[SDK - Delegate] - the function getPoolsPerRound() was called but is not available on the SDK, please use the graphql implementation'
+  )
   return null
 }
 
