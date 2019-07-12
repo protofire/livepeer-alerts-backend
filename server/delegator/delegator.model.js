@@ -9,7 +9,7 @@ const DelegatorSchema = new mongoose.Schema({
     required: true
   },
   delegate: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Delegate',
     required: true
   },
@@ -19,11 +19,12 @@ const DelegatorSchema = new mongoose.Schema({
   },
   totalStake: {
     type: String,
-    required: false
+    required: false,
+    default: '0'
   },
   shares: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Share',
       required: false
     }
