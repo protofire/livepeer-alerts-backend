@@ -26,7 +26,8 @@ const DelegatorSchema = new mongoose.Schema({
     {
       type: String,
       ref: 'Share',
-      required: false
+      required: false,
+      default: []
     }
   ]
 })
