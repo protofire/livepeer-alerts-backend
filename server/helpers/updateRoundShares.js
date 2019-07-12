@@ -2,6 +2,7 @@ const mongoose = require('../../config/mongoose')
 const delegatorUtils = require('./delegatorUtils')
 const Share = require('../share/share.model')
 const Round = require('../round/round.model')
+const Delegator = require('../delegator/delegator.model')
 const Subscriber = require('../subscriber/subscriber.model')
 
 const updateDelegatorSharesOfRound = async (round, delegator) => {
@@ -14,6 +15,21 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     console.error('[Update Delegators Shares] - No delegator was provided')
     throw new Error('[Update Delegators Shares] - No delegator was provided')
   }
+  const delegatorAddress = delegator.address
+  if (!delegatorAddress) {
+    console.error(`[Update Delegators Shares] - delegator ${delegator} has not address`)
+    throw new Error(`[Update Delegators Shares] - delegator ${delegator} has not address`)
+  }
+  // Checks that the delegator exists before continue
+  delegator = await Delegator.findById(delegatorAddress)
+  if (!delegator) {
+    console.error(
+      `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
+    )
+    throw new Error(
+      '[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?'
+    )
+  }
   // Checks that the round exists before continue
   const { roundId } = round
   round = await Round.findById(roundId)
@@ -23,7 +39,6 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
   }
 
   // Creates the share object
-  const delegatorAddress = delegator._id
   const { totalStake } = delegator
   const shareId = `${delegatorAddress}-${roundId}`
   const rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
@@ -37,7 +52,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     rewardTokens,
     totalStakeOnRound: totalStake,
     delegator: delegatorAddress,
-    delegate: delegator.delegate,
+    delegate: delegatorAddress,
     round: roundId
   })
 
@@ -69,8 +84,14 @@ const updateDelegatorsShares = async newRound => {
   }
 
   // Fetch all the delegators that are subscribed
-  const delegators = await Subscriber.getDelegatorSubscribers()
-  if (!delegators) {
+  const delegatorsAndSubscribersList = await Subscriber.getDelegatorSubscribers()
+  const delegators = []
+  delegatorsAndSubscribersList.forEach(element => {
+    if (element.delegator) {
+      delegators.push(element.delegator)
+    }
+  })
+  if (!delegators || delegators.length === 0) {
     console.log('[Update Delegator shares] - No delegators subscribers found')
     return
   }
