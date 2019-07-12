@@ -13,7 +13,6 @@ const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 let delegateServiceInstance
 // the default source for delegates is GRAPHQL
 const graphqlSource = require('../graphql/queries')
-const sdkSource = require('../sdk/delegate')
 
 const getDelegateService = (source = graphqlSource) => {
   if (!delegateServiceInstance) {
