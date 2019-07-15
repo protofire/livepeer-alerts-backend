@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Send a notification when my bonded-delegate changes his rules [#68](https://github.com/protofire/livepeer-alerts-backend/pull/68), Closes [#55](https://github.com/protofire/livepeer-alerts-backend/issues/55) [#49](https://github.com/protofire/livepeer-alerts-backend/issues/49)
 
 ### Fixes
-- Refactors both sendTelegramClaimRewardCall() and getBodyBySubscriber() functions in order to use the getDidDelegateCallReward() utility function [#63](https://github.com/protofire/livepeer-alerts-backend/pull/63)
-- The values of the ROI in top delegates where all the same, the problem was the usage of getDelegate() function. it was expected to return directly the reward cut, but was a summary object instead [#67](https://github.com/protofire/livepeer-alerts-backend/pull/67)
+- Refactors both sendTelegramClaimRewardCall() and getBodyBySubscriber() functions [#63](https://github.com/protofire/livepeer-alerts-backend/pull/63)
+- Fixes top delegates by ROI function. [#67](https://github.com/protofire/livepeer-alerts-backend/pull/67)
 
 ## [1.1.2](https://github.com/protofire/livepeer-alerts-backend/compare/v1.1.2...v1.1.1) (2019-07-04)
 ### Fixes
@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0](eer-alerts-backend/compare/v1.1.0...v1.0.0) (2019-06-28)
 ### Add
-- More tests [#41](https://github.com/protofire/livepeer-alerts-backend/pull/41)
+- Adds more tests [#41](https://github.com/protofire/livepeer-alerts-backend/pull/41)
 - Graphql queries [#37](https://github.com/protofire/livepeer-alerts-backend/pull/37)
 - Services based on SDK or Graphql [#42](https://github.com/protofire/livepeer-alerts-backend/pull/42)
 - Apollo client [#37](https://github.com/protofire/livepeer-alerts-backend/pull/37)
