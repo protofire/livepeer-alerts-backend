@@ -6,9 +6,9 @@ const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
 const { getProtocolService } = require('../services/protocolService')
-const { getDelegatorService } = require('../helpers/services/delegatorService')
+const { getDelegatorService } = require('../services/delegatorService')
 
-const Subscriber = require('../subscriber/subscriber.model')
+const Subscriber = require('../../subscriber/subscriber.model')
 const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
