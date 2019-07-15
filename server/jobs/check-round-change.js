@@ -51,16 +51,29 @@ const workerCheckRoundChange = async () => {
     startBlock
   }
   let roundCreated = new Round(data)
-  await roundCreated.save()
+  // TODO -- as enhancement, this operation should be inside a transaction and rollbacked if an error appears
+  try {
+    await roundCreated.save()
+  } catch (err) {
+    console.error(`error saving round ${err}`)
+    process.exit(1)
+  }
 
   // Once the round was created, updates the shares and pools of the current round
-  await roundPoolsUtils.updateDelegatesPools(roundCreated)
-  await roundSharesUtils.updateDelegatorsShares(roundCreated)
+  try {
+    await roundPoolsUtils.updateDelegatesPools(roundCreated)
+    await roundSharesUtils.updateDelegatorsShares(roundCreated)
+  } catch (err) {
+    console.error(`Error updating pools: ${err}`)
+    // TODO - This should be inside a transaction, because if some of those two fails, the round will be already saved and the information of the pools/shares wont be saved for that round
+    process.exit(1)
+  }
 
   // Finally send notifications
   try {
     await sendRoundNotifications(progress, roundCreated, thresholdSendNotification)
   } catch (err) {
+    console.error(`Error sending round notifications: ${err}`)
     process.exit(1)
   }
 

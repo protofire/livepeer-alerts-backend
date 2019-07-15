@@ -230,5 +230,64 @@ describe('## Notification utils test', () => {
       notificateDelegatorMock.restore()
       roundMock.restore()
     })
+    it('If the notifications for the round were not already sent, and the roundProgress is the same as the threshold should send notifications', async () => {
+      // given
+      const roundProgress = '20'
+      const roundId = '1'
+      const notificationsForRoundSent = false
+      const round = { _id: roundId, notificationsForRoundSent, save: () => {} }
+      const thresholdSendNotification = '20'
+      let throwedError = false
+      const expectedThrow = false
+      const resultExpected = true
+      let result
+
+      const notificateDelegatorMock = sinon.mock(notificateDelegatorUtil)
+
+      const notificateDelegatorExpect1 = notificateDelegatorMock
+        .expects('sendEmailRewardCallNotificationToDelegators')
+        .once()
+        .resolves(null)
+      const notificateDelegatorExpect2 = notificateDelegatorMock
+        .expects('sendTelegramRewardCallNotificationToDelegators')
+        .once()
+        .resolves(null)
+
+      const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
+
+      const notificateDelegateExpect1 = notificateDelegateMock
+        .expects('sendEmailRewardCallNotificationToDelegates')
+        .once()
+        .resolves(null)
+      const notificateDelegateExpect2 = notificateDelegateMock
+        .expects('sendTelegramRewardCallNotificationToDelegates')
+        .once()
+        .resolves(null)
+
+      const roundMock = sinon.mock(round)
+
+      const roundExpect = roundMock
+        .expects('save')
+        .once()
+        .resolves(null)
+
+      // when
+      try {
+        result = await sendRoundNotifications(roundProgress, round, thresholdSendNotification)
+      } catch (err) {
+        throwedError = true
+      }
+
+      // then
+      expect(expectedThrow).equal(throwedError)
+      expect(result).equal(resultExpected)
+      notificateDelegateMock.verify()
+      notificateDelegatorMock.verify()
+      roundMock.verify()
+      // restore mocks
+      notificateDelegateMock.restore()
+      notificateDelegatorMock.restore()
+      roundMock.restore()
+    })
   })
 })
