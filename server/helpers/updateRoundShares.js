@@ -27,7 +27,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
       `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
     )
     throw new Error(
-      `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
+      '[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?'
     )
   }
   // Checks that the round exists before continue
@@ -95,6 +95,10 @@ const updateDelegatorsShares = async newRound => {
       delegators.push(element.delegator)
     }
   })
+  if (!delegators || delegators.length === 0) {
+    console.log('[Update Delegator shares] - No delegators subscribers found')
+    return
+  }
 
   try {
     // Then checks if all the fetched delegators exists locally, otherwise, add the ones that are missing
