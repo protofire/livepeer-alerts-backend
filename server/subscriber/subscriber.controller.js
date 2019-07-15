@@ -94,7 +94,7 @@ const create = async (req, res, next) => {
             protocolService.getCurrentRound(),
             protocolService.getCurrentRoundInfo()
           ])
-          const delegatorRoundReward = await Share.getDelegatorRoundAmount(
+          const delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
             currentRound,
             delegator.address
           )

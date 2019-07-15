@@ -63,7 +63,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
       const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
         return Promise.all([
           getDidDelegateCallReward(delegator.delegateAddress),
-          Share.getDelegatorRoundAmount(currentRoundInfo.id, delegator.address)
+          Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
         ]).catch(err => retry())
       })
 

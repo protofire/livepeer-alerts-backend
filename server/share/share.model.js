@@ -52,9 +52,9 @@ ShareSchema.method({})
 
 // TODO -- Test add two shares with same delegator and round -> should throw error
 ShareSchema.statics = {
-  async getDelegatorRoundAmount(roundId, delegatorAddress) {
+  async getDelegatorShareAmountOnRound(roundId, delegatorAddress) {
     if (!roundId || !delegatorAddress) {
-      console.error('[ShareSchema] - the roundIf or delegatorAddress provided are not defined')
+      console.error('[ShareSchema] - the roundId or delegatorAddress provided are not defined')
       return null
     }
     const roundShare = await this.findOne({ delegator: delegatorAddress, round: roundId })
