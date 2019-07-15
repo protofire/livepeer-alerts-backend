@@ -130,6 +130,7 @@ describe('## Share static methods test', () => {
       // then
       expect(expectedThrow).equal(throwedError)
       expect(result).equal(resultExpected)
+      shareMock.verify()
       // restore mocks
       shareMock.restore()
     })
@@ -166,6 +167,7 @@ describe('## Share static methods test', () => {
       // then
       expect(expectedThrow).equal(throwedError)
       expect(result).equal(resultExpected)
+      shareMock.verify()
       // restore mocks
       shareMock.restore()
     })
