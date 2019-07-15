@@ -26,6 +26,21 @@ describe('## UpdateRoundShares', () => {
     pools: [],
     shares: []
   })
+  let subscriberMock
+  let roundMock
+  let delegatorMock
+  afterEach('Restore mocks', function() {
+    console.log('Restoring subscriberMock')
+    if (subscriberMock) {
+      subscriberMock.restore()
+    }
+    if (roundMock) {
+      roundMock.restore()
+    }
+    if (delegatorMock) {
+      delegatorMock.restore()
+    }
+  })
 
   describe('# updateDelegatorsShares', () => {
     it('Should call updateDelegatorsShares with no round and throw error', async () => {
@@ -47,7 +62,7 @@ describe('## UpdateRoundShares', () => {
       // given
       const consoleLogStub = sinon.stub(console, 'log')
       // Stubs the return of Delegator.getDelegatorSubscribers to return null, so no delegators were found
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('getDelegatorSubscribers')
@@ -63,23 +78,28 @@ describe('## UpdateRoundShares', () => {
       )
       expect(subscriberMock.called)
       subscriberMock.verify()
-
       // restore stubs
       consoleLogStub.restore()
-      subscriberMock.restore()
     })
     it('Should receive a round, and there are delegators subscribers => should call checkAndUpdateMissingLocalDelegators() and updateDelegatorSharesOfRound() times of the amount of delegators', async () => {
       // given
       const delegator1 = createDelegator('1')
       const delegator2 = createDelegator('2')
-      const delegators = [delegator1, delegator2]
+      const delegators = [
+        {
+          delegator: delegator1
+        },
+        {
+          delegator: delegator2
+        }
+      ]
 
       const checkAndUpdateMissingLocalDelegatorsStub = sinon
         .stub(delegatorUtils, 'checkAndUpdateMissingLocalDelegators')
         .returns(null)
 
       // Stubs the return of Delegator.getDelegatorSubscribers to return delegators
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('getDelegatorSubscribers')
@@ -103,7 +123,6 @@ describe('## UpdateRoundShares', () => {
       // restore stubs
       checkAndUpdateMissingLocalDelegatorsStub.restore()
       updateDelegatorSharesOfRoundStub.restore()
-      subscriberMock.restore()
     })
   })
   describe('# updateDelegatorSharesOfRound without interacting db', () => {
@@ -144,9 +163,52 @@ describe('## UpdateRoundShares', () => {
       let throwedErr = ''
 
       // Stubs the return of Round.findById to return null
-      const roundMock = sinon.mock(Round)
+      roundMock = sinon.mock(Round)
 
       const expectationRound = roundMock
+        .expects('findById')
+        .once()
+        .resolves(null)
+
+      // Stubs the return of Delegator.findById to return delegator
+      delegatorMock = sinon.mock(Delegator)
+
+      const expectationDelegator = delegatorMock
+        .expects('findById')
+        .once()
+        .resolves(delegator1)
+
+      try {
+        await delegatorSharesService.updateDelegatorSharesOfRound(currentRound, delegator1)
+      } catch (err) {
+        throwedErr = err.message
+      }
+      // then
+      expect(throwedErr).equal(resultExpected)
+      expect(roundMock.called)
+      roundMock.verify()
+      expect(delegatorMock.called)
+      delegatorMock.verify()
+    })
+    it('Throws an error if the delegator received does not exists locally', async () => {
+      // given
+      const delegatorAddress = '1'
+      const resultExpected = `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
+      const delegator1 = createDelegator(delegatorAddress)
+      let throwedErr = ''
+
+      // Stubs the return of Round.findById to return null
+      roundMock = sinon.mock(Round)
+
+      const expectationRound = roundMock
+        .expects('findById')
+        .never()
+        .resolves(currentRound)
+
+      // Stubs the return of Delegator.findById to return delegator
+      delegatorMock = sinon.mock(Delegator)
+
+      const expectationDelegator = delegatorMock
         .expects('findById')
         .once()
         .resolves(null)
@@ -158,10 +220,10 @@ describe('## UpdateRoundShares', () => {
       }
       // then
       expect(throwedErr).equal(resultExpected)
-      expect(roundMock.called)
+      expect(!roundMock.called)
       roundMock.verify()
-      // restore mocks
-      roundMock.restore()
+      expect(delegatorMock.called)
+      delegatorMock.verify()
     })
   })
   describe('# updateDelegatorSharesOfRound interacting db', () => {
@@ -189,7 +251,6 @@ describe('## UpdateRoundShares', () => {
     }
     let delegator = new Delegator(delegatorData)
     beforeEach('Creates round and delegate objects on db', async function() {
-      this.timeout(10000)
       console.log('Starting test, creating round and delegate')
       round = await round.save()
       delegator = await delegator.save()
