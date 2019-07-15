@@ -8,7 +8,7 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 const {
   notifyDelegatorsWhenDelegateChangeTheRules
-} = require('../helpers/notifyDelegatorsWhenDelegateChangeTheRules')
+} = require('../helpers/notification/notificationUtils')
 
 const workerCheckDelegateChangeRules = async () => {
   console.log(`[Check-Delegate-Change-Rules] - Start`)
