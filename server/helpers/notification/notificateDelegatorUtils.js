@@ -1,24 +1,24 @@
 const promiseRetry = require('promise-retry')
 
-const mongoose = require('../../config/mongoose')
+const mongoose = require('../../../config/mongoose')
 
-const config = require('../../config/config')
+const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
-const { getProtocolService } = require('../helpers/services/protocolService')
+const { getProtocolService } = require('../services/protocolService')
 
-const Subscriber = require('../subscriber/subscriber.model')
-const Share = require('../share/share.model')
+const Subscriber = require('../../subscriber/subscriber.model')
+const Share = require('../../share/share.model')
 const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
-} = require('../helpers/sendDelegatorEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
+} = require('../sendDelegatorEmail')
+const { sendNotificationTelegram } = require('../sendTelegramClaimRewardCall')
 const {
   getSubscriptorRole,
   getDidDelegateCallReward,
   calculateIntervalAsMinutes
-} = require('../helpers/utils')
+} = require('../utils')
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
@@ -142,8 +142,10 @@ const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
   return await Promise.all(subscribersToNotify)
 }
 
-module.exports = {
+const notificateDelegatorService = {
   sendEmailRewardCallNotificationToDelegators,
   sendTelegramRewardCallNotificationToDelegators,
   sendNotificationDelegateChangeRuleToDelegators
 }
+
+module.exports = notificateDelegatorService

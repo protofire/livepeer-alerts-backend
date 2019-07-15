@@ -1,15 +1,15 @@
-const config = require('../../config/config')
+const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
-const mongoose = require('../../config/mongoose')
-const Subscriber = require('../subscriber/subscriber.model')
+const mongoose = require('../../../config/mongoose')
+const Subscriber = require('../../subscriber/subscriber.model')
 const {
   getSubscriptorRole,
   getDidDelegateCallReward,
   calculateIntervalAsMinutes
-} = require('../helpers/utils')
-const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
+} = require('../utils')
+const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
+const { sendNotificationTelegram } = require('../sendTelegramDidRewardCall')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
@@ -117,7 +117,9 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
   return subscribersToNofity
 }
 
-module.exports = {
+const notificateDelegateService = {
   sendEmailRewardCallNotificationToDelegates,
   sendTelegramRewardCallNotificationToDelegates
 }
+
+module.exports = notificateDelegateService
