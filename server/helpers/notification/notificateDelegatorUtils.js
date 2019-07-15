@@ -6,9 +6,9 @@ const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
 const { getProtocolService } = require('../services/protocolService')
+const { getDelegatorService } = require('../helpers/services/delegatorService')
 
-const Subscriber = require('../../subscriber/subscriber.model')
-const Share = require('../../share/share.model')
+const Subscriber = require('../subscriber/subscriber.model')
 const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
@@ -29,6 +29,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
   let emailsToSend = []
   const protocolService = getProtocolService()
+  const delegatorService = getDelegatorService()
 
   const currentRoundInfo = await protocolService.getCurrentRoundInfo()
 
@@ -60,10 +61,10 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
         continue
       }
 
-      const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
+      const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
         return Promise.all([
           getDidDelegateCallReward(delegator.delegateAddress),
-          Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
+          delegatorService.getDelegatorNextReward(delegator.address)
         ]).catch(err => retry())
       })
 
@@ -72,7 +73,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
           subscriber,
           delegator,
           delegateCalledReward,
-          delegatorRoundReward,
+          delegatorNextReward,
           currentRoundInfo.id,
           currentRoundInfo,
           constants
