@@ -4,7 +4,7 @@ const Handlebars = require('handlebars')
 const promiseRetry = require('promise-retry')
 const config = require('../../config/config')
 const moment = require('moment')
-
+const Share = require('../share/share.model')
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
 
@@ -70,7 +70,10 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
+      const earningNextReturn = await Share.getDelegatorShareAmountOnRound(
+        currentRound,
+        delegator.address
+      )
 
       // Calculate earned lpt
       const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
