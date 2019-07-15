@@ -85,6 +85,10 @@ const updateDelegatorsShares = async newRound => {
 
   // Fetch all the delegators that are subscribed
   const delegatorsAndSubscribersList = await Subscriber.getDelegatorSubscribers()
+  if (!delegatorsAndSubscribersList || delegatorsAndSubscribersList.length === 0) {
+    console.log('[Update Delegator shares] - No delegators subscribers found')
+    return
+  }
   const delegators = []
   delegatorsAndSubscribersList.forEach(element => {
     if (element.delegator) {
