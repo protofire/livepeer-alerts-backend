@@ -6,84 +6,65 @@ Promise.config({
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 
+const { sendRoundNotifications } = require('../helpers/notification/notificationUtils')
 const { getProtocolService } = require('../helpers/services/protocolService')
 const roundPoolsUtils = require('../helpers/updateRoundPools')
 const roundSharesUtils = require('../helpers/updateRoundShares')
 
 const Round = require('../round/round.model')
 
-const {
-  sendEmailRewardCallNotificationToDelegators,
-  sendTelegramRewardCallNotificationToDelegators
-} = require('./notificate-delegators-utils')
-
-const {
-  sendEmailRewardCallNotificationToDelegates,
-  sendTelegramRewardCallNotificationToDelegates
-} = require('./notificate-delegates-utils')
-
 const workerCheckRoundChange = async () => {
   console.log(`[Check-Round-Change] - Start`)
 
+  const { thresholdSendNotification } = config
   const protocolService = getProtocolService()
   const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
   let { id, initialized, lastInitializedRound, length, startBlock, progress } = currentRoundInfo
 
   let actualSavedRound = await Round.findOne({ roundId: id })
 
-  if (actualSavedRound || !initialized) {
-    console.log(`[Check-Round-Change] - The round did not changed or is not initialized`)
+  if (!initialized) {
+    console.log(`[Check-Round-Change] - The round is not initialized. skipping checkRoundChange`)
     process.exit(0)
   }
 
-  const { thresholdSendNotification } = config
-
-  console.log(`[Check-Round-Change] - Actual round ${id}`)
-  // Check if the last round if different from the actual one to know if the round changed
-
-  console.log(`[Check-Round-Change] - Round changed`)
-  // The round changed, now checks new round progress
-  console.log(
-    `[Check-Round-Change] - Check round progress: ${progress}, threshold: ${thresholdSendNotification}`
-  )
-  // If the progress if above a certain threshold and the notifications were not already sent, the notifications will be sent and the current saved round will be updated
-  if (progress >= thresholdSendNotification) {
-    // Send notifications
-    console.log(
-      `[Check-Round-Change] - The round progress is above the threshold, sending notifications`
-    )
-    // Send email notifications for delegate and delegators
-    await Promise.all([
-      sendEmailRewardCallNotificationToDelegators(),
-      sendEmailRewardCallNotificationToDelegates()
-    ])
-    // Send telegram notifications for delegates
-    await Promise.all([
-      sendTelegramRewardCallNotificationToDelegators(),
-      sendTelegramRewardCallNotificationToDelegates()
-    ])
-    // Once the notifications are sent, update round and lock
-    const data = {
-      _id: id,
-      roundId: id,
-      initialized,
-      lastInitializedRound,
-      length,
-      startBlock
+  if (actualSavedRound) {
+    console.log(`[Check-Round-Change] - The round did not changed, sending notifications if needed`)
+    try {
+      await sendRoundNotifications(progress, actualSavedRound, thresholdSendNotification)
+    } catch (err) {
+      process.exit(1)
     }
-
-    let roundCreated = new Round(data)
-    await roundCreated.save()
-
-    // Originally this was dispatched in promise all, but I'm not sure how the update of the round could impact on a race condition
-    await roundPoolsUtils.updateDelegatesPools(roundCreated)
-    await roundSharesUtils.updateDelegatorsShares(roundCreated)
-  } else {
-    console.log(
-      `[Check-Round-Change] - The round progress is bellow the threshold or the notifications were already sent, actions will be not dispatched`
-    )
+    process.exit(0)
   }
 
+  // There is no actual round saved, the round has changed and there is a new one
+  console.log(`[Check-Round-Change] - The round did changed, the new actual round is ${id}`)
+
+  // Saves the new round locally
+  const data = {
+    _id: id,
+    roundId: id,
+    initialized,
+    lastInitializedRound,
+    length,
+    startBlock
+  }
+  let roundCreated = new Round(data)
+  await roundCreated.save()
+
+  // Once the round was created, updates the shares and pools of the current round
+  await roundPoolsUtils.updateDelegatesPools(roundCreated)
+  await roundSharesUtils.updateDelegatorsShares(roundCreated)
+
+  // Finally send notifications
+  try {
+    await sendRoundNotifications(progress, roundCreated, thresholdSendNotification)
+  } catch (err) {
+    process.exit(1)
+  }
+
+  console.log(`[Check-Round-Change] - Finish`)
   process.exit(0)
 }
 
