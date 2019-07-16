@@ -1,9 +1,5 @@
-const fs = require('fs')
-const path = require('path')
-const Handlebars = require('handlebars')
 const config = require('../../config/config')
-
-const { getButtonsBySubscriptor } = require('./utils')
+const { getTelegramDidRewardCallBody, getButtonsBySubscriptor } = require('./telegramUtils')
 
 const sendTelegramClaimRewardCall = async data => {
   const { chatId, address, body } = data
@@ -32,27 +28,10 @@ const sendTelegramClaimRewardCall = async data => {
   return
 }
 
-const getTelegramDidRewardCallBody = data => {
-  const { delegateCalledReward } = data
-
-  const filename = delegateCalledReward
-    ? '../notifications/telegram/delegate-did-reward-call/notification-success.hbs'
-    : '../notifications/telegram/delegate-did-reward-call/notification-warning.hbs'
-  const fileTemplate = path.join(__dirname, filename)
-  const source = fs.readFileSync(fileTemplate, 'utf8')
-
-  // Create telegram body
-  const template = Handlebars.compile(source)
-  const body = template()
-  return {
-    body
-  }
-}
-
 const sendNotificationTelegram = async data => {
   const { subscriber } = data
 
-  const { body } = getTelegramDidRewardCallBody(data)
+  const { body } = getTelegramDidRewardCallBody(subscriber.delegateCalledReward)
 
   // Send telegram
   await sendTelegramClaimRewardCall({
@@ -66,4 +45,4 @@ const sendNotificationTelegram = async data => {
   return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramDidRewardCallBody }
+module.exports = { sendNotificationTelegram }
