@@ -87,7 +87,10 @@ const envVarsSchema = Joi.object({
     .required(),
   MINUTES_TO_WAIT_AFTER_LAST_SENT_TELEGRAM: Joi.string()
     .description('Minutes to wait after last sent telegram')
-    .required()
+    .required(),
+  EARNING_DECIMALS: Joi.number()
+    .description('Amount of decimals to display in the earnings')
+    .default(6)
 })
   .unknown()
   .required()
@@ -132,7 +135,8 @@ const config = {
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,
   apolloApiUrl: envVars.APOLLO_API_URL,
   minutesToWaitAfterLastSentEmail: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_EMAIL,
-  minutesToWaitAfterLastSentTelegram: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_TELEGRAM
+  minutesToWaitAfterLastSentTelegram: envVars.MINUTES_TO_WAIT_AFTER_LAST_SENT_TELEGRAM,
+  earningDecimals: envVars.EARNING_DECIMALS
 }
 
 module.exports = config
