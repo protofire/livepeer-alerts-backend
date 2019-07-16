@@ -22,7 +22,7 @@ const sendTelegramClaimRewardCall = async data => {
       })
 
       console.log(
-        `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
+        `[Telegram bot] - Telegram sent to chatId ${chatId} successfully. Body of the message: ${body}`
       )
       bot = null
     } catch (err) {
