@@ -18,7 +18,8 @@ const {
   sendgridTemplateIdClaimRewardCallPayAttention,
   sendgridTemplateIdClaimRewardUnbondedState,
   sendgridTemplateIdClaimRewardUnbondingState,
-  sendgridTemplateIdNotificationDelegateChangeRules
+  sendgridTemplateIdNotificationDelegateChangeRules,
+  earningDecimals
 } = config
 
 const sendEmail = async data => {
@@ -83,7 +84,7 @@ const sendEmail = async data => {
     try {
       console.log(`Trying to send email to ${email}`)
       await sgMail.send(msg)
-      console.log(`Email sended to ${email} successfully`)
+      console.log(`Email sent to ${email} successfully`)
     } catch (err) {
       console.error(`There was an error trying to send email to ${email}`)
       console.error(err)
@@ -114,7 +115,7 @@ const sendDelegatorNotificationEmail = async (
           : sendgridTemplateIdClaimRewardCallPayAttention
 
         // Calculate lpt earned tokens
-        const lptEarned = formatBalance(delegatorNextReward, 2, 'wei')
+        const lptEarned = formatBalance(delegatorNextReward, earningDecimals, 'wei')
 
         const dateYesterday = moment()
           .subtract(1, 'days')
