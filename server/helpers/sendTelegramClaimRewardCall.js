@@ -33,7 +33,7 @@ const sendTelegramClaimRewardCall = async data => {
         parse_mode: 'HTML'
       })
       console.log(
-        `[Telegram bot] - Telegram sended to chatId ${chatId} successfully. Body of the message: ${body}`
+        `[Telegram bot] - Telegram sent to chatId ${chatId} successfully. Body of the message: ${body}`
       )
     } catch (err) {
       console.error(err)
@@ -43,6 +43,7 @@ const sendTelegramClaimRewardCall = async data => {
 }
 
 const getTelegramClaimRewardCallBody = async subscriber => {
+  const { earningDecimals } = config
   const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
 
@@ -73,7 +74,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
 
       // Calculate earned lpt
-      const lptEarned = formatBalance(earningNextReturn, 2, 'wei')
+      const lptEarned = formatBalance(earningNextReturn, earningDecimals, 'wei')
 
       const dateYesterday = moment()
         .subtract(1, 'days')
