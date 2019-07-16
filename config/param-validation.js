@@ -1,5 +1,4 @@
 const Joi = require('joi')
-const { VALID_SUBSCRIPTION_FREQUENCIES } = require('./constants')
 
 module.exports = {
   // POST /api/subscribers
@@ -9,12 +8,9 @@ module.exports = {
         .email()
         .required(),
       address: Joi.string().required(),
-      emailFrequency: Joi.string()
-        .valid(VALID_SUBSCRIPTION_FREQUENCIES)
+      frequency: Joi.string()
+        .valid('monthly', 'weekly', 'daily', 'hourly')
         .required(),
-      telegramFrequency: Joi.string()
-        .valid(VALID_SUBSCRIPTION_FREQUENCIES)
-        .default('daily'),
       telegramChatId: [Joi.string().optional(), Joi.allow(null)]
     }
   },
@@ -26,12 +22,9 @@ module.exports = {
         .email()
         .required(),
       address: Joi.string().required(),
-      emailFrequency: Joi.string()
-        .valid(VALID_SUBSCRIPTION_FREQUENCIES)
+      frequency: Joi.string()
+        .valid('monthly', 'weekly', 'daily', 'hourly')
         .required(),
-      telegramFrequency: Joi.string()
-        .valid(VALID_SUBSCRIPTION_FREQUENCIES)
-        .default('daily'),
       telegramChatId: [Joi.string().optional(), Joi.allow(null)]
     },
     params: {
