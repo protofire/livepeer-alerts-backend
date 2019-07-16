@@ -146,7 +146,7 @@ ${body}`,
           parse_mode: 'HTML'
         }
       )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+      console.log(`[Telegram bot] - Telegram sent to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
@@ -183,7 +183,7 @@ ${body}`,
           }
         }
       )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+      console.log(`[Telegram bot] - Telegram sent to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
@@ -218,7 +218,7 @@ ${body}`,
         },
         parse_mode: 'HTML'
       })
-      console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+      console.log(`[Telegram bot] - Telegram sent to chatId ${telegramChatId} successfully`)
     } catch (e) {
       console.error(e)
       bot.sendMessage(
