@@ -22,8 +22,6 @@ const {
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
     email: { $ne: null }
   }).exec()
 
@@ -92,8 +90,6 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
 const sendTelegramRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
     telegramChatId: { $ne: null }
   }).exec()
 

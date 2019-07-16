@@ -9,9 +9,10 @@ const {
   fromBaseUnit,
   formatPercentage,
   getDelegatorRoundsUntilUnbonded,
-  getSubscriptorRole,
-  getDidDelegateCallReward
+  getDidDelegateCalledReward
 } = require('../helpers/utils')
+
+const { getSubscriptorRole } = require('../helpers/subscriberUtils')
 
 /**
  * Load subscriber and append to req.
@@ -52,7 +53,7 @@ const get = (req, res) => {
  */
 const create = async (req, res, next) => {
   try {
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, telegramFrequency, emailFrequency, telegramChatId } = req.body
     const count = await Subscriber.countDocuments({ address: address, email: email })
     if (count) {
       throw new APIError('Subscriptor already exist', httpStatus.UNPROCESSABLE_ENTITY, true)
@@ -61,7 +62,8 @@ const create = async (req, res, next) => {
     const subscriber = new Subscriber({
       email: email,
       address: address,
-      frequency: frequency,
+      emailFrequency: emailFrequency,
+      telegramFrequency: telegramFrequency,
       telegramChatId: telegramChatId
     })
 
@@ -74,7 +76,7 @@ const create = async (req, res, next) => {
         const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
         // Check if the delegate didRewardCall
-        const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+        const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
@@ -129,7 +131,7 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const subscriber = req.subscriber
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, emailFrequency, telegramFrequency, telegramChatId } = req.body
 
     // Check for existing subscriber
     const differentEmail = email !== subscriber.email
@@ -150,8 +152,11 @@ const update = async (req, res, next) => {
     if (address) {
       subscriber.address = address
     }
-    if (frequency) {
-      subscriber.frequency = frequency
+    if (emailFrequency) {
+      subscriber.emailFrequency = emailFrequency
+    }
+    if (telegramFrequency) {
+      subscriber.telegramFrecuency = telegramFrequency
     }
     if (telegramChatId) {
       subscriber.telegramChatId = telegramChatId
@@ -246,7 +251,7 @@ const summary = async (req, res, next) => {
     }
 
     // Check if the delegate didRewardCall
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
     switch (role) {
       case constants.ROLE.TRANSCODER:

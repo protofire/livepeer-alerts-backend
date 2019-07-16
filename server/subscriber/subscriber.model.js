@@ -15,9 +15,15 @@ let SubscriberSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  frequency: {
+  emailFrequency: {
     type: String,
-    required: true
+    required: true,
+    default: 'daily'
+  },
+  telegramFrequency: {
+    type: String,
+    required: false,
+    default: 'daily'
   },
   telegramChatId: {
     type: String,
@@ -122,20 +128,6 @@ SubscriberSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .exec()
-  },
-
-  /**
-   * Get subscribers to notify
-   * @param {number} skip - Number of subscribers to be skipped.
-   * @param {number} limit - Limit number of subscribers to be returned.
-   * @returns {Promise<Subscriber[]>}
-   */
-  getSubscribers(frequency) {
-    return this.find({ frequency: frequency, activated: 1 })
-      .exec()
-      .then(subscribers => {
-        return subscribers
-      })
   },
 
   removeAll() {
