@@ -14,11 +14,9 @@ const {
   sendDelegatorNotificationDelegateChangeRulesEmail
 } = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
-const {
-  getSubscriptorRole,
-  getDidDelegateCalledReward,
-  calculateIntervalAsMinutes
-} = require('../helpers/utils')
+const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../helpers/utils')
+
+const { getSubscriptorRole } = require('../helpers/subscriberUtils')
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({

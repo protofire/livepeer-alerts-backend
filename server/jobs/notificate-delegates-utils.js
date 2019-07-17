@@ -3,13 +3,10 @@ const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = 
 
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
-const {
-  getSubscriptorRole,
-  getDidDelegateCalledReward,
-  calculateIntervalAsMinutes
-} = require('../helpers/utils')
+const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../helpers/utils')
 const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
+const { getSubscriptorRole } = require('../helpers/subscriberUtils')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []

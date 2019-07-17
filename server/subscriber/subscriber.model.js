@@ -142,7 +142,7 @@ SubscriberSchema.statics = {
   },
 
   async getDelegatorSubscribers() {
-    const { getSubscriptorRole } = require('../helpers/utils')
+    const { getSubscriptorRole } = require('../helpers/subscriberUtils')
     const delegatorsList = []
     const rolesCheckPromise = []
     const allSubscribers = await this.find()
