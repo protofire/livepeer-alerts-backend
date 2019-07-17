@@ -45,12 +45,12 @@ const getSubscribers = async subscribers => {
 const sendEmailRewardCallNotificationToDelegates = async () => {
   const subscribers = await Subscriber.find({
     email: { $ne: null }
-  }).exec()
-  console.log(`[Notificate-Delegates] - Start sending email notification to delegates}`)
-  const subscribersToNofity = await getSubscribers(subscribers)
+  })
+  console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
+  const subscribersToNotify = await getSubscribers(subscribers)
 
   const subscribersToSendEmails = []
-  for (const subscriberToNotify of subscribersToNofity) {
+  for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
     if (subscriber.lastEmailSent) {
       // Calculate minutes last email sent
