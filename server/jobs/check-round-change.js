@@ -53,13 +53,13 @@ const workerCheckRoundChange = async () => {
     )
     // Send email notifications for delegate and delegators
     await Promise.all([
-      sendEmailRewardCallNotificationToDelegators(),
-      sendEmailRewardCallNotificationToDelegates()
+      sendEmailRewardCallNotificationToDelegators(currentRoundInfo),
+      sendEmailRewardCallNotificationToDelegates(currentRoundInfo)
     ])
     // Send telegram notifications for delegates
     await Promise.all([
-      sendTelegramRewardCallNotificationToDelegators(),
-      sendTelegramRewardCallNotificationToDelegates()
+      sendTelegramRewardCallNotificationToDelegators(currentRoundInfo),
+      sendTelegramRewardCallNotificationToDelegates(currentRoundInfo)
     ])
 
     // Once the notifications are sent, update round and lock

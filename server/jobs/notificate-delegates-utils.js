@@ -1,5 +1,4 @@
 const config = require('../../config/config')
-const { minutesToWaitAfterLastSentTelegram } = config
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const utils = require('../helpers/utils')
@@ -42,15 +41,17 @@ const getDelegateSubscribers = async subscribers => {
   return subscribersToNotify
 }
 
-const sendEmailRewardCallNotificationToDelegates = async () => {
+const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegates()')
+  }
   const subscribers = await Subscriber.find({
     email: { $ne: null }
   })
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
+  // Fetchs only the subscribers that are delegates
   const subscribersToNotify = await getDelegateSubscribers(subscribers)
   const subscribersToSendEmails = []
-  const protocolService = getProtocolService()
-  const currentRoundInfo = await protocolService.getCurrentRoundInfo()
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
@@ -60,7 +61,7 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
     )
     if (!shouldSubscriberReceiveNotifications) {
       console.log(
-        `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
+        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
       )
       continue
     }
@@ -76,28 +77,33 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
   return subscribersToNotify
 }
 
-const sendTelegramRewardCallNotificationToDelegates = async () => {
+const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error(
+      'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegates()'
+    )
+  }
   const subscribers = await Subscriber.find({
     telegramChatId: { $ne: null }
-  }).exec()
+  })
 
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
 
   const subscribersToNofity = await getDelegateSubscribers(subscribers)
 
   const subscribersToSendTelegrams = []
+  const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNofity) {
     const { subscriber } = subscriberToNotify
-    if (subscriber.lastTelegramSent) {
-      // Calculate minutes last telegram sent
-      const minutes = utils.calculateIntervalAsMinutes(subscriber.lastTelegramSent)
-
-      if (minutes < minutesToWaitAfterLastSentTelegram) {
-        console.log(
-          `[Notificate-Delegates] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
-        )
-        continue
-      }
+    const shouldSubscriberReceiveNotifications = subscribersUtils.shouldSubscriberReceiveEmailNotifications(
+      subscriber,
+      currentRoundId
+    )
+    if (!shouldSubscriberReceiveNotifications) {
+      console.log(
+        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
+      )
+      continue
     }
 
     subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
