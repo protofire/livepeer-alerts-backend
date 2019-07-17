@@ -16,7 +16,7 @@ const {
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const {
   getSubscriptorRole,
-  getDidDelegateCallReward,
+  getDidDelegateCalledReward,
   calculateIntervalAsMinutes
 } = require('../helpers/utils')
 
@@ -61,7 +61,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
       const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
         return Promise.all([
-          getDidDelegateCallReward(delegator.delegateAddress),
+          getDidDelegateCalledReward(delegator.delegateAddress),
           delegatorService.getDelegatorNextReward(delegator.address)
         ]).catch(err => retry())
       })

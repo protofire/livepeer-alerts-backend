@@ -5,7 +5,7 @@ const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const {
   getSubscriptorRole,
-  getDidDelegateCallReward,
+  getDidDelegateCalledReward,
   calculateIntervalAsMinutes
 } = require('../helpers/utils')
 const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
@@ -32,7 +32,7 @@ const getSubscribers = async subscribers => {
     // OK, is a transcoder, let's send notifications
 
     // Check if transcoder call reward
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
     let subscriberToNotify = {
       subscriber,
