@@ -11,6 +11,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
+
   const subscribersDelegators = await subscriberUtils.getSubscribersDelegatorsAndDelegator()
 
   let emailsToSend = []
@@ -34,7 +35,6 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         )
         continue
       }
-
       const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
         return Promise.all([
           utils.getDidDelegateCalledReward(delegator.delegateAddress),
