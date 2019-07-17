@@ -166,8 +166,8 @@ const sendDelegatorNotificationEmail = async (
 
     await sendEmail(body)
 
-    // // Save last email sent
-    subscriber.lastEmailSent = Date.now()
+    // Save the round in which the last email was sent
+    subscriber.lastEmailSent = currentRound
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)
@@ -211,7 +211,9 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   return
 }
 
-module.exports = {
+const delegatorEmailUtils = {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
 }
+
+module.exports = delegatorEmailUtils

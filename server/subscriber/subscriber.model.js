@@ -1,3 +1,5 @@
+const { DAILY_FREQUENCY } = require('../../config/constants')
+
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
 const APIError = require('../helpers/APIError')
@@ -18,12 +20,12 @@ let SubscriberSchema = new mongoose.Schema({
   emailFrequency: {
     type: String,
     required: true,
-    default: 'daily'
+    default: DAILY_FREQUENCY
   },
   telegramFrequency: {
     type: String,
     required: false,
-    default: 'daily'
+    default: DAILY_FREQUENCY
   },
   telegramChatId: {
     type: String,
@@ -42,12 +44,14 @@ let SubscriberSchema = new mongoose.Schema({
       return Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     }
   },
+  // References the roundID in which the last email was sent
   lastEmailSent: {
-    type: Date,
+    type: String,
     default: null
   },
+  // References the roundID in which the last telegram was sent
   lastTelegramSent: {
-    type: Date,
+    type: String,
     default: null
   },
   createdAt: {
