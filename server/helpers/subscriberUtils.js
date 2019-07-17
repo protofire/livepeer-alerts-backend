@@ -1,6 +1,10 @@
 const Subscriber = require('../subscriber/subscriber.model')
 const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
-const { VALID_SUBSCRIPTION_FREQUENCIES } = require('../../config/constants')
+const {
+  VALID_SUBSCRIPTION_FREQUENCIES,
+  WEEKLY_FREQUENCY,
+  DAILY_FREQUENCY
+} = require('../../config/constants')
 const promiseRetry = require('promise-retry')
 
 /**
@@ -179,6 +183,75 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
+/**
+ * Checks that the last round in which the an email was sent, is bellow the frequency that the subscriber selected
+ * For example: the subscriber has a frequency of 'daily', the last round in which the job sent an email is 1
+ * The current round is 2 => an email must be sended. If the frequency was 'weekly' the email must be sent on the round 8.
+ */
+const shouldSubscriberReceiveEmailNotifications = (subscriber, currentRound) => {
+  if (!subscriber) {
+  }
+  if (!currentRound) {
+  }
+  if (!subscriber.lastEmailSent) {
+    return true
+  }
+  return shouldTheSubscriberReceiveNotification(
+    currentRound,
+    subscriber.lastEmailSent,
+    subscriber.emailFrequency
+  )
+}
+
+/**
+ * Checks that the last round in which the a telegram was sent, is bellow the frequency that the subscriber selected
+ * For example: the subscriber has a frequency of 'daily', the last round in which the job sent an email is 1
+ * The current round is 2 => a telegram must be sended. If the frequency was 'weekly' the email must be sent on the round 8.
+ */
+const shouldSubscriberReceiveTelegramNotifications = (subscriber, currentRound) => {
+  if (!subscriber) {
+  }
+  if (!currentRound) {
+  }
+  if (!subscriber.lastTelegramSent) {
+    return true
+  }
+  return shouldTheSubscriberReceiveNotification(
+    currentRound,
+    subscriber.lastTelegramSent,
+    subscriber.telegramFrequency
+  )
+}
+
+const shouldTheSubscriberReceiveNotification = (
+  currentRound,
+  subscriberLastRoundNotificationReceived,
+  subscriberFrequency
+) => {
+  if (!currentRound) {
+  }
+  if (!subscriberLastRoundNotificationReceived) {
+  }
+  if (!subscriberFrequency) {
+  }
+  if (!subscriberUtils.isValidFrequency(subscriberFrequency)) {
+  }
+  const roundsBetweenLastNotificationSent = currentRound - subscriberLastRoundNotificationReceived
+  switch (subscriberFrequency) {
+    case DAILY_FREQUENCY: {
+      if (roundsBetweenLastNotificationSent < 1) {
+        return false
+      }
+    }
+    case WEEKLY_FREQUENCY: {
+      if (roundsBetweenLastNotificationSent < 7) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
 const subscriberUtils = {
   emailSubscriptorExists,
   telegramSubscriptorExists,
@@ -186,7 +259,9 @@ const subscriberUtils = {
   createEmailSubscriptor,
   createTelegramSubscriptor,
   removeTelegramSubscription,
-  getSubscriptorRole
+  getSubscriptorRole,
+  shouldSubscriberReceiveEmailNotifications,
+  shouldSubscriberReceiveTelegramNotifications
 }
 
 module.exports = subscriberUtils

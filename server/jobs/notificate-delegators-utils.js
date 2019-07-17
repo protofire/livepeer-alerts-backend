@@ -4,8 +4,6 @@ const mongoose = require('../../config/mongoose')
 
 const config = require('../../config/config')
 const { minutesToWaitAfterLastSentTelegram } = config
-const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../../config/constants')
-
 const { getProtocolService } = require('../helpers/services/protocolService')
 const { getDelegatorService } = require('../helpers/services/delegatorService')
 
@@ -13,8 +11,7 @@ const Subscriber = require('../subscriber/subscriber.model')
 const delegatorEmailUtils = require('../helpers/sendDelegatorEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
 const utils = require('../helpers/utils')
-
-const SubscriberUtils = require('../helpers/subscriberUtils')
+const subscriberUtils = require('../helpers/subscriberUtils')
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({ email: { $ne: null } })
@@ -28,7 +25,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
   for (const subscriber of subscribers) {
     try {
-      const { role, constants, delegator } = await SubscriberUtils.getSubscriptorRole(subscriber)
+      const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
       // Send notification only for delegators
       if (role === constants.ROLE.TRANSCODER) {
@@ -38,42 +35,15 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
         continue
       }
 
-      /**
-       * Checks that the last round in which the an email was sent, is bellow the frequency that the subscriber selected
-       * For example: the subscriber has a frequency of 'daily', the last round in which the job sent an email is 1
-       * The current round is 2 => an email must be sended. If the frequency was 'weekly' the email must be sent on the round 8.
-       */
-      if (subscriber.lastEmailSent) {
-        const roundsBetweenLastEmailSent = currentRoundId - subscriber.lastEmailSent
+      const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRoundId
+      )
+      if (!shouldSubscriberReceiveNotifications) {
         console.log(
-          `[Notificate-Delegators] - Rounds between last email sent and current round: ${roundsBetweenLastEmailSent} - Subscription frequency: ${subscriber.emailFrequency} - Email ${subscriber.email} - Address  ${subscriber.address}`
+          `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
         )
-        switch (subscriber.emailFrequency) {
-          case DAILY_FREQUENCY: {
-            if (roundsBetweenLastEmailSent < 1) {
-              console.log(
-                `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
-              )
-              continue
-            }
-            break
-          }
-          case WEEKLY_FREQUENCY: {
-            if (roundsBetweenLastEmailSent < 7) {
-              console.log(
-                `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
-              )
-              continue
-            }
-            break
-          }
-          default: {
-            console.error(
-              `The subscriber: ${subscriber._id} has a non-supported frequency: ${subscriber.emailFrequency}`
-            )
-            continue
-          }
-        }
+        continue
       }
 
       const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
@@ -129,7 +99,7 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
     }
 
     // Send notification only for delegators
-    const { role, constants } = await SubscriberUtils.getSubscriptorRole(subscriber)
+    const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
     if (role === constants.ROLE.TRANSCODER) {
       console.log(
         `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because is a delegate`
