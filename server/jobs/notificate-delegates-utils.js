@@ -1,61 +1,23 @@
-const config = require('../../config/config')
 const mongoose = require('../../config/mongoose')
 const Subscriber = require('../subscriber/subscriber.model')
 const utils = require('../helpers/utils')
-const subscribersUtils = require('../helpers/subscriberUtils')
+const subscriberUtils = require('../helpers/subscriberUtils')
 
 const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
 const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
-
-const getDelegateSubscribers = async subscribers => {
-  let subscribersToNotify = []
-
-  for (const subscriber of subscribers) {
-    if (!subscriber || !subscriber.address) {
-      continue
-    }
-
-    // Detect role
-    const { constants, role, delegator } = await subscribersUtils.getSubscriptorRole(subscriber)
-
-    if (!delegator || !delegator.delegateAddress) {
-      continue
-    }
-
-    if (role !== constants.ROLE.TRANSCODER) {
-      continue
-    }
-    // OK, is a transcoder, let's send notifications
-
-    // Check if transcoder call reward
-    const delegateCalledReward = await utils.getDidDelegateCalledReward(delegator.delegateAddress)
-
-    let subscriberToNotify = {
-      subscriber,
-      delegateCalledReward
-    }
-
-    subscribersToNotify.push(subscriberToNotify)
-  }
-
-  return subscribersToNotify
-}
 
 const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegates()')
   }
-  const subscribers = await Subscriber.find({
-    email: { $ne: null }
-  })
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
   // Fetchs only the subscribers that are delegates
-  const subscribersToNotify = await getDelegateSubscribers(subscribers)
+  const subscribersToNotify = await subscriberUtils.getSubscribersDelegates()
   const subscribersToSendEmails = []
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
-    const shouldSubscriberReceiveNotifications = subscribersUtils.shouldSubscriberReceiveEmailNotifications(
+    const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
       subscriber,
       currentRoundId
     )
@@ -66,9 +28,18 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
       continue
     }
 
-    subscribersToSendEmails.push(sendDelegateNotificationEmail(subscriberToNotify))
-  }
+    // Check if delegate called reward
+    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    console.log(
+      `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
+    )
+    const notification = {
+      subscriber,
+      delegateCalledReward
+    }
 
+    subscribersToSendEmails.push(sendDelegateNotificationEmail(notification))
+  }
   console.log(
     `[Notificate-Delegates] - Emails subscribers to notify ${subscribersToSendEmails.length}`
   )
@@ -83,19 +54,13 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
       'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegates()'
     )
   }
-  const subscribers = await Subscriber.find({
-    telegramChatId: { $ne: null }
-  })
-
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
-
-  const subscribersToNofity = await getDelegateSubscribers(subscribers)
-
+  const subscribersToNofity = await subscriberUtils.getSubscribersDelegates()
   const subscribersToSendTelegrams = []
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNofity) {
     const { subscriber } = subscriberToNotify
-    const shouldSubscriberReceiveNotifications = subscribersUtils.shouldSubscriberReceiveEmailNotifications(
+    const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
       subscriber,
       currentRoundId
     )
@@ -105,8 +70,17 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
       )
       continue
     }
+    // Check if delegate called reward
+    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    console.log(
+      `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
+    )
+    const notification = {
+      subscriber,
+      delegateCalledReward
+    }
 
-    subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
+    subscribersToSendTelegrams.push(sendNotificationTelegram(notification))
   }
 
   console.log(

@@ -266,6 +266,47 @@ const shouldTheSubscriberReceiveNotification = (
   return true
 }
 
+/**
+ * Returns the list of all the subscribers which their role is delegator and their delegator associated
+ * @returns {Promise<array>}
+ */
+const getSubscribersDelegatorsAndDelegator = async () => {
+  console.log('[Subscribers-utils] - Returning list of subscribers delegators')
+  const allSubscribers = await Subscriber.find({ email: { $ne: null } })
+  const subscribersList = []
+  for (let subscriber of allSubscribers) {
+    const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+    if (role === constants.ROLE.DELEGATOR) {
+      subscribersList.push({
+        subscriber,
+        delegator
+      })
+    }
+  }
+  console.log(`[Subscribers-utils] - Amount of subscribers delegators: ${subscribersList.length}`)
+  return subscribersList
+}
+
+/**
+ * Returns the list of all the subscribers which their role is delegate
+ * @returns {Promise<array>}
+ */
+const getSubscribersDelegates = async () => {
+  console.log('[Subscribers-utils] - Returning list of subscribers delegates')
+  const allSubscribers = await Subscriber.find({ email: { $ne: null } })
+  const subscribersList = []
+  for (let subscriber of allSubscribers) {
+    const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
+    if (role === constants.ROLE.TRANSCODER) {
+      subscribersList.push({
+        subscriber
+      })
+    }
+  }
+  console.log(`[Subscribers-utils] - Amount of subscribers delegates: ${subscribersList.length}`)
+  return subscribersList
+}
+
 const subscriberUtils = {
   emailSubscriptorExists,
   telegramSubscriptorExists,
@@ -276,7 +317,9 @@ const subscriberUtils = {
   getSubscriptorRole,
   shouldTheSubscriberReceiveNotification,
   shouldSubscriberReceiveEmailNotifications,
-  shouldSubscriberReceiveTelegramNotifications
+  shouldSubscriberReceiveTelegramNotifications,
+  getSubscribersDelegates,
+  getSubscribersDelegatorsAndDelegator
 }
 
 module.exports = subscriberUtils
