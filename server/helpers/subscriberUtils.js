@@ -186,12 +186,14 @@ const getSubscriptorRole = async subscriptor => {
 /**
  * Checks that the last round in which the an email was sent, is bellow the frequency that the subscriber selected
  * For example: the subscriber has a frequency of 'daily', the last round in which the job sent an email is 1
- * The current round is 2 => an email must be sended. If the frequency was 'weekly' the email must be sent on the round 8.
+ * The current round is 2 => an email must be sent. If the frequency was 'weekly' the email must be sent on the round 8.
  */
 const shouldSubscriberReceiveEmailNotifications = (subscriber, currentRound) => {
   if (!subscriber) {
+    throw new Error('No subscribers received on shouldSubscriberReceiveEmailNotifications()')
   }
   if (!currentRound) {
+    throw new Error('No currentRound received on shouldSubscriberReceiveEmailNotifications()')
   }
   if (!subscriber.lastEmailSent) {
     return true
@@ -206,12 +208,14 @@ const shouldSubscriberReceiveEmailNotifications = (subscriber, currentRound) => 
 /**
  * Checks that the last round in which the a telegram was sent, is bellow the frequency that the subscriber selected
  * For example: the subscriber has a frequency of 'daily', the last round in which the job sent an email is 1
- * The current round is 2 => a telegram must be sended. If the frequency was 'weekly' the email must be sent on the round 8.
+ * The current round is 2 => a telegram must be sent. If the frequency was 'weekly' the email must be sent on the round 8.
  */
 const shouldSubscriberReceiveTelegramNotifications = (subscriber, currentRound) => {
   if (!subscriber) {
+    throw new Error('No subscribers received on shouldSubscriberReceiveTelegramNotifications()')
   }
   if (!currentRound) {
+    throw new Error('No currentRound received on shouldSubscriberReceiveTelegramNotifications()')
   }
   if (!subscriber.lastTelegramSent) {
     return true
@@ -229,12 +233,20 @@ const shouldTheSubscriberReceiveNotification = (
   subscriberFrequency
 ) => {
   if (!currentRound) {
+    throw new Error('No currentRound received on shouldTheSubscriberReceiveNotification()')
   }
   if (!subscriberLastRoundNotificationReceived) {
+    throw new Error(
+      'No subscriberLastRoundNotificationReceived received on shouldTheSubscriberReceiveNotification()'
+    )
   }
   if (!subscriberFrequency) {
+    throw new Error('No subscriberFrequency received on shouldTheSubscriberReceiveNotification()')
   }
   if (!subscriberUtils.isValidFrequency(subscriberFrequency)) {
+    throw new Error(
+      'The frequency received is not valid on shouldTheSubscriberReceiveNotification()'
+    )
   }
   const roundsBetweenLastNotificationSent = currentRound - subscriberLastRoundNotificationReceived
   switch (subscriberFrequency) {
@@ -242,11 +254,13 @@ const shouldTheSubscriberReceiveNotification = (
       if (roundsBetweenLastNotificationSent < 1) {
         return false
       }
+      break
     }
     case WEEKLY_FREQUENCY: {
       if (roundsBetweenLastNotificationSent < 7) {
         return false
       }
+      break
     }
   }
   return true
@@ -260,6 +274,7 @@ const subscriberUtils = {
   createTelegramSubscriptor,
   removeTelegramSubscription,
   getSubscriptorRole,
+  shouldTheSubscriberReceiveNotification,
   shouldSubscriberReceiveEmailNotifications,
   shouldSubscriberReceiveTelegramNotifications
 }

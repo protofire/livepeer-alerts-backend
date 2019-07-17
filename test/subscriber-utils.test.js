@@ -1,5 +1,6 @@
 const subscriberUtils = require('../server/helpers/subscriberUtils')
 const Subscriber = require('../server/subscriber/subscriber.model')
+const { createSubscriber } = require('../server/helpers/test/util')
 const { VALID_SUBSCRIPTION_FREQUENCIES } = require('../config/constants')
 const mongoose = require('mongoose')
 const chai = require('chai')
@@ -347,6 +348,414 @@ describe('## Subscriber utils functions tests', function() {
       telegramSubscriptorExistsStub.restore()
       subscriberMock.restore()
       isValidFrequencyStub.restore()
+    })
+  })
+  describe('# shouldSubscriberReceiveEmailNotifications', () => {
+    it('Throws error if no subscriber received', done => {
+      // given
+      const subscriber = null
+      const currentRound = 1
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldSubscriberReceiveEmailNotifications(subscriber, currentRound)
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Throws error if no currentRound received', done => {
+      // given
+      const subscriber = createSubscriber()
+      const currentRound = null
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldSubscriberReceiveEmailNotifications(subscriber, currentRound)
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the subscriber has no lastEmailSent', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSent = null
+      const currentRound = 1
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the difference between the currentRound and the lastEmailSent is bellow the emailFrequency, the emailFrequency is daily', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSent = 1
+      subscriber.emailFrequency = 'daily'
+      const currentRound = 3
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns false if the difference between the currentRound and the lastEmailSent is above the emailFrequency, the emailFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSent = 1
+      subscriber.emailFrequency = 'weekly'
+      const currentRound = 3
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the difference between the currentRound and the lastEmailSent is bellow the emailFrequency, the emailFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSent = 1
+      subscriber.emailFrequency = 'weekly'
+      const currentRound = 8
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns false if the difference between the currentRound and the lastEmailSent is agove the emailFrequency, the emailFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSent = 1
+      subscriber.emailFrequency = 'weekly'
+      const currentRound = 7
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+  })
+  describe('# shouldSubscriberReceiveTelegramNotifications', () => {
+    it('Throws error if no subscriber received', done => {
+      // given
+      const subscriber = null
+      const currentRound = 1
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldSubscriberReceiveTelegramNotifications(subscriber, currentRound)
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Throws error if no currentRound received', done => {
+      // given
+      const subscriber = createSubscriber()
+      const currentRound = null
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldSubscriberReceiveTelegramNotifications(subscriber, currentRound)
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the subscriber has no lastTelegramSent', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastTelegramSent = null
+      const currentRound = 1
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the difference between the currentRound and the lastTelegram is bellow the telegramFrequency, the telegramFrequency is daily', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastTelegramSent = 1
+      subscriber.telegramFrequency = 'daily'
+      const currentRound = 3
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns false if the difference between the currentRound and the lastTelegramSent is above the telegramFrequency, the telegramFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastTelegramSent = 1
+      subscriber.telegramFrequency = 'weekly'
+      const currentRound = 3
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns true if the difference between the currentRound and the lastTelegramSent is bellow the telegramFrequency, the telegramFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastTelegramSent = 1
+      subscriber.telegramFrequency = 'weekly'
+      const currentRound = 8
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Returns false if the difference between the currentRound and the lastTelegramSent is agove the telegramFrequency, the telegramFrequency is weekly', done => {
+      // given
+      const subscriber = createSubscriber()
+      subscriber.lastTelegramSent = 1
+      subscriber.telegramFrequency = 'weekly'
+      const currentRound = 7
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+        subscriber,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+  })
+  describe('# shouldTheSubscriberReceiveNotification', () => {
+    it('Throws error if no currentRound received', done => {
+      // given
+      const currentRound = null
+      const subscriberLastRoundNotification = 1
+      const subscriberFrequency = 'daily'
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldTheSubscriberReceiveNotification(
+          currentRound,
+          subscriberLastRoundNotification,
+          subscriberFrequency
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Throws error if no subscriberLastRoundNotificationReceived received', done => {
+      // given
+      const currentRound = 1
+      const subscriberLastRoundNotification = null
+      const subscriberFrequency = 'daily'
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldTheSubscriberReceiveNotification(
+          currentRound,
+          subscriberLastRoundNotification,
+          subscriberFrequency
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Throws error if no subscriberFrequency received', done => {
+      // given
+      const currentRound = 1
+      const subscriberLastRoundNotification = 1
+      const subscriberFrequency = null
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldTheSubscriberReceiveNotification(
+          currentRound,
+          subscriberLastRoundNotification,
+          subscriberFrequency
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('Throws error if the subscriberFrequency received is invalid', done => {
+      // given
+      const currentRound = 1
+      const subscriberLastRoundNotification = 1
+      const subscriberFrequency = 'asd'
+      let resultExpected = true
+      let result = false
+
+      // when
+      try {
+        subscriberUtils.shouldTheSubscriberReceiveNotification(
+          currentRound,
+          subscriberLastRoundNotification,
+          subscriberFrequency
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('The frequency is daily, the currentRound is 10, the lastRoundNotification is 9 => should return true', done => {
+      // given
+      const currentRound = 10
+      const subscriberLastRoundNotification = 9
+      const subscriberFrequency = 'daily'
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldTheSubscriberReceiveNotification(
+        currentRound,
+        subscriberLastRoundNotification,
+        subscriberFrequency
+      )
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('The frequency is daily, the currentRound is 10, the lastRoundNotification is 10 => should return false', done => {
+      // given
+      const currentRound = 10
+      const subscriberLastRoundNotification = 10
+      const subscriberFrequency = 'daily'
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldTheSubscriberReceiveNotification(
+        currentRound,
+        subscriberLastRoundNotification,
+        subscriberFrequency
+      )
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('The frequency is weekly, the currentRound is 10, the lastRoundNotification is 3 => should return true', done => {
+      // given
+      const currentRound = 10
+      const subscriberLastRoundNotification = 3
+      const subscriberFrequency = 'weekly'
+      let resultExpected = true
+
+      // when
+      const result = subscriberUtils.shouldTheSubscriberReceiveNotification(
+        currentRound,
+        subscriberLastRoundNotification,
+        subscriberFrequency
+      )
+      // then
+      expect(result).equal(resultExpected)
+      done()
+    })
+    it('The frequency is weekly, the currentRound is 10, the lastRoundNotification is 4 => should return false', done => {
+      // given
+      const currentRound = 10
+      const subscriberLastRoundNotification = 4
+      const subscriberFrequency = 'weekly'
+      let resultExpected = false
+
+      // when
+      const result = subscriberUtils.shouldTheSubscriberReceiveNotification(
+        currentRound,
+        subscriberLastRoundNotification,
+        subscriberFrequency
+      )
+      // then
+      expect(result).equal(resultExpected)
+      done()
     })
   })
 })
