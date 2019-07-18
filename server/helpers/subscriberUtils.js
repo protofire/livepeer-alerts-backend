@@ -1,6 +1,5 @@
 const Subscriber = require('../subscriber/subscriber.model')
 const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
-const { VALID_SUBSCRIPTION_FREQUENCIES } = require('../../config/constants')
 const promiseRetry = require('promise-retry')
 
 /**
@@ -41,18 +40,6 @@ const telegramSubscriptorExists = async chatId => {
 }
 
 /**
- * Returns true if the given frequency is accepted on the list of frequencies
- * Otherwise returns false
- * @param frequency
- */
-const isValidFrequency = frequency => {
-  if (!frequency) {
-    return false
-  }
-  return VALID_SUBSCRIPTION_FREQUENCIES.includes(frequency)
-}
-
-/**
  * Creates a new email subscriptor based on email, address and emailFrequency
  * Throws exception if the subscriptor with that email and address already exists or if the params are not defined
  * Returns the createdSubscriber
@@ -71,9 +58,6 @@ const createEmailSubscriptor = async (address, email, emailFrequency) => {
   if (!emailFrequency) {
     throw new Error(`The emailFrequency received is not defined`)
   }
-  if (!subscriberUtils.isValidFrequency(emailFrequency)) {
-    throw new Error(`The emailFrequency received is not supported`)
-  }
 
   // First check if the emailSubscriptor already exists
   const subscriberExists = await subscriberUtils.emailSubscriptorExists(address, email)
@@ -86,7 +70,7 @@ const createEmailSubscriptor = async (address, email, emailFrequency) => {
   const subscriber = new Subscriber({
     email,
     address,
-    emailFrequency
+    frequency: emailFrequency
   })
   const savedSubscriber = await subscriber.save()
   return savedSubscriber
@@ -111,11 +95,8 @@ const createTelegramSubscriptor = async (address, chatId, telegramFrequency) => 
   if (!telegramFrequency) {
     throw new Error(`The telegramFrequency received is not defined`)
   }
-  if (!isValidFrequency(telegramFrequency)) {
-    throw new Error(`The telegramFrequency received is not supported`)
-  }
 
-  // First check if the telegramSubscritor already exists
+  // First check if the telegramSubscriptor already exists
   const subscriberExists = await subscriberUtils.telegramSubscriptorExists(chatId)
 
   if (subscriberExists) {
@@ -126,7 +107,7 @@ const createTelegramSubscriptor = async (address, chatId, telegramFrequency) => 
   let subscriber = new Subscriber({
     address,
     telegramChatId: chatId,
-    telegramFrequency
+    frequency: telegramFrequency
   })
   const savedSubscriber = await subscriber.save()
   return savedSubscriber
@@ -182,7 +163,6 @@ const getSubscriptorRole = async subscriptor => {
 const subscriberUtils = {
   emailSubscriptorExists,
   telegramSubscriptorExists,
-  isValidFrequency,
   createEmailSubscriptor,
   createTelegramSubscriptor,
   removeTelegramSubscription,
