@@ -8,6 +8,7 @@ const config = require('../../config/config')
 
 const { getProtocolService } = require('../helpers/services/protocolService')
 const roundPoolsUtils = require('../helpers/updateRoundPools')
+const roundSharesUtils = require('../helpers/updateRoundShares')
 
 const Round = require('../round/round.model')
 
@@ -61,7 +62,6 @@ const workerCheckRoundChange = async () => {
       sendTelegramRewardCallNotificationToDelegators(),
       sendTelegramRewardCallNotificationToDelegates()
     ])
-
     // Once the notifications are sent, update round and lock
     const data = {
       _id: id,
@@ -75,8 +75,9 @@ const workerCheckRoundChange = async () => {
     let roundCreated = new Round(data)
     await roundCreated.save()
 
-    // Dispatch updates of round pools
+    // Originally this was dispatched in promise all, but I'm not sure how the update of the round could impact on a race condition
     await roundPoolsUtils.updateDelegatesPools(roundCreated)
+    await roundSharesUtils.updateDelegatorsShares(roundCreated)
   } else {
     console.log(
       `[Check-Round-Change] - The round progress is bellow the threshold or the notifications were already sent, actions will be not dispatched`
