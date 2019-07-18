@@ -40,13 +40,23 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
   }
 
   // Checks if the progress if above a certain threshold
+  /**
+   * Note: the progress of the round goes from 100 (round has just started) to 0 (round ends)
+   * So if you want to check if the round is near the end (90% for example), the threshold should be 10
+   */
+  let percentRoundCompleted = 100 - roundProgress
+  percentRoundCompleted = percentRoundCompleted.toFixed(2)
+  let percentRoundCompletedThreshold = 100 - thresholdSendNotification
+  percentRoundCompletedThreshold = percentRoundCompletedThreshold.toFixed(2)
   if (roundProgress < thresholdSendNotification) {
     console.log(
-      `[Check-Round-Change] - the roundProgress: ${roundProgress} is bellow the threshold: ${thresholdSendNotification}, skipping sendNotifications`
+      `[Check-Round-Change] - the roundProgress: ${roundProgress} (${percentRoundCompleted}% completed) is bellow the threshold: ${thresholdSendNotification} (${percentRoundCompletedThreshold}% completed), skipping sendNotifications`
     )
     return notificationsSent
   }
-
+  console.log(
+    `[Check-Round-Change] - The round progress: ${roundProgress} (${percentRoundCompleted}% completed) is above the threshold: ${thresholdSendNotification} (${percentRoundCompletedThreshold}% completed), sending notifications`
+  )
   // Because the notifications were not sent for the round, and the current round progress is above a certain threshold, send notifications
 
   // Send email notifications for delegate and delegators
