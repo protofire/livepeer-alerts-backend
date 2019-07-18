@@ -3,11 +3,8 @@ const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = 
 
 const mongoose = require('../../../config/mongoose')
 const Subscriber = require('../../subscriber/subscriber.model')
-const {
-  getSubscriptorRole,
-  getDidDelegateCallReward,
-  calculateIntervalAsMinutes
-} = require('../utils')
+const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
+const subscriberUtils = require('../subscriberUtils')
 const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
 const { sendNotificationTelegram } = require('../sendTelegramDidRewardCall')
 
@@ -20,7 +17,7 @@ const getSubscribers = async subscribers => {
     }
 
     // Detect role
-    const { constants, role, delegator } = await getSubscriptorRole(subscriber)
+    const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
     if (!delegator || !delegator.delegateAddress) {
       continue
@@ -32,7 +29,7 @@ const getSubscribers = async subscribers => {
     // OK, is a transcoder, let's send notifications
 
     // Check if transcoder call reward
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
     let subscriberToNotify = {
       subscriber,
