@@ -103,7 +103,7 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
       }
     }
 
-    subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
+    subscribersToSendTelegrams.push(sendNotificationTelegram(subscriber))
   }
 
   console.log(
