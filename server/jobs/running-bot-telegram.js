@@ -41,12 +41,6 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       throw new NoAddressError()
     }
 
-    // Save address an chatId
-    const subscriptorData = {
-      address: address,
-      chatId: telegramChatId
-    }
-
     // Must exist only one subscriber object
     let subscriberObject = await SubscriberModel.findOne({ telegramChatId }).exec()
     if (subscriberObject) {
@@ -56,12 +50,10 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
 
     // Clean all existing telegrams objects
     await TelegramModel.deleteMany({ chatId: telegramChatId })
-
     // Create new telegram object
-    const telegramModel = new TelegramModel(subscriptorData)
+    const telegramModel = new TelegramModel({ address, chatId: telegramChatId })
     await telegramModel.save()
-
-    const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
+    const { buttons, welcomeText } = await getButtonsBySubscriptor(telegramChatId)
 
     // Buttons setup for telegram
     bot
@@ -197,7 +189,7 @@ const subscribeTelegramCallBack = async (bot, telegramChatId) => {
     // Subscribe user
     const subscriptor = await createTelegramSubscriptor(address, telegramChatId, 'daily')
     console.log(
-      `[Telegram bot] - Subscriptor saved successfully - Address ${subscriptor.address} - ChatId: ${subscriptor.chatId}`
+      `[Telegram bot] - Subscriptor saved successfully - Address ${subscriptor.address} - ChatId: ${subscriptor.telegramChatId}`
     )
 
     const body = await getTelegramBodyBySubscriptor(subscriptor)

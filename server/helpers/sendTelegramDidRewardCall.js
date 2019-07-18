@@ -28,9 +28,7 @@ const sendTelegramClaimRewardCall = async data => {
   return
 }
 
-const sendNotificationTelegram = async data => {
-  const { subscriber } = data
-
+const sendNotificationTelegram = async subscriber => {
   const { body } = getTelegramDidRewardCallBody(subscriber.delegateCalledReward)
 
   // Send telegram
