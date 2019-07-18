@@ -13,7 +13,7 @@ const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
 } = require('../sendDelegatorEmail')
-const { sendNotificationTelegram } = require('../sendDelegateTelegram')
+const { sendDelegatorNotificationTelegram } = require('../sendDelegatorTelegram')
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 
@@ -120,7 +120,7 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
       )
       continue
     }
-    telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
+    telegramsMessageToSend.push(sendDelegatorNotificationTelegram(subscriber))
   }
 
   console.log(

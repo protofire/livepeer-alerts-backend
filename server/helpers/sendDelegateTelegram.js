@@ -1,5 +1,5 @@
 const config = require('../../config/config')
-const { getTelegramClaimRewardCallBody, getButtonsBySubscriptor } = require('./telegramUtils')
+const { getDelegateTelegramBody, getButtonsBySubscriptor } = require('./telegramUtils')
 
 const sendDelegateTelegram = async (chatId, address, body) => {
   const TelegramBot = require('node-telegram-bot-api')
@@ -25,9 +25,9 @@ const sendDelegateTelegram = async (chatId, address, body) => {
   return
 }
 
-const sendNotificationTelegram = async subscriber => {
+const sendDelegateNotificationTelegram = async subscriber => {
   // Get telegram body
-  const data = await getTelegramClaimRewardCallBody(subscriber)
+  const data = await getDelegateTelegramBody(subscriber)
   if (!data) {
     return
   }
@@ -43,4 +43,4 @@ const sendNotificationTelegram = async subscriber => {
   return await subscriber.save()
 }
 
-module.exports = { sendNotificationTelegram }
+module.exports = { sendDelegateNotificationTelegram }

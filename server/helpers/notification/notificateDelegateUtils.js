@@ -6,7 +6,7 @@ const Subscriber = require('../../subscriber/subscriber.model')
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
-const { sendNotificationTelegram } = require('../sendDelegatorTelegram')
+const { sendDelegateNotificationTelegram } = require('../sendDelegateTelegram')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
@@ -86,10 +86,10 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
 
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
 
-  const subscribersToNofity = await getSubscribers(subscribers)
+  const subscribersToNotify = await getSubscribers(subscribers)
 
   const subscribersToSendTelegrams = []
-  for (const subscriberToNotify of subscribersToNofity) {
+  for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
     if (subscriber.lastTelegramSent) {
       // Calculate minutes last telegram sent
@@ -103,7 +103,7 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
       }
     }
 
-    subscribersToSendTelegrams.push(sendNotificationTelegram(subscriber))
+    subscribersToSendTelegrams.push(sendDelegateNotificationTelegram(subscriber))
   }
 
   console.log(
@@ -111,7 +111,7 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
   )
   await Promise.all(subscribersToSendTelegrams)
 
-  return subscribersToNofity
+  return subscribersToNotify
 }
 
 const notificateDelegateService = {

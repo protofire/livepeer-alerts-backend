@@ -1,5 +1,5 @@
 const config = require('../../config/config')
-const { getTelegramDidRewardCallBody, getButtonsBySubscriptor } = require('./telegramUtils')
+const { getDelegatorTelegramBody, getButtonsBySubscriptor } = require('./telegramUtils')
 
 const sendDelegatorTelegram = async (chatId, address, body) => {
   if (!['test'].includes(config.env)) {
@@ -26,8 +26,8 @@ const sendDelegatorTelegram = async (chatId, address, body) => {
   return
 }
 
-const sendNotificationTelegram = async subscriber => {
-  const { body } = getTelegramDidRewardCallBody(subscriber.delegateCalledReward)
+const sendDelegatorNotificationTelegram = async subscriber => {
+  const { body } = await getDelegatorTelegramBody(subscriber)
   const { telegramChatId, address } = subscriber
   // Send telegram
   await sendDelegatorTelegram(telegramChatId, address, body)
@@ -37,4 +37,4 @@ const sendNotificationTelegram = async subscriber => {
   return await subscriber.save()
 }
 
-module.exports = { sendNotificationTelegram }
+module.exports = { sendDelegatorNotificationTelegram }

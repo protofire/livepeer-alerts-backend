@@ -72,16 +72,16 @@ const getTelegramBodyBySubscriptor = async subscriptor => {
     })
 
     // OK, is a delegate, let's send notifications
-    data = getTelegramDidRewardCallBody({ delegateCalledReward })
+    data = getDelegateTelegramBody({ delegateCalledReward })
   } else {
     // OK, is a delegator, let's send notifications
-    data = await getTelegramClaimRewardCallBody(subscriptor)
+    data = await getDelegatorTelegramBody(subscriptor)
   }
 
   return data && data.body
 }
 
-const getTelegramClaimRewardCallBody = async subscriber => {
+const getDelegatorTelegramBody = async subscriber => {
   const { earningDecimals } = config
   const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
@@ -103,6 +103,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
 
       // Check if call reward
       const callReward = await getDidDelegateCalledReward(delegator.delegateAddress)
+
       // Open template file
       const filenameBonded = callReward
         ? '../notifications/telegram/delegate-claim-reward-call/notification-success.hbs'
@@ -178,7 +179,7 @@ const getTelegramClaimRewardCallBody = async subscriber => {
   }
 }
 
-const getTelegramDidRewardCallBody = delegateCalledReward => {
+const getDelegateTelegramBody = delegateCalledReward => {
   const filename = delegateCalledReward
     ? '../notifications/telegram/delegate-did-reward-call/notification-success.hbs'
     : '../notifications/telegram/delegate-did-reward-call/notification-warning.hbs'
@@ -200,8 +201,8 @@ const telegramUtils = {
   getButtonsBySubscriptor,
   findAddressFromChatId,
   getTelegramBodyBySubscriptor,
-  getTelegramClaimRewardCallBody,
-  getTelegramDidRewardCallBody
+  getDelegatorTelegramBody,
+  getDelegateTelegramBody
 }
 
 module.exports = telegramUtils
