@@ -17,6 +17,18 @@ const getNextReward = async (req, res, next) => {
   }
 }
 
+const getDelegator = async (req, res, next) => {
+  const { address } = req.params
+  try {
+    const delegatorService = getDelegatorService()
+    const delegator = await delegatorService.getDelegatorAccount(address)
+    res.json({ delegator })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
-  getNextReward
+  getNextReward,
+  getDelegator
 }
