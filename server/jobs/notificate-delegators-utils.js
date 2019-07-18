@@ -70,7 +70,7 @@ const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo =>
       'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegators()'
     )
   }
-  const subscribersDelegators = await subscriberUtils.getSubscribersDelegatorsAndDelegator()
+  const subscribersDelegators = await subscriberUtils.getTelegramSubscribersDelegatorsAndDelegator()
 
   let telegramsMessageToSend = []
   const currentRoundId = currentRoundInfo.id

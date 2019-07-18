@@ -288,12 +288,60 @@ const getSubscribersDelegatorsAndDelegator = async () => {
 }
 
 /**
+ * Returns the list of all the subscribers which their role is delegator and their delegator associated
+ * and are subscribed to telegram
+ * @returns {Promise<array>}
+ */
+const getTelegramSubscribersDelegatorsAndDelegator = async () => {
+  console.log('[Subscribers-utils] - Returning list of subscribers delegators')
+  const allSubscribers = await Subscriber.find({
+    email: { $ne: null },
+    telegramChatId: { $ne: null }
+  })
+  const subscribersList = []
+  for (let subscriber of allSubscribers) {
+    const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+    if (role === constants.ROLE.DELEGATOR) {
+      subscribersList.push({
+        subscriber,
+        delegator
+      })
+    }
+  }
+  console.log(`[Subscribers-utils] - Amount of subscribers delegators: ${subscribersList.length}`)
+  return subscribersList
+}
+
+/**
  * Returns the list of all the subscribers which their role is delegate
  * @returns {Promise<array>}
  */
 const getSubscribersDelegates = async () => {
   console.log('[Subscribers-utils] - Returning list of subscribers delegates')
   const allSubscribers = await Subscriber.find({ email: { $ne: null } })
+  const subscribersList = []
+  for (let subscriber of allSubscribers) {
+    const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
+    if (role === constants.ROLE.TRANSCODER) {
+      subscribersList.push({
+        subscriber
+      })
+    }
+  }
+  console.log(`[Subscribers-utils] - Amount of subscribers delegates: ${subscribersList.length}`)
+  return subscribersList
+}
+
+/**
+ * Returns the list of all the subscribers which their role is delegate and are subscribed in telegram
+ * @returns {Promise<array>}
+ */
+const getTelegramSubscribersDelegates = async () => {
+  console.log('[Subscribers-utils] - Returning list of subscribers delegates')
+  const allSubscribers = await Subscriber.find({
+    email: { $ne: null },
+    telegramChatId: { $ne: null }
+  })
   const subscribersList = []
   for (let subscriber of allSubscribers) {
     const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
@@ -319,7 +367,9 @@ const subscriberUtils = {
   shouldSubscriberReceiveEmailNotifications,
   shouldSubscriberReceiveTelegramNotifications,
   getSubscribersDelegates,
-  getSubscribersDelegatorsAndDelegator
+  getSubscribersDelegatorsAndDelegator,
+  getTelegramSubscribersDelegates,
+  getTelegramSubscribersDelegatorsAndDelegator
 }
 
 module.exports = subscriberUtils

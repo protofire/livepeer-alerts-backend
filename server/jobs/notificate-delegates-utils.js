@@ -55,7 +55,7 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
     )
   }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
-  const subscribersToNofity = await subscriberUtils.getSubscribersDelegates()
+  const subscribersToNofity = await subscriberUtils.getTelegramSubscribersDelegates()
   const subscribersToSendTelegrams = []
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNofity) {
