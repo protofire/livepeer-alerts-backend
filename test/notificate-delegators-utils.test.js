@@ -23,6 +23,44 @@ const sinonMongoose = require('sinon-mongoose')
 describe('## NotificateDelegatorsUtils', () => {
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
+  let subscriberMock,
+    consoleLogMock,
+    getSubscriptorRoleStub,
+    getCurrentRoundInfoStub,
+    getDidDelegateCalledRewardStub,
+    getDelegatorNextRewardStub,
+    delegatorEmailUtilsMock,
+    getLivepeerDefaultConstantsStub,
+    getSubscribersDelegatorsAndDelegatorStub
+  afterEach('Restore all the mocks', () => {
+    if (subscriberMock) {
+      subscriberMock.restore()
+    }
+    if (consoleLogMock) {
+      consoleLogMock.restore()
+    }
+    if (getSubscriptorRoleStub) {
+      getSubscriptorRoleStub.restore()
+    }
+    if (getCurrentRoundInfoStub) {
+      getCurrentRoundInfoStub.restore()
+    }
+    if (getDidDelegateCalledRewardStub) {
+      getDidDelegateCalledRewardStub.restore()
+    }
+    if (getDelegatorNextRewardStub) {
+      getDelegatorNextRewardStub.restore()
+    }
+    if (delegatorEmailUtilsMock) {
+      delegatorEmailUtilsMock.restore()
+    }
+    if (getLivepeerDefaultConstantsStub) {
+      getLivepeerDefaultConstantsStub.restore()
+    }
+    if (getSubscribersDelegatorsAndDelegatorStub) {
+      getSubscribersDelegatorsAndDelegatorStub.restore()
+    }
+  })
   describe('# sendEmailRewardCallNotificationToDelegators', () => {
     it('Should throw an error if no currentRoundInfo received', async () => {
       // given
@@ -49,30 +87,26 @@ describe('## NotificateDelegatorsUtils', () => {
       const resultExpected = `[Notificate-Delegators] - Emails subscribers to notify 0`
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
-      const getSubscribersDelegatorsAndDelegatorStub = sinon
+      getSubscribersDelegatorsAndDelegatorStub = sinon
         .stub(SubscriberUtils, 'getSubscribersDelegatorsAndDelegator')
         .returns(subscribersDelegators)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole1 = consoleLogMock
         .expects('log')
         .once()
         .withArgs(resultExpected)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -87,15 +121,8 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getLivepeerDefaultConstantsStub.called)
       expect(getDelegatorNextRewardStub.called)
       expect(getDidDelegateCalledRewardStub.called)
-      //  consoleLogMock.verify()
+      consoleLogMock.verify()
       delegatorEmailUtilsMock.verify()
-      // restore mocks
-      getSubscribersDelegatorsAndDelegatorStub.restore()
-      consoleLogMock.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
-      getLivepeerDefaultConstantsStub.restore()
     })
     it('If there are delegators on the subscribers which they never received an email, should send an email to them', async () => {
       // given
@@ -117,7 +144,7 @@ describe('## NotificateDelegatorsUtils', () => {
       }
 
       // Stubs the return of Subscriber.find to return the list of subscribers
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('find')
@@ -125,11 +152,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(subscribers)
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
-      const getSubscriptorRoleStub = sinon
+      getSubscriptorRoleStub = sinon
         .stub(SubscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole = consoleLogMock
         .expects('log')
@@ -147,23 +174,19 @@ describe('## NotificateDelegatorsUtils', () => {
         .withArgs(resultExpected3)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
-      const getCurrentRoundInfoStub = sinon
+      getCurrentRoundInfoStub = sinon
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -182,15 +205,6 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
-      // restore stubs
-      subscriberMock.restore()
-      consoleLogMock.restore()
-      getSubscriptorRoleStub.restore()
-      getCurrentRoundInfoStub.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
-      getDelegatorNextRewardStub.restore()
     })
     it('There is one delegator with weekly subscription, the current round is 10 and the last round in which an email was sent is 9, no emails should be sent', async () => {
       // given
@@ -215,7 +229,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const logExpectation4 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('find')
@@ -223,11 +237,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(subscribers)
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
-      const getSubscriptorRoleStub = sinon
+      getSubscriptorRoleStub = sinon
         .stub(SubscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole1 = consoleLogMock
         .expects('log')
@@ -250,23 +264,19 @@ describe('## NotificateDelegatorsUtils', () => {
         .withArgs(logExpectation4)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
-      const getCurrentRoundInfoStub = sinon
+      getCurrentRoundInfoStub = sinon
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -285,14 +295,6 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
-      // restore stubs
-      subscriberMock.restore()
-      consoleLogMock.restore()
-      getSubscriptorRoleStub.restore()
-      getCurrentRoundInfoStub.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
     })
     it('There is one delegator with weekly subscription, the current round is 10 and the last round in which an email was sent is 3, an email should be sent', async () => {
       // given
@@ -315,7 +317,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const logExpectation3 = `[Subscribers-utils] - Amount of subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('find')
@@ -323,11 +325,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(subscribers)
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
-      const getSubscriptorRoleStub = sinon
+      getSubscriptorRoleStub = sinon
         .stub(SubscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole1 = consoleLogMock
         .expects('log')
@@ -345,23 +347,19 @@ describe('## NotificateDelegatorsUtils', () => {
         .withArgs(logExpectation3)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
-      const getCurrentRoundInfoStub = sinon
+      getCurrentRoundInfoStub = sinon
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -380,14 +378,6 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
-      // restore stubs
-      subscriberMock.restore()
-      consoleLogMock.restore()
-      getSubscriptorRoleStub.restore()
-      getCurrentRoundInfoStub.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
     })
     it('There is one delegator with daily subscription, the current round is 10 and the last round in which an email was sent is 9, an email should be sent', async () => {
       // given
@@ -411,7 +401,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const logExpectation3 = `[Subscribers-utils] - Amount of subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('find')
@@ -423,7 +413,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(SubscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole1 = consoleLogMock
         .expects('log')
@@ -441,23 +431,19 @@ describe('## NotificateDelegatorsUtils', () => {
         .withArgs(logExpectation3)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
-      const getCurrentRoundInfoStub = sinon
+      getCurrentRoundInfoStub = sinon
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -476,14 +462,6 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
-      // restore stubs
-      subscriberMock.restore()
-      consoleLogMock.restore()
-      getSubscriptorRoleStub.restore()
-      getCurrentRoundInfoStub.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
     })
     it('There is one delegator with daily subscription, the current round is 10 and the last round in which an email was sent is 10, no emails should be sent', async () => {
       // given
@@ -508,7 +486,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const logExpectation4 = `[Subscribers-utils] - Amount of subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
-      const subscriberMock = sinon.mock(Subscriber)
+      subscriberMock = sinon.mock(Subscriber)
 
       const expectationSubscriber = subscriberMock
         .expects('find')
@@ -516,11 +494,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(subscribers)
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
-      const getSubscriptorRoleStub = sinon
+      getSubscriptorRoleStub = sinon
         .stub(SubscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
-      const consoleLogMock = sinon.mock(console)
+      consoleLogMock = sinon.mock(console)
 
       const expectationConsole1 = consoleLogMock
         .expects('log')
@@ -543,23 +521,19 @@ describe('## NotificateDelegatorsUtils', () => {
         .withArgs(logExpectation4)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
-      const getCurrentRoundInfoStub = sinon
+      getCurrentRoundInfoStub = sinon
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      const getDidDelegateCalledRewardStub = sinon
-        .stub(utils, 'getDidDelegateCalledReward')
-        .returns(true)
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
-      const getDelegatorNextRewardStub = sinon
-        .stub(delegatorService, 'getDelegatorNextReward')
-        .returns(1)
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
-      const getLivepeerDefaultConstantsStub = sinon
+      getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
         .returns(constants)
 
-      const delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
 
       const expectation = delegatorEmailUtilsMock
         .expects('sendDelegatorNotificationEmail')
@@ -578,14 +552,6 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
-      // restore stubs
-      subscriberMock.restore()
-      consoleLogMock.restore()
-      getSubscriptorRoleStub.restore()
-      getCurrentRoundInfoStub.restore()
-      getDidDelegateCalledRewardStub.restore()
-      getDelegatorNextRewardStub.restore()
-      delegatorEmailUtilsMock.restore()
     })
   })
 })
