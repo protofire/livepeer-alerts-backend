@@ -13,7 +13,7 @@ const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
 } = require('../sendDelegatorEmail')
-const { sendNotificationTelegram } = require('../sendTelegramClaimRewardCall')
+const { sendNotificationTelegram } = require('../sendDelegateTelegram')
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 

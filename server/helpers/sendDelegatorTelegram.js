@@ -1,15 +1,13 @@
 const config = require('../../config/config')
 const { getTelegramDidRewardCallBody, getButtonsBySubscriptor } = require('./telegramUtils')
 
-const sendTelegramClaimRewardCall = async data => {
-  const { chatId, address, body } = data
-
+const sendDelegatorTelegram = async (chatId, address, body) => {
   if (!['test'].includes(config.env)) {
     try {
       const TelegramBot = require('node-telegram-bot-api')
       const { telegramBotKey } = config
       let bot = new TelegramBot(telegramBotKey)
-      const { buttons } = await getButtonsBySubscriptor({ address, chatId })
+      const { buttons } = await getButtonsBySubscriptor(chatId)
       await bot.sendMessage(chatId, body, {
         reply_markup: {
           keyboard: buttons
@@ -22,7 +20,7 @@ const sendTelegramClaimRewardCall = async data => {
       )
       bot = null
     } catch (err) {
-      console.error(err)
+      console.error(`[Telegram bot] - Error on sendDelegatorTelegram(): ${err}`)
     }
   }
   return
@@ -30,17 +28,13 @@ const sendTelegramClaimRewardCall = async data => {
 
 const sendNotificationTelegram = async subscriber => {
   const { body } = getTelegramDidRewardCallBody(subscriber.delegateCalledReward)
-
+  const { telegramChatId, address } = subscriber
   // Send telegram
-  await sendTelegramClaimRewardCall({
-    chatId: subscriber.telegramChatId,
-    address: subscriber.address,
-    body: body
-  })
+  await sendDelegatorTelegram(telegramChatId, address, body)
 
   // Save last telegram sent
   subscriber.lastTelegramSent = Date.now()
-  return await subscriber.save({ validateBeforeSave: false })
+  return await subscriber.save()
 }
 
 module.exports = { sendNotificationTelegram }

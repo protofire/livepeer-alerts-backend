@@ -6,7 +6,7 @@ const Subscriber = require('../../subscriber/subscriber.model')
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
-const { sendNotificationTelegram } = require('../sendTelegramDidRewardCall')
+const { sendNotificationTelegram } = require('../sendDelegatorTelegram')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
