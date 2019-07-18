@@ -18,6 +18,8 @@ const {
   getDidDelegateCalledReward
 } = require('../helpers/utils')
 
+const config = require('../../config/config')
+
 // Message const
 const subscribe = 'Subscribe'
 const unsubscribe = 'Unsubscribe'
