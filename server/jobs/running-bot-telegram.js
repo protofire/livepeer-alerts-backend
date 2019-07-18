@@ -96,9 +96,11 @@ bot.on('message', async msg => {
 // Action callbacks
 const getInstantAlertTelegramCallBack = async (bot, telegramChatId) => {
   if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
     return
   }
   if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
     return
   }
   try {
@@ -132,9 +134,11 @@ const getInstantAlertTelegramCallBack = async (bot, telegramChatId) => {
 
 const unsubscribeTelegramCallBack = async (bot, telegramChatId) => {
   if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
     return
   }
   if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
     return
   }
   try {
@@ -175,9 +179,11 @@ const unsubscribeTelegramCallBack = async (bot, telegramChatId) => {
 
 const subscribeTelegramCallBack = async (bot, telegramChatId) => {
   if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
     return
   }
   if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
     return
   }
   try {
