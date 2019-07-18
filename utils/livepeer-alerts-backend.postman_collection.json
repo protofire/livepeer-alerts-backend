@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "57a8f6cc-574a-4168-9238-50fc0ba10bb6",
+		"_postman_id": "fd460187-e73f-4bb0-a0d5-3a0500c0e2fd",
 		"name": "livepeer-alerts-backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -500,6 +500,39 @@
 						"0xda43d85b8d419a9c51bbf0089c9bd5169c23f2f9"
 					]
 				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegators/address/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegators/address/0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegators",
+						"address",
+						"0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085"
+					]
+				},
+				"description": "Gets information about a delegator"
 			},
 			"response": []
 		}
