@@ -1,9 +1,9 @@
 const mongoose = require('../../config/mongoose')
 const delegatorUtils = require('./delegatorUtils')
+const subscriberUtils = require('./subscriberUtils')
 const Share = require('../share/share.model')
 const Round = require('../round/round.model')
 const Delegator = require('../delegator/delegator.model')
-const Subscriber = require('../subscriber/subscriber.model')
 
 const updateDelegatorSharesOfRound = async (round, delegator) => {
   console.log('[Update Delegators Shares] - Starts updating delegator shares')
@@ -84,7 +84,7 @@ const updateDelegatorsShares = async newRound => {
   }
 
   // Fetch all the delegators that are subscribed
-  const delegatorsAndSubscribersList = await Subscriber.getDelegatorSubscribers()
+  const delegatorsAndSubscribersList = await subscriberUtils.getDelegatorSubscribers()
   if (!delegatorsAndSubscribersList || delegatorsAndSubscribersList.length === 0) {
     console.log('[Update Delegator shares] - No delegators subscribers found')
     return

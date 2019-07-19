@@ -11,6 +11,7 @@ const Share = require('../server/share/share.model')
 const mongoose = require('../config/mongoose')
 const delegatorSharesService = require('../server/helpers/updateRoundShares')
 const delegatorUtils = require('../server/helpers/delegatorUtils')
+const subscriberUtils = require('../server/helpers/subscriberUtils')
 describe('## UpdateRoundShares', () => {
   after('Closes the db connection', function() {
     console.log('Finish tests, closing mongo connection')
@@ -46,13 +47,8 @@ describe('## UpdateRoundShares', () => {
     it('Should call updateDelegatorsShares with no subscribers on the db and logs on the console', async () => {
       // given
       const consoleLogStub = sinon.stub(console, 'log')
-      // Stubs the return of Delegator.getDelegatorSubscribers to return null, so no delegators were found
-      const subscriberMock = sinon.mock(Subscriber)
-
-      const expectationSubscriber = subscriberMock
-        .expects('getDelegatorSubscribers')
-        .once()
-        .resolves([])
+      // Stubs the return of subscriberUtils.getDelegatorSubscribers to return null, so no delegators were found
+      const subscriberUtilsStub = sinon.stub(subscriberUtils, 'getDelegatorSubscribers').returns([])
 
       // when
       await delegatorSharesService.updateDelegatorsShares(currentRound)
@@ -61,12 +57,12 @@ describe('## UpdateRoundShares', () => {
       expect(
         consoleLogStub.calledWith('[Update Delegator shares] - No delegators subscribers found')
       )
-      expect(subscriberMock.called)
-      subscriberMock.verify()
 
+      expect(subscriberUtilsStub.called)
+      expect(consoleLogStub.called)
       // restore stubs
       consoleLogStub.restore()
-      subscriberMock.restore()
+      subscriberUtilsStub.restore()
     })
     it('Should receive a round, and there are delegators subscribers => should call checkAndUpdateMissingLocalDelegators() and updateDelegatorSharesOfRound() times of the amount of delegators', async () => {
       // given
@@ -78,13 +74,10 @@ describe('## UpdateRoundShares', () => {
         .stub(delegatorUtils, 'checkAndUpdateMissingLocalDelegators')
         .returns(null)
 
-      // Stubs the return of Delegator.getDelegatorSubscribers to return delegators
-      const subscriberMock = sinon.mock(Subscriber)
-
-      const expectationSubscriber = subscriberMock
-        .expects('getDelegatorSubscribers')
-        .once()
-        .resolves(delegators)
+      // Stubs the return of subscriberUtils.getDelegatorSubscribers to return delegators
+      const subscriberUtilsStub = sinon
+        .stub(subscriberUtils, 'getDelegatorSubscribers')
+        .returns(delegators)
 
       const updateDelegatorSharesOfRoundStub = sinon.stub(
         delegatorSharesService,
@@ -95,15 +88,14 @@ describe('## UpdateRoundShares', () => {
       await delegatorSharesService.updateDelegatorsShares(currentRound)
 
       // then
-      expect(subscriberMock.called)
+      expect(subscriberUtilsStub.called)
       expect(checkAndUpdateMissingLocalDelegatorsStub.called)
       expect(updateDelegatorSharesOfRoundStub.called)
       expect(updateDelegatorSharesOfRoundStub.callCount).equal(delegators.length)
-      subscriberMock.verify()
       // restore stubs
       checkAndUpdateMissingLocalDelegatorsStub.restore()
       updateDelegatorSharesOfRoundStub.restore()
-      subscriberMock.restore()
+      subscriberUtilsStub.restore()
     })
   })
 

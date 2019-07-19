@@ -1,48 +1,87 @@
-const fs = require('fs')
-const path = require('path')
 const Handlebars = require('handlebars')
-const promiseRetry = require('promise-retry')
-const config = require('../../config/config')
+const path = require('path')
+const fs = require('fs')
 const moment = require('moment')
+const TelegramModel = require('../telegram/telegram.model')
+const promiseRetry = require('promise-retry')
 
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
 
+const { NoAddressError } = require('../helpers/JobsErrors')
+const { telegramSubscriptorExists, getSubscriptorRole } = require('../helpers/subscriberUtils')
+
 const {
-  getButtonsBySubscriptor,
   truncateStringInTheMiddle,
   formatBalance,
   getDelegatorRoundsUntilUnbonded,
-  getDidDelegateCallReward
-} = require('./utils')
+  getDidDelegateCalledReward
+} = require('../helpers/utils')
 
-const sendTelegramClaimRewardCall = async data => {
-  const { chatId, address, body } = data
+const config = require('../../config/config')
 
-  const TelegramBot = require('node-telegram-bot-api')
-  const { telegramBotKey } = config
-  const bot = new TelegramBot(telegramBotKey)
+// Message const
+const subscribe = 'Subscribe'
+const unsubscribe = 'Unsubscribe'
+const getInstantAlert = 'Get instant alert'
 
-  if (!['test'].includes(config.env)) {
-    try {
-      const { buttons } = await getButtonsBySubscriptor({ address, chatId })
-      await bot.sendMessage(chatId, body, {
-        reply_markup: {
-          keyboard: buttons
-        },
-        parse_mode: 'HTML'
-      })
-      console.log(
-        `[Telegram bot] - Telegram sent to chatId ${chatId} successfully. Body of the message: ${body}`
-      )
-    } catch (err) {
-      console.error(err)
-    }
+const getButtonsBySubscriptor = async chatId => {
+  let buttons = []
+  let welcomeText
+  const checkSubscriptorExist = await telegramSubscriptorExists(chatId)
+  if (checkSubscriptorExist) {
+    buttons.push([unsubscribe])
+    welcomeText = `Choose the following options to continue:
+1. Unsubscribe for alerts
+2. Get instant alert`
+  } else {
+    buttons.push([subscribe])
+    welcomeText = `Welcome to Livepeer Tools, choose the following options to continue:
+1. Subscribe for alerts
+2. Get instant alert`
   }
-  return
+
+  buttons.push([getInstantAlert])
+  return { welcomeText, buttons }
 }
 
-const getTelegramClaimRewardCallBody = async subscriber => {
+/**
+ * Receives a chatID and returns the address of the given subscriber
+ * @param chatId
+ * @returns {Promise<*>}
+ */
+const findAddressFromChatId = async chatId => {
+  const telegramModel = await TelegramModel.findOne({ chatId: chatId }).exec()
+  if (!telegramModel || !telegramModel.address) {
+    throw new NoAddressError()
+  }
+  return telegramModel.address
+}
+
+const getTelegramBodyBySubscriptor = async subscriptor => {
+  // Starting
+  let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
+
+  let data
+  if (role === constants.ROLE.TRANSCODER) {
+    // Check if the delegate didRewardCall
+    const [delegateCalledReward] = await promiseRetry(retry => {
+      return Promise.all([getDidDelegateCalledReward(delegator.delegateAddress)]).catch(err =>
+        retry()
+      )
+    })
+
+    // OK, is a delegate, let's send notifications
+    data = getDelegateTelegramBody(delegateCalledReward)
+  } else {
+    // OK, is a delegator, let's send notifications
+    data = await getDelegatorTelegramBody(subscriptor)
+  }
+
+  return data && data.body
+}
+
+const getDelegatorTelegramBody = async subscriber => {
   const { earningDecimals } = config
   const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
@@ -63,7 +102,8 @@ const getTelegramClaimRewardCallBody = async subscriber => {
       })
 
       // Check if call reward
-      const callReward = await getDidDelegateCallReward(delegator.delegateAddress)
+      const callReward = await getDidDelegateCalledReward(delegator.delegateAddress)
+
       // Open template file
       const filenameBonded = callReward
         ? '../notifications/telegram/delegate-claim-reward-call/notification-success.hbs'
@@ -139,26 +179,30 @@ const getTelegramClaimRewardCallBody = async subscriber => {
   }
 }
 
-const sendNotificationTelegram = async subscriber => {
-  // Get telegram body
-  const data = await getTelegramClaimRewardCallBody(subscriber)
+const getDelegateTelegramBody = delegateCalledReward => {
+  const filename = delegateCalledReward
+    ? '../notifications/telegram/delegate-did-reward-call/notification-success.hbs'
+    : '../notifications/telegram/delegate-did-reward-call/notification-warning.hbs'
+  const fileTemplate = path.join(__dirname, filename)
+  const source = fs.readFileSync(fileTemplate, 'utf8')
 
-  if (!data) {
-    return
+  // Create telegram body
+  const template = Handlebars.compile(source)
+  const body = template()
+  return {
+    body
   }
-
-  const { body } = data
-
-  // Send telegram
-  await sendTelegramClaimRewardCall({
-    chatId: subscriber.telegramChatId,
-    address: subscriber.address,
-    body: body
-  })
-
-  // Save last telegram sent
-  subscriber.lastTelegramSent = Date.now()
-  return await subscriber.save({ validateBeforeSave: false })
 }
 
-module.exports = { sendNotificationTelegram, getTelegramClaimRewardCallBody }
+const telegramUtils = {
+  subscribe,
+  unsubscribe,
+  getInstantAlert,
+  getButtonsBySubscriptor,
+  findAddressFromChatId,
+  getTelegramBodyBySubscriptor,
+  getDelegatorTelegramBody,
+  getDelegateTelegramBody
+}
+
+module.exports = telegramUtils

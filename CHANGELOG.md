@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Send a notification when my bonded-delegate changes his rules [#68](https://github.com/protofire/livepeer-alerts-backend/pull/68), Closes [#55](https://github.com/protofire/livepeer-alerts-backend/issues/55) [#49](https://github.com/protofire/livepeer-alerts-backend/issues/49)
 
 ### Fixes
-- Refactors both sendTelegramClaimRewardCall() and getBodyBySubscriber() functions [#63](https://github.com/protofire/livepeer-alerts-backend/pull/63)
+- Refactors both sendDelegateTelegram() and getBodyBySubscriber() functions [#63](https://github.com/protofire/livepeer-alerts-backend/pull/63)
 - Fixes top delegates by ROI function. [#67](https://github.com/protofire/livepeer-alerts-backend/pull/67)
 
 ## [1.1.2](https://github.com/protofire/livepeer-alerts-backend/compare/v1.1.2...v1.1.1) (2019-07-04)
