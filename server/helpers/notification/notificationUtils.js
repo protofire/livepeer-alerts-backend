@@ -1,10 +1,10 @@
-const Subscriber = require('../../subscriber/subscriber.model')
-
 const { sendDelegatorNotificationDelegateChangeRulesEmail } = require('../sendDelegatorEmail')
 
 const notificateDelegateUtil = require('./notificateDelegateUtils')
 
 const notificateDelegatorUtil = require('./notificateDelegatorUtils')
+
+const subscriberUtils = require('../subscriberUtils')
 
 const sendRoundNotifications = async (roundProgress, round, thresholdSendNotification) => {
   let notificationsSent = false
@@ -93,7 +93,7 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async (
 
   try {
     // Gets a list of delegators and their delegates
-    const listOfDelegatesAndDelegators = await Subscriber.getListOfDelegateAddressAndDelegatorAddress()
+    const listOfDelegatesAndDelegators = await subscriberUtils.getListOfDelegateAddressAndDelegatorAddress()
     const notificationList = generateNotificationList(
       listOfChangedDelegates,
       listOfDelegatesAndDelegators,

@@ -147,44 +147,6 @@ SubscriberSchema.statics = {
         }
         return Promise.reject(new Error('Cant remove subscribers'))
       })
-  },
-
-  async getDelegatorSubscribers() {
-    const { getSubscriptorRole } = require('../helpers/subscriberUtils')
-    const delegatorsList = []
-    const rolesCheckPromise = []
-    const allSubscribers = await this.find()
-    if (allSubscribers) {
-      for (let subscriberIterator of allSubscribers) {
-        const newRolePromise = getSubscriptorRole(subscriberIterator).then(result => {
-          const { constants, role, delegator } = result
-          if (role === constants.ROLE.DELEGATOR) {
-            delegatorsList.push({
-              subscriber: subscriberIterator,
-              delegator
-            })
-          }
-        })
-        rolesCheckPromise.push(newRolePromise)
-      }
-      await Promise.all(rolesCheckPromise)
-    }
-    return delegatorsList
-  },
-
-  async getListOfDelegateAddressAndDelegatorAddress() {
-    const subscribersDelegators = await this.getDelegatorSubscribers()
-    const list = []
-    for (let subscriberIterator of subscribersDelegators) {
-      const { delegator, subscriber } = subscriberIterator
-      const item = {
-        subscriber,
-        delegatorAddress: delegator.address,
-        delegateAddress: delegator.delegateAddress
-      }
-      list.push(item)
-    }
-    return list
   }
 }
 

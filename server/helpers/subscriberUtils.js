@@ -160,13 +160,52 @@ const getSubscriptorRole = async subscriptor => {
   }
 }
 
+const getDelegatorSubscribers = async () => {
+  const delegatorsList = []
+  const rolesCheckPromise = []
+  const allSubscribers = await Subscriber.find()
+  if (allSubscribers) {
+    for (let subscriberIterator of allSubscribers) {
+      const newRolePromise = subscriberUtils.getSubscriptorRole(subscriberIterator).then(result => {
+        const { constants, role, delegator } = result
+        if (role === constants.ROLE.DELEGATOR) {
+          delegatorsList.push({
+            subscriber: subscriberIterator,
+            delegator
+          })
+        }
+      })
+      rolesCheckPromise.push(newRolePromise)
+    }
+    await Promise.all(rolesCheckPromise)
+  }
+  return delegatorsList
+}
+
+const getListOfDelegateAddressAndDelegatorAddress = async() => {
+  const subscribersDelegators = await this.getDelegatorSubscribers()
+  const list = []
+  for (let subscriberIterator of subscribersDelegators) {
+    const { delegator, subscriber } = subscriberIterator
+    const item = {
+      subscriber,
+      delegatorAddress: delegator.address,
+      delegateAddress: delegator.delegateAddress
+    }
+    list.push(item)
+  }
+  return list
+}
+
 const subscriberUtils = {
   emailSubscriptorExists,
   telegramSubscriptorExists,
   createEmailSubscriptor,
   createTelegramSubscriptor,
   removeTelegramSubscription,
-  getSubscriptorRole
+  getSubscriptorRole,
+  getDelegatorSubscribers,
+  getListOfDelegateAddressAndDelegatorAddress
 }
 
 module.exports = subscriberUtils
