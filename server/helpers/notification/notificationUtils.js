@@ -50,21 +50,44 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
   // Because the notifications were not sent for the round, and the current round progress is above a certain threshold, send notifications
 
   // Send email notifications for delegate and delegators
-  await Promise.all([
-    notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(),
-    notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates()
-  ])
-  // Send telegram notifications for delegates
-  await Promise.all([
-    notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(),
-    notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates()
-  ])
+  try {
+    console.log(`[Check-Round-Change] - Get all subscribers with email`)
+    const emailSubscribers = await Subscriber.find({
+      frequency: 'daily',
+      activated: 1,
+      email: { $ne: null }
+    })
+    // TODO -- Refactor as promise All
+    console.log(`[Check-Round-Change] - Sending email round notifications to delegators`)
+    await notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(emailSubscribers)
+    console.log(`[Check-Round-Change] - Sending email round notifications to delegates`)
+    await notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates(emailSubscribers)
+    const telegramSubscribers = await Subscriber.find({
+      frequency: 'daily',
+      activated: 1,
+      telegramChatId: { $ne: null }
+    })
 
-  // Finally updates the current round with the notificationsForRoundSent flag
-  round.notificationsForRoundSent = true
-  await round.save()
-  notificationsSent = true
-  return notificationsSent
+    // Send telegram notifications for delegates
+    console.log(`[Check-Round-Change] - Sending telegram round notifications to delegators`)
+    await notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(
+      telegramSubscribers
+    )
+    console.log(`[Check-Round-Change] - Sending telegram round notifications to delegates`)
+    await notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates(telegramSubscribers)
+    console.log(`[Check-Round-Change] - finish sending notifications, updating round flag`)
+    // Finally updates the current round with the notificationsForRoundSent flag
+    round.notificationsForRoundSent = true
+    await round.save()
+    notificationsSent = true
+    console.log(
+      `[Check-Round-Change] - Round flag updated, notifications sent: ${notificationsSent}`
+    )
+    return notificationsSent
+  } catch (err) {
+    console.log(`[Check-Round-Change] - error on sendRoundNotifications(): ${err}`)
+    throw err
+  }
 }
 
 const notifyDelegatorsWhenDelegateChangeTheRules = async (

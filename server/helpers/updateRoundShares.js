@@ -85,23 +85,23 @@ const updateDelegatorsShares = async newRound => {
 
   // Fetch all the delegators that are subscribed
   console.log('[Update Delegator shares] - Getting delegators subscribers')
-  const delegatorsAndSubscribersList = await subscriberUtils.getDelegatorSubscribers()
-  if (!delegatorsAndSubscribersList || delegatorsAndSubscribersList.length === 0) {
-    console.log('[Update Delegator shares] - No delegators subscribers found')
-    return
-  }
-  const delegators = []
-  delegatorsAndSubscribersList.forEach(element => {
-    if (element.delegator) {
-      delegators.push(element.delegator)
-    }
-  })
-  if (!delegators || delegators.length === 0) {
-    console.log('[Update Delegator shares] - No delegators subscribers found')
-    return
-  }
-
   try {
+    const delegatorsAndSubscribersList = await subscriberUtils.getDelegatorSubscribers()
+    if (!delegatorsAndSubscribersList || delegatorsAndSubscribersList.length === 0) {
+      console.log('[Update Delegator shares] - No delegators subscribers found')
+      return
+    }
+    const delegators = []
+    delegatorsAndSubscribersList.forEach(element => {
+      if (element.delegator) {
+        delegators.push(element.delegator)
+      }
+    })
+    if (!delegators || delegators.length === 0) {
+      console.log('[Update Delegator shares] - No delegators subscribers found')
+      return
+    }
+
     // Then checks if all the fetched delegators exists locally, otherwise, add the ones that are missing
     await delegatorUtils.checkAndUpdateMissingLocalDelegators(delegators)
 

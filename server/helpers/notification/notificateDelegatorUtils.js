@@ -1,12 +1,7 @@
 const promiseRetry = require('promise-retry')
-
 const mongoose = require('../../../config/mongoose')
-
 const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
-
-const { getProtocolService } = require('../services/protocolService')
-const Subscriber = require('../../subscriber/subscriber.model')
 const Share = require('../../share/share.model')
 const {
   sendDelegatorNotificationEmail,
@@ -16,19 +11,18 @@ const { sendDelegatorNotificationTelegram } = require('../sendDelegatorTelegram'
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 
-const sendEmailRewardCallNotificationToDelegators = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    email: { $ne: null }
-  }).exec()
-
+const sendEmailRewardCallNotificationToDelegators = async emailSubscribers => {
+  if (!emailSubscribers) {
+    throw new Error('Email subscribers not received')
+  }
+  console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
   let emailsToSend = []
+  const { getProtocolService } = require('../services/protocolService')
   const protocolService = getProtocolService()
 
   const currentRoundInfo = await protocolService.getCurrentRoundInfo()
 
-  for (const subscriber of subscribers) {
+  for (const subscriber of emailSubscribers) {
     try {
       const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
@@ -85,15 +79,12 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
   return await Promise.all(emailsToSend)
 }
 
-const sendTelegramRewardCallNotificationToDelegators = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    telegramChatId: { $ne: null }
-  }).exec()
-
+const sendTelegramRewardCallNotificationToDelegators = async telegramSubscribers => {
+  if (!telegramSubscribers) {
+    throw new Error('Telegram subscribers not received')
+  }
   let telegramsMessageToSend = []
-  for (const subscriber of subscribers) {
+  for (const subscriber of telegramSubscribers) {
     if (subscriber.lastTelegramSent) {
       // Calculate minutes last telegram sent
       const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
