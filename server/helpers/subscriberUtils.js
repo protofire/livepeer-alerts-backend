@@ -163,18 +163,24 @@ const getSubscriptorRole = async subscriptor => {
 const getDelegatorSubscribers = async () => {
   const delegatorsList = []
   const rolesCheckPromise = []
-  const allSubscribers = await Subscriber.find()
+  const allSubscribers = await Subscriber.find({})
   if (allSubscribers) {
     for (let subscriberIterator of allSubscribers) {
-      const newRolePromise = subscriberUtils.getSubscriptorRole(subscriberIterator).then(result => {
-        const { constants, role, delegator } = result
-        if (role === constants.ROLE.DELEGATOR) {
-          delegatorsList.push({
-            subscriber: subscriberIterator,
-            delegator
-          })
-        }
-      })
+      const newRolePromise = subscriberUtils
+        .getSubscriptorRole(subscriberIterator)
+        .then(result => {
+          const { constants, role, delegator } = result
+          if (role === constants.ROLE.DELEGATOR) {
+            delegatorsList.push({
+              subscriber: subscriberIterator,
+              delegator
+            })
+          }
+        })
+        .catch(error => {
+          console.error(`[Subscribers-Utils] - Error on getDelegatorSubscribers() ${error}`)
+          throw error
+        })
       rolesCheckPromise.push(newRolePromise)
     }
     await Promise.all(rolesCheckPromise)
