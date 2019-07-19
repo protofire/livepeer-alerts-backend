@@ -72,7 +72,7 @@ const getTelegramBodyBySubscriptor = async subscriptor => {
     })
 
     // OK, is a delegate, let's send notifications
-    data = getDelegateTelegramBody({ delegateCalledReward })
+    data = getDelegateTelegramBody(delegateCalledReward)
   } else {
     // OK, is a delegator, let's send notifications
     data = await getDelegatorTelegramBody(subscriptor)
