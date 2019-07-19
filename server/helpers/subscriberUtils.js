@@ -182,7 +182,7 @@ const getDelegatorSubscribers = async () => {
   return delegatorsList
 }
 
-const getListOfDelegateAddressAndDelegatorAddress = async() => {
+const getListOfDelegateAddressAndDelegatorAddress = async () => {
   const subscribersDelegators = await this.getDelegatorSubscribers()
   const list = []
   for (let subscriberIterator of subscribersDelegators) {
