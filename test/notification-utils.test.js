@@ -125,13 +125,129 @@ describe('## Notification utils test', () => {
       notificateDelegateMock.restore()
       notificateDelegatorMock.restore()
     })
-    it('If the notifications for the round were not already sent, but the roundProgress is bellow the threshold should not send notifications', async () => {
+    it('The round is 40% to end (the completed progress its 60%). The threshold is 30% (70% of completed progress) -> send notifications', async () => {
       // given
-      const roundProgress = '10'
+      const roundProgress = '40' // This means that the round is 40% to end (or 60% completed)
+      const roundId = '1'
+      const notificationsForRoundSent = false
+      const round = { _id: roundId, notificationsForRoundSent, save: () => {} }
+      const thresholdSendNotification = '30' // Should send notifications if the progress its 70% completed or 30% to finish
+
+      const notificateDelegatorMock = sinon.mock(notificateDelegatorUtil)
+
+      const notificateDelegatorExpect1 = notificateDelegatorMock
+        .expects('sendEmailRewardCallNotificationToDelegators')
+        .once()
+      const notificateDelegatorExpect2 = notificateDelegatorMock
+        .expects('sendTelegramRewardCallNotificationToDelegators')
+        .once()
+
+      const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
+
+      const notificateDelegateExpect1 = notificateDelegateMock
+        .expects('sendEmailRewardCallNotificationToDelegates')
+        .once()
+      const notificateDelegateExpect2 = notificateDelegateMock
+        .expects('sendTelegramRewardCallNotificationToDelegates')
+        .once()
+
+      const roundMock = sinon.mock(round)
+
+      const roundExpect = roundMock
+        .expects('save')
+        .once()
+        .resolves(null)
+
+      // when
+      await sendRoundNotifications(roundProgress, round, thresholdSendNotification)
+
+      // then
+      notificateDelegateMock.verify()
+      notificateDelegatorMock.verify()
+      // restore mocks
+      notificateDelegateMock.restore()
+      notificateDelegatorMock.restore()
+      roundMock.restore()
+    })
+    it('The round is 100% to end (the completed progress its 0%). The threshold is 30% (70% of completed progress) -> do not send notifications', async () => {
+      // given
+      const roundProgress = '100' // This means that the round is 100% to end (or 0% completed)
       const roundId = '1'
       const notificationsForRoundSent = false
       const round = { _id: roundId, notificationsForRoundSent }
-      const thresholdSendNotification = '20'
+      const thresholdSendNotification = '30' // Should send notifications if the progress its 70% completed or 30% to finish
+
+      const notificateDelegatorMock = sinon.mock(notificateDelegatorUtil)
+
+      const notificateDelegatorExpect1 = notificateDelegatorMock
+        .expects('sendEmailRewardCallNotificationToDelegators')
+        .never()
+      const notificateDelegatorExpect2 = notificateDelegatorMock
+        .expects('sendTelegramRewardCallNotificationToDelegators')
+        .never()
+
+      const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
+
+      const notificateDelegateExpect1 = notificateDelegateMock
+        .expects('sendEmailRewardCallNotificationToDelegates')
+        .never()
+      const notificateDelegateExpect2 = notificateDelegateMock
+        .expects('sendTelegramRewardCallNotificationToDelegates')
+        .never()
+
+      // when
+      await sendRoundNotifications(roundProgress, round, thresholdSendNotification)
+
+      // then
+      notificateDelegateMock.verify()
+      notificateDelegatorMock.verify()
+      // restore mocks
+      notificateDelegateMock.restore()
+      notificateDelegatorMock.restore()
+    })
+    it('The round is 10% to end (the completed progress its 90%). The threshold is 30% (70% of completed progress) -> do not send notifications', async () => {
+      // given
+      const roundProgress = '10' // This means that the round is 40% to end (or 60% completed)
+      const roundId = '1'
+      const notificationsForRoundSent = false
+      const round = { _id: roundId, notificationsForRoundSent }
+      const thresholdSendNotification = '30' // Should send notifications if the progress its 70% completed or 30% to finish
+
+      const notificateDelegatorMock = sinon.mock(notificateDelegatorUtil)
+
+      const notificateDelegatorExpect1 = notificateDelegatorMock
+        .expects('sendEmailRewardCallNotificationToDelegators')
+        .never()
+      const notificateDelegatorExpect2 = notificateDelegatorMock
+        .expects('sendTelegramRewardCallNotificationToDelegators')
+        .never()
+
+      const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
+
+      const notificateDelegateExpect1 = notificateDelegateMock
+        .expects('sendEmailRewardCallNotificationToDelegates')
+        .never()
+      const notificateDelegateExpect2 = notificateDelegateMock
+        .expects('sendTelegramRewardCallNotificationToDelegates')
+        .never()
+
+      // when
+      await sendRoundNotifications(roundProgress, round, thresholdSendNotification)
+
+      // then
+      notificateDelegateMock.verify()
+      notificateDelegatorMock.verify()
+      // restore mocks
+      notificateDelegateMock.restore()
+      notificateDelegatorMock.restore()
+    })
+    it('If the notifications for the round were not already sent, but the roundProgress is bellow the threshold should not send notifications', async () => {
+      // given
+      const roundProgress = '10' // this means that the round is 10% from the end, not from the start
+      const roundId = '1'
+      const notificationsForRoundSent = false
+      const round = { _id: roundId, notificationsForRoundSent }
+      const thresholdSendNotification = '30' // this means that when the progress is at least 70% (or 30% in roundProgress) the notifications must be sent
       let throwedError = false
       const expectedThrow = false
       const resultExpected = false

@@ -6,8 +6,6 @@ const promiseRetry = require('promise-retry')
 const moment = require('moment')
 
 const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
-const Subscriber = require('../subscriber/subscriber.model')
-const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
 
 const MathBN = {
   sub: (a, b) => {
@@ -89,93 +87,6 @@ const truncateStringInTheMiddle = (
   return str
 }
 
-// Message const
-const subscribe = 'Subscribe'
-const unsubscribe = 'Unsubscribe'
-const getInstantAlert = 'Get instant alert'
-
-// Subscription method that save data
-const subscriptionSave = async data => {
-  const checkSubscriptorExist = await subscriptionExist(data)
-  if (checkSubscriptorExist) {
-    throw new AlreadySubscribedError()
-  }
-
-  const { address, chatId } = data
-
-  // Create new subscriber on button press
-  let subscriber = new Subscriber({
-    address: address,
-    frequency: 'daily',
-    telegramChatId: chatId
-  })
-  const subscriberCreated = await subscriber.save()
-
-  console.log(
-    `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
-  )
-
-  return subscriberCreated
-}
-
-// Check for existing subscription user
-const subscriptionExist = async data => {
-  const { address, chatId } = data
-  if (!chatId) {
-    return false
-  }
-  const count = await Subscriber.countDocuments({ telegramChatId: chatId })
-  console.log(
-    `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
-  )
-  return count > 0
-}
-
-// Delete existing subscription user
-const subscriptionRemove = async data => {
-  const { address, chatId } = data
-  const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
-  if (!subscriber) {
-    throw new NotSubscribedError()
-  }
-  const subscriptorRemoved = await subscriber.remove()
-  console.log(
-    `[Telegram bot] - Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`
-  )
-  return subscriptorRemoved
-}
-
-// Get subscription user by address
-const subscriptionFind = async data => {
-  const { address, chatId } = data
-  const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
-  if (!subscriber) {
-    throw new NotSubscribedError()
-  }
-  console.log(`[Telegram bot] - Subscriptor found - Address ${address} - ChatId: ${chatId}`)
-  return subscriber
-}
-
-const getButtonsBySubscriptor = async subscriptor => {
-  let buttons = []
-  let welcomeText
-  const checkSubscriptorExist = await subscriptionExist(subscriptor)
-  if (checkSubscriptorExist) {
-    buttons.push([unsubscribe])
-    welcomeText = `Choose the following options to continue:
-1. Unsubscribe for alerts
-2. Get instant alert`
-  } else {
-    buttons.push([subscribe])
-    welcomeText = `Welcome to Livepeer Tools, choose the following options to continue:
-1. Subscribe for alerts
-2. Get instant alert`
-  }
-
-  buttons.push([getInstantAlert])
-  return { welcomeText, buttons }
-}
-
 const formatPercentage = (x, decimals) => {
   return !x
     ? '0'
@@ -202,36 +113,6 @@ const toBaseUnit = x => {
 
 const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
-}
-
-const getSubscriptorRole = async subscriptor => {
-  const { getProtocolService } = require('./services/protocolService')
-  const { getDelegatorService } = require('./services/delegatorService')
-  const protocolService = getProtocolService()
-  const delegatorService = getDelegatorService()
-
-  let [constants, delegator] = await promiseRetry(retry => {
-    return Promise.all([
-      protocolService.getLivepeerDefaultConstants(),
-      delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
-  })
-
-  const { status, address, delegateAddress } = delegator
-
-  // Detect role
-  const role =
-    delegator &&
-    status === constants.DELEGATOR_STATUS.Bonded &&
-    delegateAddress &&
-    address.toLowerCase() === delegateAddress.toLowerCase()
-      ? constants.ROLE.TRANSCODER
-      : constants.ROLE.DELEGATOR
-  return {
-    role,
-    constants,
-    delegator
-  }
 }
 
 const getDidDelegateCalledReward = async delegateAddress => {
@@ -329,20 +210,11 @@ const calculateIntervalAsMinutes = dateEnd => {
 module.exports = {
   MathBN,
   truncateStringInTheMiddle,
-  subscribe,
-  unsubscribe,
-  getInstantAlert,
-  getButtonsBySubscriptor,
-  subscriptionFind,
-  subscriptionRemove,
-  subscriptionExist,
-  subscriptionSave,
   fromBaseUnit,
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getSubscriptorRole,
-  getDidDelegateCallReward: getDidDelegateCalledReward,
+  getDidDelegateCalledReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,

@@ -3,13 +3,10 @@ const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = 
 
 const mongoose = require('../../../config/mongoose')
 const Subscriber = require('../../subscriber/subscriber.model')
-const {
-  getSubscriptorRole,
-  getDidDelegateCallReward,
-  calculateIntervalAsMinutes
-} = require('../utils')
+const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
+const subscriberUtils = require('../subscriberUtils')
 const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
-const { sendNotificationTelegram } = require('../sendTelegramDidRewardCall')
+const { sendDelegateNotificationTelegram } = require('../sendDelegateTelegram')
 
 const getSubscribers = async subscribers => {
   let subscribersToNotify = []
@@ -20,7 +17,7 @@ const getSubscribers = async subscribers => {
     }
 
     // Detect role
-    const { constants, role, delegator } = await getSubscriptorRole(subscriber)
+    const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
     if (!delegator || !delegator.delegateAddress) {
       continue
@@ -32,7 +29,7 @@ const getSubscribers = async subscribers => {
     // OK, is a transcoder, let's send notifications
 
     // Check if transcoder call reward
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
     let subscriberToNotify = {
       subscriber,
@@ -89,10 +86,10 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
 
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
 
-  const subscribersToNofity = await getSubscribers(subscribers)
+  const subscribersToNotify = await getSubscribers(subscribers)
 
   const subscribersToSendTelegrams = []
-  for (const subscriberToNotify of subscribersToNofity) {
+  for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
     if (subscriber.lastTelegramSent) {
       // Calculate minutes last telegram sent
@@ -106,7 +103,7 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
       }
     }
 
-    subscribersToSendTelegrams.push(sendNotificationTelegram(subscriberToNotify))
+    subscribersToSendTelegrams.push(sendDelegateNotificationTelegram(subscriber))
   }
 
   console.log(
@@ -114,7 +111,7 @@ const sendTelegramRewardCallNotificationToDelegates = async () => {
   )
   await Promise.all(subscribersToSendTelegrams)
 
-  return subscribersToNofity
+  return subscribersToNotify
 }
 
 const notificateDelegateService = {

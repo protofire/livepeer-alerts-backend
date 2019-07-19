@@ -6,19 +6,15 @@ const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 
 const { getProtocolService } = require('../services/protocolService')
-
 const Subscriber = require('../../subscriber/subscriber.model')
 const Share = require('../../share/share.model')
 const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
 } = require('../sendDelegatorEmail')
-const { sendNotificationTelegram } = require('../sendTelegramClaimRewardCall')
-const {
-  getSubscriptorRole,
-  getDidDelegateCallReward,
-  calculateIntervalAsMinutes
-} = require('../utils')
+const { sendDelegatorNotificationTelegram } = require('../sendDelegatorTelegram')
+const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
+const subscriberUtils = require('../subscriberUtils')
 
 const sendEmailRewardCallNotificationToDelegators = async () => {
   const subscribers = await Subscriber.find({
@@ -34,7 +30,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
   for (const subscriber of subscribers) {
     try {
-      const { role, constants, delegator } = await getSubscriptorRole(subscriber)
+      const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
       if (subscriber.lastEmailSent) {
         // Calculate minutes last email sent
@@ -62,7 +58,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
 
       const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
         return Promise.all([
-          getDidDelegateCallReward(delegator.delegateAddress),
+          getDidDelegateCalledReward(delegator.delegateAddress),
           Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
         ]).catch(err => retry())
       })
@@ -115,14 +111,14 @@ const sendTelegramRewardCallNotificationToDelegators = async () => {
     }
 
     // Send notification only for delegators
-    const { role, constants } = await getSubscriptorRole(subscriber)
+    const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
     if (role === constants.ROLE.TRANSCODER) {
       console.log(
         `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because is a delegate`
       )
       continue
     }
-    telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
+    telegramsMessageToSend.push(sendDelegatorNotificationTelegram(subscriber))
   }
 
   console.log(

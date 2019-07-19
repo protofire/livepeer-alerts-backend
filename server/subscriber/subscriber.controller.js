@@ -10,9 +10,10 @@ const {
   fromBaseUnit,
   formatPercentage,
   getDelegatorRoundsUntilUnbonded,
-  getSubscriptorRole,
-  getDidDelegateCallReward
+  getDidDelegateCalledReward
 } = require('../helpers/utils')
+
+const { getSubscriptorRole } = require('../helpers/subscriberUtils')
 
 /**
  * Load subscriber and append to req.
@@ -75,7 +76,7 @@ const create = async (req, res, next) => {
         const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
         // Check if the delegate didRewardCall
-        const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+        const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
@@ -249,7 +250,7 @@ const summary = async (req, res, next) => {
     }
 
     // Check if the delegate didRewardCall
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
 
     switch (role) {
       case constants.ROLE.TRANSCODER:
