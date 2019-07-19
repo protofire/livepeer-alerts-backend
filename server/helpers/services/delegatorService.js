@@ -1,8 +1,3 @@
-const _ = require('lodash')
-
-const { getDelegateService } = require('./delegateService')
-const { MathBN } = require('../utils')
-
 let delegatorServiceInstance
 // The delegate information comes from the SDK as default, graphql is not implemented
 const defaultSource = require('../sdk/delegator')
@@ -37,6 +32,8 @@ class DelegatorService {
   // Returns the delegator's next round-reward
   getDelegatorNextReward = async delegatorAddress => {
     try {
+      const { getDelegateService } = require('./delegateService')
+      const { MathBN } = require('../utils')
       const delegateService = getDelegateService()
       // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
       const delegator = await this.getDelegatorAccount(delegatorAddress)
