@@ -4,40 +4,6 @@ const subscriberUtils = require('../subscriberUtils')
 const delegateEmailUtils = require('../sendDelegateEmail')
 const delegateTelegramUtils = require('../sendDelegateTelegram')
 
-const getSubscribers = async subscribers => {
-  let subscribersToNotify = []
-
-  for (const subscriber of subscribers) {
-    if (!subscriber || !subscriber.address) {
-      continue
-    }
-
-    // Detect role
-    const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
-
-    if (!delegator || !delegator.delegateAddress) {
-      continue
-    }
-
-    if (role !== constants.ROLE.TRANSCODER) {
-      continue
-    }
-    // OK, is a transcoder, let's send notifications
-
-    // Check if transcoder call reward
-    const delegateCalledReward = await utils.getDidDelegateCalledReward(delegator.delegateAddress)
-
-    let subscriberToNotify = {
-      subscriber,
-      delegateCalledReward
-    }
-
-    subscribersToNotify.push(subscriberToNotify)
-  }
-
-  return subscribersToNotify
-}
-
 const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegates()')
@@ -82,17 +48,11 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   return subscribersToNotify
 }
 
-const sendTelegramRewardCallNotificationToDelegates = async (
-  currentRoundInfo,
-  telegramSubscribers
-) => {
+const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error(
       'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegates()'
     )
-  }
-  if (!telegramSubscribers) {
-    throw new Error('Telegram subscribers not received')
   }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
   const subscribersToNotify = await subscriberUtils.getTelegramSubscribersDelegates()
