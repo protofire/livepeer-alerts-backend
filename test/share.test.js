@@ -1,3 +1,4 @@
+const { getDelegatorService } = require('../server/helpers/services/delegatorService')
 const delegatorUtils = require('../server/helpers/delegatorUtils')
 const Share = require('../server/share/share.model')
 const chai = require('chai')
@@ -99,15 +100,12 @@ describe('## Share static methods test', () => {
       // then
       expect(expectedThrow).equal(throwedError)
     })
-    it('If the delegator has no shares on the last round, should return 0', async () => {
+    it('If the delegator has no shares on the last round, should return the delegatorNextReward', async () => {
       // given
       const roundId = '1'
       const delegatorAddress = '1'
       const currentDelegatorTotalStake = '1000'
       const resultExpected = 0
-      let throwedError = false
-      const expectedThrow = false
-      let result
 
       const shareMock = sinon.mock(Share)
 
@@ -116,23 +114,24 @@ describe('## Share static methods test', () => {
         .once()
         .resolves(null)
 
+      const delegatorService = getDelegatorService()
+      const getDelegatorNextRewardStub = sinon
+        .stub(delegatorService, 'getDelegatorNextReward')
+        .resolves(resultExpected)
+
       // when
-      try {
-        result = await delegatorUtils.getDelegatorCurrentRewardTokens(
-          roundId,
-          delegatorAddress,
-          currentDelegatorTotalStake
-        )
-      } catch (err) {
-        throwedError = true
-      }
+      const result = await delegatorUtils.getDelegatorCurrentRewardTokens(
+        roundId,
+        delegatorAddress,
+        currentDelegatorTotalStake
+      )
 
       // then
-      expect(expectedThrow).equal(throwedError)
       expect(result).equal(resultExpected)
       shareMock.verify()
       // restore mocks
       shareMock.restore()
+      getDelegatorNextRewardStub.restore()
     })
     it('Should return the current round reward tokens, the result should be the currentTotalStake minus the last round totalStake', async () => {
       // given
