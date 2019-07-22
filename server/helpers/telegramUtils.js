@@ -1,10 +1,11 @@
 const Handlebars = require('handlebars')
 const path = require('path')
 const fs = require('fs')
-const moment = require('moment')
 const TelegramModel = require('../telegram/telegram.model')
 const promiseRetry = require('promise-retry')
-
+const config = require('../../config/config')
+const moment = require('moment')
+const Share = require('../share/share.model')
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
 
@@ -17,8 +18,6 @@ const {
   getDelegatorRoundsUntilUnbonded,
   getDidDelegateCalledReward
 } = require('../helpers/utils')
-
-const config = require('../../config/config')
 
 // Message const
 const subscribe = 'Subscribe'
@@ -111,7 +110,10 @@ const getDelegatorTelegramBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
+      const earningNextReturn = await Share.getDelegatorShareAmountOnRound(
+        currentRound,
+        delegator.address
+      )
 
       // Calculate earned lpt
       const lptEarned = formatBalance(earningNextReturn, earningDecimals, 'wei')

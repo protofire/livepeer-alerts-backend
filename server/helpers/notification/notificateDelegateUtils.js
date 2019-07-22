@@ -1,14 +1,13 @@
 const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
-
 const mongoose = require('../../../config/mongoose')
-const Subscriber = require('../../subscriber/subscriber.model')
-const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
+const { calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
 const { sendDelegateNotificationTelegram } = require('../sendDelegateTelegram')
 
 const getSubscribers = async subscribers => {
+  const { getDidDelegateCalledReward } = require('../utils')
   let subscribersToNotify = []
 
   for (const subscriber of subscribers) {
@@ -42,14 +41,12 @@ const getSubscribers = async subscribers => {
   return subscribersToNotify
 }
 
-const sendEmailRewardCallNotificationToDelegates = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    email: { $ne: null }
-  }).exec()
+const sendEmailRewardCallNotificationToDelegates = async emailSubscribers => {
+  if (!emailSubscribers) {
+    throw new Error('Email subscribers not received')
+  }
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
-  const subscribersToNofity = await getSubscribers(subscribers)
+  const subscribersToNofity = await getSubscribers(emailSubscribers)
 
   const subscribersToSendEmails = []
   for (const subscriberToNotify of subscribersToNofity) {
@@ -77,16 +74,13 @@ const sendEmailRewardCallNotificationToDelegates = async () => {
   return subscribersToNofity
 }
 
-const sendTelegramRewardCallNotificationToDelegates = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    telegramChatId: { $ne: null }
-  }).exec()
-
+const sendTelegramRewardCallNotificationToDelegates = async telegramSubscribers => {
+  if (!telegramSubscribers) {
+    throw new Error('Telegram subscribers not received')
+  }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
 
-  const subscribersToNotify = await getSubscribers(subscribers)
+  const subscribersToNotify = await getSubscribers(telegramSubscribers)
 
   const subscribersToSendTelegrams = []
   for (const subscriberToNotify of subscribersToNotify) {

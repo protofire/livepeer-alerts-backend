@@ -1,14 +1,8 @@
 const promiseRetry = require('promise-retry')
-
 const mongoose = require('../../../config/mongoose')
-
 const config = require('../../../config/config')
 const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
-
-const { getProtocolService } = require('../services/protocolService')
-const { getDelegatorService } = require('../services/delegatorService')
-
-const Subscriber = require('../../subscriber/subscriber.model')
+const Share = require('../../share/share.model')
 const {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
@@ -17,20 +11,18 @@ const { sendDelegatorNotificationTelegram } = require('../sendDelegatorTelegram'
 const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 
-const sendEmailRewardCallNotificationToDelegators = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    email: { $ne: null }
-  }).exec()
-
+const sendEmailRewardCallNotificationToDelegators = async emailSubscribers => {
+  if (!emailSubscribers) {
+    throw new Error('Email subscribers not received')
+  }
+  console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
   let emailsToSend = []
+  const { getProtocolService } = require('../services/protocolService')
   const protocolService = getProtocolService()
-  const delegatorService = getDelegatorService()
 
   const currentRoundInfo = await protocolService.getCurrentRoundInfo()
 
-  for (const subscriber of subscribers) {
+  for (const subscriber of emailSubscribers) {
     try {
       const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
 
@@ -58,10 +50,10 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
         continue
       }
 
-      const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
+      const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
         return Promise.all([
           getDidDelegateCalledReward(delegator.delegateAddress),
-          delegatorService.getDelegatorNextReward(delegator.address)
+          Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
         ]).catch(err => retry())
       })
 
@@ -70,7 +62,7 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
           subscriber,
           delegator,
           delegateCalledReward,
-          delegatorNextReward,
+          delegatorRoundReward,
           currentRoundInfo.id,
           currentRoundInfo,
           constants
@@ -87,15 +79,12 @@ const sendEmailRewardCallNotificationToDelegators = async () => {
   return await Promise.all(emailsToSend)
 }
 
-const sendTelegramRewardCallNotificationToDelegators = async () => {
-  const subscribers = await Subscriber.find({
-    frequency: 'daily',
-    activated: 1,
-    telegramChatId: { $ne: null }
-  }).exec()
-
+const sendTelegramRewardCallNotificationToDelegators = async telegramSubscribers => {
+  if (!telegramSubscribers) {
+    throw new Error('Telegram subscribers not received')
+  }
   let telegramsMessageToSend = []
-  for (const subscriber of subscribers) {
+  for (const subscriber of telegramSubscribers) {
     if (subscriber.lastTelegramSent) {
       // Calculate minutes last telegram sent
       const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)

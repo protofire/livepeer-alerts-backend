@@ -1,8 +1,3 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
 
@@ -61,7 +56,9 @@ const workerCheckRoundChange = async () => {
 
   // Once the round was created, updates the shares and pools of the current round
   try {
+    console.log(`[Check-Round-Change] Updating delegates pools`)
     await roundPoolsUtils.updateDelegatesPools(roundCreated)
+    console.log(`[Check-Round-Change] Updating delegators shares`)
     await roundSharesUtils.updateDelegatorsShares(roundCreated)
   } catch (err) {
     // TODO - This should be inside a transaction, because if some of those two fails, the round will be already saved and the information of the pools/shares wont be saved for that round
@@ -70,6 +67,7 @@ const workerCheckRoundChange = async () => {
 
   // Finally send notifications
   try {
+    console.log(`[Check-Round-Change] Sending round notifications`)
     await sendRoundNotifications(progress, roundCreated, thresholdSendNotification)
   } catch (err) {
     throw new Error(`[Check-Round-Change] - Error sending notifications: ${err}`)
