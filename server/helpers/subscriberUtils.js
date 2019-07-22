@@ -343,7 +343,7 @@ const getEmailSubscribersDelegators = async () => {
     subscribersList = await subscriberUtils.filterSubscribersByDelegatorRole(allSubscribers)
   }
   console.log(
-    `[Subscribers-utils] - Amount of telegram subscribers delegators: ${subscribersList.length}`
+    `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribersList.length}`
   )
   return subscribersList
 }
