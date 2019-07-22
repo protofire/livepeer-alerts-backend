@@ -27,7 +27,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
       `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
     )
     throw new Error(
-      '[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?'
+      `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
     )
   }
   // Checks that the round exists before continue
@@ -100,20 +100,21 @@ const updateDelegatorsShares = async newRound => {
     return
   }
 
-  try {
-    // Then checks if all the fetched delegators exists locally, otherwise, add the ones that are missing
-    await delegatorUtils.checkAndUpdateMissingLocalDelegators(delegators)
+  // Then checks if all the fetched delegators exists locally, otherwise, add the ones that are missing
+  await delegatorUtils.checkAndUpdateMissingLocalDelegators(delegators)
 
-    // Then updates the delegators shares on the current round
-    for (let delegatorIterator of delegators) {
+  // Then updates the delegators shares on the current round
+  for (let delegatorIterator of delegators) {
+    try {
       await service.updateDelegatorSharesOfRound(newRound, delegatorIterator)
+    } catch (err) {
+      console.error(
+        `[Update Delegators Share] - Error when updating delegators shares: ${err}, continue updating next delegator`
+      )
+      continue
     }
-
-    console.log('[Update Delegators Share] - Finish')
-  } catch (err) {
-    console.error(`[Update Delegators Share] - Error when updating delegators shares: ${err}`)
-    throw new Error(`[Update Delegators Share] - Error when updating delegators shares: ${err}`)
   }
+  console.log('[Update Delegators Share] - Finished')
 }
 
 const service = {

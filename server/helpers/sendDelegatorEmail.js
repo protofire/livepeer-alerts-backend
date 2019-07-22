@@ -86,8 +86,7 @@ const sendEmail = async data => {
       await sgMail.send(msg)
       console.log(`Email sent to ${email} successfully`)
     } catch (err) {
-      console.error(`There was an error trying to send email to ${email}`)
-      console.error(err)
+      console.error(`There was an error trying to send email to ${email} with error: \n ${err}`)
       throw err
     }
   }
