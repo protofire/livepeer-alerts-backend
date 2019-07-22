@@ -1,10 +1,42 @@
-const mongoose = require('../../config/mongoose')
-const Subscriber = require('../subscriber/subscriber.model')
-const utils = require('../helpers/utils')
-const subscriberUtils = require('../helpers/subscriberUtils')
+const mongoose = require('../../../config/mongoose')
+const utils = require('../utils')
+const subscriberUtils = require('../subscriberUtils')
+const delegateEmailUtils = require('../sendDelegateEmail')
+const delegateTelegramUtils = require('../sendDelegateTelegram')
 
-const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegramDidRewardCall')
+const getSubscribers = async subscribers => {
+  let subscribersToNotify = []
+
+  for (const subscriber of subscribers) {
+    if (!subscriber || !subscriber.address) {
+      continue
+    }
+
+    // Detect role
+    const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+
+    if (!delegator || !delegator.delegateAddress) {
+      continue
+    }
+
+    if (role !== constants.ROLE.TRANSCODER) {
+      continue
+    }
+    // OK, is a transcoder, let's send notifications
+
+    // Check if transcoder call reward
+    const delegateCalledReward = await utils.getDidDelegateCalledReward(delegator.delegateAddress)
+
+    let subscriberToNotify = {
+      subscriber,
+      delegateCalledReward
+    }
+
+    subscribersToNotify.push(subscriberToNotify)
+  }
+
+  return subscribersToNotify
+}
 
 const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   if (!currentRoundInfo) {
@@ -12,7 +44,7 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   }
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
   // Fetchs only the subscribers that are delegates
-  const subscribersToNotify = await subscriberUtils.getSubscribersDelegates()
+  const subscribersToNotify = await subscriberUtils.getDelegatesSubscribers()
   const subscribersToSendEmails = []
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNotify) {
@@ -38,7 +70,7 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
       delegateCalledReward
     }
 
-    subscribersToSendEmails.push(sendDelegateNotificationEmail(notification))
+    subscribersToSendEmails.push(delegateEmailUtils.sendDelegateNotificationEmail(notification))
   }
   console.log(
     `[Notificate-Delegates] - Emails subscribers to notify ${subscribersToSendEmails.length}`
@@ -55,10 +87,10 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
     )
   }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
-  const subscribersToNofity = await subscriberUtils.getTelegramSubscribersDelegates()
+  const subscribersToNotify = await subscriberUtils.getTelegramSubscribersDelegates()
   const subscribersToSendTelegrams = []
   const currentRoundId = currentRoundInfo.id
-  for (const subscriberToNotify of subscribersToNofity) {
+  for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
     const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
       subscriber,
@@ -80,7 +112,9 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
       delegateCalledReward
     }
 
-    subscribersToSendTelegrams.push(sendNotificationTelegram(notification))
+    subscribersToSendTelegrams.push(
+      delegateTelegramUtils.sendDelegateNotificationTelegram(notification)
+    )
   }
 
   console.log(
@@ -88,10 +122,12 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
   )
   await Promise.all(subscribersToSendTelegrams)
 
-  return subscribersToNofity
+  return subscribersToNotify
 }
 
-module.exports = {
+const notificateDelegateService = {
   sendEmailRewardCallNotificationToDelegates,
   sendTelegramRewardCallNotificationToDelegates
 }
+
+module.exports = notificateDelegateService

@@ -1,18 +1,15 @@
 const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../config/constants')
 
 const {
-  sendEmailRewardCallNotificationToDelegators
-} = require('../server/jobs/notificate-delegators-utils')
-
-const {
   createDelegator,
   createSubscriber,
   getLivepeerDefaultConstants
 } = require('../server/helpers/test/util')
 const { getProtocolService } = require('../server/helpers/services/protocolService')
 const { getDelegatorService } = require('../server/helpers/services/delegatorService')
-const SubscriberUtils = require('../server/helpers/subscriberUtils')
+const subscriberUtils = require('../server/helpers/subscriberUtils')
 const delegatorEmailUtils = require('../server/helpers/sendDelegatorEmail')
+const notificateDelegatorUtils = require('../server/helpers/notification/notificateDelegatorUtils')
 const utils = require('../server/helpers/utils')
 const Subscriber = require('../server/subscriber/subscriber.model')
 const chai = require('chai')
@@ -69,7 +66,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const resultExpected = true
       // when
       try {
-        await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+        await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
       } catch (err) {
         result = true
       }
@@ -88,7 +85,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscribersDelegatorsAndDelegatorStub = sinon
-        .stub(SubscriberUtils, 'getSubscribersDelegatorsAndDelegator')
+        .stub(subscriberUtils, 'getDelegatorSubscribers')
         .returns(subscribersDelegators)
 
       consoleLogMock = sinon.mock(console)
@@ -114,7 +111,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       expect(getSubscribersDelegatorsAndDelegatorStub.called)
@@ -124,7 +121,7 @@ describe('## NotificateDelegatorsUtils', () => {
       consoleLogMock.verify()
       delegatorEmailUtilsMock.verify()
     })
-    it('If there are delegators on the subscribers which they never received an email, should send an email to them', async () => {
+    it('If there are delegators on the subscribers list which they never received an email, should send an email to them', async () => {
       // given
       const delegator = createDelegator()
       const lastEmailSent = null
@@ -153,7 +150,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscriptorRoleStub = sinon
-        .stub(SubscriberUtils, 'getSubscriptorRole')
+        .stub(subscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
       consoleLogMock = sinon.mock(console)
@@ -194,7 +191,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       consoleLogMock.verify()
@@ -238,7 +235,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscriptorRoleStub = sinon
-        .stub(SubscriberUtils, 'getSubscriptorRole')
+        .stub(subscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
       consoleLogMock = sinon.mock(console)
@@ -284,7 +281,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       consoleLogMock.verify()
@@ -326,7 +323,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscriptorRoleStub = sinon
-        .stub(SubscriberUtils, 'getSubscriptorRole')
+        .stub(subscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
       consoleLogMock = sinon.mock(console)
@@ -367,7 +364,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       consoleLogMock.verify()
@@ -410,7 +407,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       const getSubscriptorRoleStub = sinon
-        .stub(SubscriberUtils, 'getSubscriptorRole')
+        .stub(subscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
       consoleLogMock = sinon.mock(console)
@@ -451,7 +448,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       consoleLogMock.verify()
@@ -495,7 +492,7 @@ describe('## NotificateDelegatorsUtils', () => {
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscriptorRoleStub = sinon
-        .stub(SubscriberUtils, 'getSubscriptorRole')
+        .stub(subscriberUtils, 'getSubscriptorRole')
         .returns(subscriptorRoleReturn)
 
       consoleLogMock = sinon.mock(console)
@@ -541,7 +538,7 @@ describe('## NotificateDelegatorsUtils', () => {
         .resolves(null)
 
       // when
-      await sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
       consoleLogMock.verify()

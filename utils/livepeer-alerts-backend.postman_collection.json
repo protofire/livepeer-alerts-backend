@@ -502,6 +502,39 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegators/address/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegators/address/0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegators",
+						"address",
+						"0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085"
+					]
+				},
+				"description": "Gets information about a delegator"
+			},
+			"response": []
 		}
 	]
 }

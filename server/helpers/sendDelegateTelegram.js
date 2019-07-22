@@ -1,16 +1,14 @@
 const config = require('../../config/config')
-const { getTelegramClaimRewardCallBody, getButtonsBySubscriptor } = require('./telegramUtils')
+const { getDelegateTelegramBody, getButtonsBySubscriptor } = require('./telegramUtils')
 
-const sendTelegramClaimRewardCall = async data => {
-  const { chatId, address, body } = data
-
+const sendDelegateTelegram = async (chatId, address, body) => {
   const TelegramBot = require('node-telegram-bot-api')
   const { telegramBotKey } = config
   const bot = new TelegramBot(telegramBotKey)
 
   if (!['test'].includes(config.env)) {
     try {
-      const { buttons } = await getButtonsBySubscriptor({ address, chatId })
+      const { buttons } = await getButtonsBySubscriptor(chatId)
       await bot.sendMessage(chatId, body, {
         reply_markup: {
           keyboard: buttons
@@ -21,32 +19,32 @@ const sendTelegramClaimRewardCall = async data => {
         `[Telegram bot] - Telegram sent to chatId ${chatId} successfully. Body of the message: ${body}`
       )
     } catch (err) {
-      console.error(err)
+      console.error(`[Telegram bot] - Error on sendDelegateTelegram(): ${err}`)
     }
   }
   return
 }
 
-const sendNotificationTelegram = async subscriber => {
+const sendDelegateNotificationTelegram = async subscriber => {
   // Get telegram body
-  const data = await getTelegramClaimRewardCallBody(subscriber)
-
+  const data = await getDelegateTelegramBody(subscriber)
   if (!data) {
     return
   }
 
   const { body } = data
 
+  const { telegramChatId, address } = subscriber
   // Send telegram
-  await sendTelegramClaimRewardCall({
-    chatId: subscriber.telegramChatId,
-    address: subscriber.address,
-    body: body
-  })
+  await sendDelegateTelegram(telegramChatId, address, body)
 
   // Save last telegram sent
   subscriber.lastTelegramSent = Date.now()
-  return await subscriber.save({ validateBeforeSave: false })
+  return await subscriber.save()
 }
 
-module.exports = { sendNotificationTelegram, getTelegramClaimRewardCallBody }
+const delegateTelegramUtils = {
+  sendDelegateNotificationTelegram
+}
+
+module.exports = delegateTelegramUtils

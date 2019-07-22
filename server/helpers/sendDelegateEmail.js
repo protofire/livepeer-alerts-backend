@@ -66,4 +66,8 @@ const sendDelegateNotificationEmail = async data => {
   }
 }
 
-module.exports = { sendDelegateNotificationEmail }
+const delegateEmailUtils = {
+  sendDelegateNotificationEmail
+}
+
+module.exports = delegateEmailUtils

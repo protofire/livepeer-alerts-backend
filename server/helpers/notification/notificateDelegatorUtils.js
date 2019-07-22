@@ -1,18 +1,18 @@
 const promiseRetry = require('promise-retry')
-const mongoose = require('../../config/mongoose')
-const { getDelegatorService } = require('../helpers/services/delegatorService')
-const { getProtocolService } = require('../helpers/services/protocolService')
-const delegatorEmailUtils = require('../helpers/sendDelegatorEmail')
-const { sendNotificationTelegram } = require('../helpers/sendTelegramClaimRewardCall')
-const utils = require('../helpers/utils')
-const subscriberUtils = require('../helpers/subscriberUtils')
+const mongoose = require('../../../config/mongoose')
+const { getDelegatorService } = require('../services/delegatorService')
+const { getProtocolService } = require('../services/protocolService')
+const utils = require('../utils')
+const subscriberUtils = require('../subscriberUtils')
+const delegatorEmailUtils = require('../sendDelegatorEmail')
+const delegatorTelegramUtils = require('../sendDelegatorTelegram')
 
 const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
 
-  const subscribersDelegators = await subscriberUtils.getSubscribersDelegatorsAndDelegator()
+  const subscribersDelegators = await subscriberUtils.getDelegatorSubscribers()
 
   let emailsToSend = []
   const delegatorService = getDelegatorService()
@@ -70,7 +70,7 @@ const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo =>
       'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegators()'
     )
   }
-  const subscribersDelegators = await subscriberUtils.getTelegramSubscribersDelegatorsAndDelegator()
+  const subscribersDelegators = await subscriberUtils.getTelegramSubscribersDelegators()
 
   let telegramsMessageToSend = []
   const currentRoundId = currentRoundInfo.id
@@ -86,7 +86,9 @@ const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo =>
       )
       continue
     }
-    telegramsMessageToSend.push(sendNotificationTelegram(subscriber))
+    telegramsMessageToSend.push(
+      delegatorTelegramUtils.sendDelegatorNotificationTelegram(subscriber)
+    )
   }
 
   console.log(
@@ -106,8 +108,10 @@ const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
   return await Promise.all(subscribersToNotify)
 }
 
-module.exports = {
+const notificateDelegatorService = {
   sendEmailRewardCallNotificationToDelegators,
   sendTelegramRewardCallNotificationToDelegators,
   sendNotificationDelegateChangeRuleToDelegators
 }
+
+module.exports = notificateDelegatorService
