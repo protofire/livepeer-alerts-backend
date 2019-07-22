@@ -5,6 +5,7 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
+const Share = require('../share/share.model')
 const {
   fromBaseUnit,
   formatPercentage,
@@ -62,8 +63,8 @@ const create = async (req, res, next) => {
     const subscriber = new Subscriber({
       email: email,
       address: address,
-      emailFrequency: emailFrequency,
-      telegramFrequency: telegramFrequency,
+      emailFrequency,
+      telegramFrequency,
       telegramChatId: telegramChatId
     })
 
@@ -91,14 +92,20 @@ const create = async (req, res, next) => {
 
         if (role === constants.ROLE.DELEGATOR) {
           const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
-
-          const delegatorService = getDelegatorService()
-          const delegatorNextReward = delegatorService.getDelegatorNextReward(delegator.address)
+          const protocolService = getProtocolService()
+          const [currentRound, currentRoundInfo] = await Promise.all([
+            protocolService.getCurrentRound(),
+            protocolService.getCurrentRoundInfo()
+          ])
+          const delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
+            currentRound,
+            delegator.address
+          )
           await sendDelegatorNotificationEmail(
             subscriber,
             delegator,
             delegateCalledReward,
-            delegatorNextReward,
+            delegatorRoundReward,
             currentRound,
             currentRoundInfo,
             constants

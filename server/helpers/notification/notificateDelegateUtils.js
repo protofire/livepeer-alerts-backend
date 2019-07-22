@@ -82,11 +82,17 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   return subscribersToNotify
 }
 
-const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => {
+const sendTelegramRewardCallNotificationToDelegates = async (
+  currentRoundInfo,
+  telegramSubscribers
+) => {
   if (!currentRoundInfo) {
     throw new Error(
       'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegates()'
     )
+  }
+  if (!telegramSubscribers) {
+    throw new Error('Telegram subscribers not received')
   }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
   const subscribersToNotify = await subscriberUtils.getTelegramSubscribersDelegates()

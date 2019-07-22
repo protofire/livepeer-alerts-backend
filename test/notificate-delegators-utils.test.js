@@ -81,7 +81,8 @@ describe('## NotificateDelegatorsUtils', () => {
       }
       const subscribersDelegators = []
       const constants = getLivepeerDefaultConstants()
-      const resultExpected = `[Notificate-Delegators] - Emails subscribers to notify 0`
+      const resultExpected1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const resultExpected2 = `[Notificate-Delegators] - Emails subscribers to notify 0`
 
       // Stubs the return of getSubscriptorRole to make the subscriber a delegate
       getSubscribersDelegatorsAndDelegatorStub = sinon
@@ -93,7 +94,12 @@ describe('## NotificateDelegatorsUtils', () => {
       const expectationConsole1 = consoleLogMock
         .expects('log')
         .once()
-        .withArgs(resultExpected)
+        .withArgs(resultExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected2)
 
       getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
 
@@ -132,9 +138,10 @@ describe('## NotificateDelegatorsUtils', () => {
       const subscribers = [subscriber]
       const constants = getLivepeerDefaultConstants()
       const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
-      const resultExpected = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
-      const resultExpected2 = `[Subscribers-utils] - Returning list of email subscribers delegators`
-      const resultExpected3 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+      const resultExpected1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const resultExpected2 = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
+      const resultExpected3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const resultExpected4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
       const currentRound = 1
       const currentRoundInfo = {
         id: currentRound
@@ -158,7 +165,7 @@ describe('## NotificateDelegatorsUtils', () => {
       const expectationConsole = consoleLogMock
         .expects('log')
         .once()
-        .withArgs(resultExpected)
+        .withArgs(resultExpected1)
 
       const expectationConsole2 = consoleLogMock
         .expects('log')
@@ -169,6 +176,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('log')
         .once()
         .withArgs(resultExpected3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected4)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
       getCurrentRoundInfoStub = sinon
@@ -220,10 +232,11 @@ describe('## NotificateDelegatorsUtils', () => {
       const subscribers = [subscriber]
       const constants = getLivepeerDefaultConstants()
       const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
-      const logExpectation1 = `[Notificate-Delegators] - Emails subscribers to notify 0`
-      const logExpectation2 = `[Subscribers-utils] - Returning list of email subscribers delegators`
-      const logExpectation3 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
-      const logExpectation4 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify 0`
+      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+      const logExpectation5 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
       subscriberMock = sinon.mock(Subscriber)
@@ -259,6 +272,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('log')
         .once()
         .withArgs(logExpectation4)
+
+      const expectationConsole5 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation5)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
       getCurrentRoundInfoStub = sinon
@@ -309,9 +327,10 @@ describe('## NotificateDelegatorsUtils', () => {
       const subscribers = [subscriber]
       const constants = getLivepeerDefaultConstants()
       const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
-      const logExpectation1 = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
-      const logExpectation2 = `[Subscribers-utils] - Returning list of email subscribers delegators`
-      const logExpectation3 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
+      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
       subscriberMock = sinon.mock(Subscriber)
@@ -342,6 +361,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('log')
         .once()
         .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
       getCurrentRoundInfoStub = sinon
@@ -393,9 +417,10 @@ describe('## NotificateDelegatorsUtils', () => {
       const subscribers = [subscriber]
       const constants = getLivepeerDefaultConstants()
       const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
-      const logExpectation1 = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
-      const logExpectation2 = `[Subscribers-utils] - Returning list of email subscribers delegators`
-      const logExpectation3 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify ${subscribers.length}`
+      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
       subscriberMock = sinon.mock(Subscriber)
@@ -426,6 +451,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('log')
         .once()
         .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
       getCurrentRoundInfoStub = sinon
@@ -477,10 +507,11 @@ describe('## NotificateDelegatorsUtils', () => {
       const subscribers = [subscriber]
       const constants = getLivepeerDefaultConstants()
       const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
-      const logExpectation1 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
-      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify 0`
-      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
-      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
+      const logExpectation3 = `[Notificate-Delegators] - Emails subscribers to notify 0`
+      const logExpectation4 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation5 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
 
       // Stubs the return of Subscriber.find to return the list of subscribers
       subscriberMock = sinon.mock(Subscriber)
@@ -516,6 +547,11 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('log')
         .once()
         .withArgs(logExpectation4)
+
+      const expectationConsole5 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation5)
 
       // Stubs the return of getCurrentRoundInfo to return an mocked id
       getCurrentRoundInfoStub = sinon

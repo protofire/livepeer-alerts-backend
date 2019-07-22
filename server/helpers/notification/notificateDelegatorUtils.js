@@ -1,21 +1,19 @@
 const promiseRetry = require('promise-retry')
 const mongoose = require('../../../config/mongoose')
-const { getDelegatorService } = require('../services/delegatorService')
 const { getProtocolService } = require('../services/protocolService')
 const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const delegatorEmailUtils = require('../sendDelegatorEmail')
 const delegatorTelegramUtils = require('../sendDelegatorTelegram')
+const Share = require('../../share/share.model')
 
 const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
-
+  console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
   const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
-
   let emailsToSend = []
-  const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
@@ -35,10 +33,10 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         )
         continue
       }
-      const [delegateCalledReward, delegatorNextReward] = await promiseRetry(retry => {
+      const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
         return Promise.all([
           utils.getDidDelegateCalledReward(delegator.delegateAddress),
-          delegatorService.getDelegatorNextReward(delegator.address)
+          Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
         ]).catch(err => retry())
       })
 
@@ -47,8 +45,8 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
           subscriber,
           delegator,
           delegateCalledReward,
-          delegatorNextReward,
-          currentRoundId,
+          delegatorRoundReward,
+          currentRoundInfo.id,
           currentRoundInfo,
           constants
         )
