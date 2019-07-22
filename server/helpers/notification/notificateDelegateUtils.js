@@ -44,7 +44,7 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   }
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
   // Fetchs only the subscribers that are delegates
-  const subscribersToNotify = await subscriberUtils.getDelegatesSubscribers()
+  const subscribersToNotify = await subscriberUtils.getEmailSubscribersDelegates()
   const subscribersToSendEmails = []
   const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNotify) {
@@ -55,7 +55,7 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
     )
     if (!shouldSubscriberReceiveNotifications) {
       console.log(
-        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
+        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
       )
       continue
     }
@@ -65,12 +65,14 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
     console.log(
       `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
     )
-    const notification = {
-      subscriber,
-      delegateCalledReward
-    }
 
-    subscribersToSendEmails.push(delegateEmailUtils.sendDelegateNotificationEmail(notification))
+    subscribersToSendEmails.push(
+      delegateEmailUtils.sendDelegateNotificationEmail(
+        subscriber,
+        delegateCalledReward,
+        currentRoundId
+      )
+    )
   }
   console.log(
     `[Notificate-Delegates] - Emails subscribers to notify ${subscribersToSendEmails.length}`
@@ -98,7 +100,7 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
     )
     if (!shouldSubscriberReceiveNotifications) {
       console.log(
-        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
+        `[Notificate-Delegates] - Not sending telegram to ${subscriber.telegramChatId} because already sent a telegram in the last ${subscriber.lastTelegramSent} round and the frequency is ${subscriber.telegramFrequency}`
       )
       continue
     }
@@ -107,13 +109,13 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
     console.log(
       `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
     )
-    const notification = {
-      subscriber,
-      delegateCalledReward
-    }
 
     subscribersToSendTelegrams.push(
-      delegateTelegramUtils.sendDelegateNotificationTelegram(notification)
+      delegateTelegramUtils.sendDelegateNotificationTelegram(
+        subscriber,
+        delegateCalledReward,
+        currentRoundId
+      )
     )
   }
 

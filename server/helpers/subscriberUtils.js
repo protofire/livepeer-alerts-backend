@@ -330,6 +330,25 @@ const getDelegatorSubscribers = async () => {
 }
 
 /**
+ * Returns the list of all the subscribers that are subscribed to email which their role is delegator and their delegator associated
+ * @returns {Promise<array>}
+ */
+const getEmailSubscribersDelegators = async () => {
+  console.log('[Subscribers-utils] - Returning list of email subscribers delegators')
+  let subscribersList = []
+  const allSubscribers = await Subscriber.find({
+    email: { $ne: null }
+  })
+  if (allSubscribers && allSubscribers.length > 0) {
+    subscribersList = await subscriberUtils.filterSubscribersByDelegatorRole(allSubscribers)
+  }
+  console.log(
+    `[Subscribers-utils] - Amount of telegram subscribers delegators: ${subscribersList.length}`
+  )
+  return subscribersList
+}
+
+/**
  * Returns the list of all the subscribers that are subscribed to telegram which their role is delegator and their delegator associated
  * @returns {Promise<array>}
  */
@@ -381,6 +400,24 @@ const getTelegramSubscribersDelegates = async () => {
   return subscribersList
 }
 
+/**
+ * Returns the list of all the subscribers which their role is delegate and are subscribed in email
+ * @returns {Promise<array>}
+ */
+const getEmailSubscribersDelegates = async () => {
+  console.log('[Subscribers-utils] - Returning list of subscribers delegates')
+  const allSubscribers = await Subscriber.find({
+    email: { $ne: null }
+  })
+  let subscribersList = []
+  if (allSubscribers && allSubscribers.length > 0) {
+    subscribersList = await subscriberUtils.filterSubscribersByDelegateRole(allSubscribers)
+  }
+
+  console.log(`[Subscribers-utils] - Amount of subscribers delegates: ${subscribersList.length}`)
+  return subscribersList
+}
+
 const subscriberUtils = {
   emailSubscriptorExists,
   telegramSubscriptorExists,
@@ -397,6 +434,8 @@ const subscriberUtils = {
   getDelegatorSubscribers,
   getTelegramSubscribersDelegates,
   getTelegramSubscribersDelegators,
+  getEmailSubscribersDelegators,
+  getEmailSubscribersDelegates,
   filterSubscribersByDelegateRole,
   filterSubscribersByDelegatorRole
 }

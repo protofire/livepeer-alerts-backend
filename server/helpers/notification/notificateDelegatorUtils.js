@@ -12,7 +12,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
 
-  const subscribersDelegators = await subscriberUtils.getDelegatorSubscribers()
+  const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
 
   let emailsToSend = []
   const delegatorService = getDelegatorService()
@@ -54,9 +54,8 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         )
       )
     } catch (err) {
-      console.error(err)
       console.error(
-        `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email}`
+        `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email} with error: \n ${err}`
       )
     }
   }
@@ -82,12 +81,12 @@ const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo =>
     )
     if (!shouldSubscriberReceiveNotifications) {
       console.log(
-        `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} rounds and the frequency is ${subscriber.emailFrequency}`
+        `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because already sent a telegram in the last ${subscriber.lastTelegramSent} round and the frequency is ${subscriber.telegramFrequency}`
       )
       continue
     }
     telegramsMessageToSend.push(
-      delegatorTelegramUtils.sendDelegatorNotificationTelegram(subscriber)
+      delegatorTelegramUtils.sendDelegatorNotificationTelegram(subscriber, currentRoundId)
     )
   }
 
