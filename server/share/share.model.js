@@ -58,12 +58,14 @@ ShareSchema.statics = {
       return null
     }
     const roundShare = await this.findOne({ delegator: delegatorAddress, round: roundId })
-    // If there are no shares for that user, return 0 as default
+    // If there are no shares for that user, return the next delegatorReward as default
     if (!roundShare) {
+      const { getDelegatorService } = require('../helpers/services/delegatorService')
+      const delegatorService = getDelegatorService()
       console.error(
-        `[ShareSchema] - share for round ${roundId} of delegator ${delegatorAddress} not found`
+        `[ShareSchema] - share for round ${roundId} of delegator ${delegatorAddress} not found, returning next reward`
       )
-      return '0'
+      return await delegatorService.getDelegatorNextReward(delegatorAddress)
     }
     return roundShare.rewardTokens
   }
