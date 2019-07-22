@@ -41,10 +41,8 @@ const sendEmail = async data => {
   return
 }
 
-const sendDelegateNotificationEmail = async data => {
+const sendDelegateNotificationEmail = async (subscriber, delegateCalledReward, currentRound) => {
   try {
-    const { subscriber, delegateCalledReward } = data
-
     const templateId = delegateCalledReward
       ? sendgridTemplateIdDidRewardCallAllGood
       : sendgridTemplateIdDidRewardCallPayAttention
@@ -58,7 +56,7 @@ const sendDelegateNotificationEmail = async data => {
     await sendEmail(emailData)
 
     // Save last email sent
-    subscriber.lastEmailSent = Date.now()
+    subscriber.lastEmailSent = currentRound
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)

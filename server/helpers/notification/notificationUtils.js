@@ -61,13 +61,13 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
 
   // Send email notifications for delegate and delegators
   await Promise.all([
-    notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(),
-    notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates()
+    notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(round),
+    notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates(round)
   ])
   // Send telegram notifications for delegates
   await Promise.all([
-    notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(),
-    notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates()
+    notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(round),
+    notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates(round)
   ])
 
   // Finally updates the current round with the notificationsForRoundSent flag

@@ -25,21 +25,22 @@ const sendDelegateTelegram = async (chatId, address, body) => {
   return
 }
 
-const sendDelegateNotificationTelegram = async subscriber => {
+const sendDelegateNotificationTelegram = async (subscriber, delegateCalledReward, currentRound) => {
   // Get telegram body
-  const data = await getDelegateTelegramBody(subscriber)
+  const { telegramChatId, address } = subscriber
+  const data = await getDelegateTelegramBody(delegateCalledReward)
   if (!data) {
     return
   }
 
   const { body } = data
 
-  const { telegramChatId, address } = subscriber
   // Send telegram
+
   await sendDelegateTelegram(telegramChatId, address, body)
 
   // Save last telegram sent
-  subscriber.lastTelegramSent = Date.now()
+  subscriber.lastTelegramSent = currentRound
   return await subscriber.save()
 }
 
