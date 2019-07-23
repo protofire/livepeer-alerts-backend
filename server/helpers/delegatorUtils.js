@@ -114,8 +114,10 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
  */
 const getDelegatorSharesSummary = async (delegator, currentRound) => {
   if (!delegator) {
+    throw new Error('[DelegatorUtils] no delegator provided on getDelegatorSharesSummary()')
   }
   if (!currentRound) {
+    throw new Error('[DelegatorUtils] no currentRound provided on getDelegatorSharesSummary()')
   }
   // Calculates totalDelegatePools
   try {
@@ -152,17 +154,17 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
       missedRewardCalls
     }
   } catch (err) {
-    console.error(`[Delegator utils] - Error on getDelegatorSharesSummary(): ${err}`)
+    console.error(`[DelegatorUtils] - Error on getDelegatorSharesSummary(): ${err}`)
     throw err
   }
 }
 
 const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
   if (!delegatorAddress) {
-    throw new Error('[DelegatesUtils] - No delegatorAddress provided on getWeeklySharesPerRound()')
+    throw new Error('[DelegatorUtils] - No delegatorAddress provided on getWeeklySharesPerRound()')
   }
   if (!currentRound) {
-    throw new Error('[DelegatesUtils] - No currentRound provided on getWeeklySharesPerRound()')
+    throw new Error('[DelegatorUtils] - No currentRound provided on getWeeklySharesPerRound()')
   }
 
   let delegator = await Delegator.findById(delegatorAddress)
@@ -177,7 +179,7 @@ const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
     .exec()
 
   const startRound = currentRound - 7
-  const delegatorShares = delegator.pools.slice(startRound, currentRound)
+  const delegatorShares = delegator.shares.slice(startRound, currentRound)
   // Sums all the shares in a unique reward
   const totalDelegatorShares = delegatorShares.reduce((totalDelegatorShares, currentShare) => {
     if (currentShare.rewardTokens) {
