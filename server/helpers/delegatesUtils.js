@@ -189,12 +189,36 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
+const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
+  if (!delegateAddress) {
+  }
+  if (!currentRound) {
+  }
+  const totalDelegatePools = 0
+  return totalDelegatePools
+}
+
+/**
+ * Returns the missed rewards calls of the delegate
+ * between the last round and the lastRound-roundsPeriod
+ * Throws error if no roundPeriod received
+ * @param roundsPeriod
+ * @returns {Promise<number>}
+ */
+const getMissedRewardCalls = async roundsPeriod => {
+  if (!roundsPeriod) {
+  }
+  return 0
+}
+
 const delegateUtils = {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   updateDelegatesLocally,
   checkAndUpdateMissingLocalDelegates,
-  getDelegateRulesChanged
+  getDelegateRulesChanged,
+  getDelegateLastWeekRoundsPools,
+  getMissedRewardCalls
 }
 
 module.exports = delegateUtils

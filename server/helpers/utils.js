@@ -207,6 +207,21 @@ const calculateIntervalAsMinutes = dateEnd => {
   return minutes
 }
 
+const getStartAndFinishDateOfWeeklySummary = finishDay => {
+  if (!finishDay) {
+    throw new Error('[Utils] - FinishDay not received')
+  }
+  if (!finishDay instanceof Date) {
+    throw new Error('[Utils] - FinishDay received is not a valid date')
+  }
+  const finishDate = moment(finishDay)
+  const startDate = finishDate.subtract(7, 'days')
+  return {
+    startDate,
+    finishDate
+  }
+}
+
 const utils = {
   MathBN,
   truncateStringInTheMiddle,
@@ -221,7 +236,8 @@ const utils = {
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
   calculateCurrentBondingRate,
-  calculateIntervalAsMinutes
+  calculateIntervalAsMinutes,
+  getStartAndFinishDateOfWeeklySummary
 }
 
 module.exports = utils

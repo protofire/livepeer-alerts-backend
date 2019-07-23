@@ -1,7 +1,8 @@
 const Delegator = require('../delegator/delegator.model')
 const Share = require('../share/share.model')
 const mongoose = require('../../config/mongoose')
-const { MathBN } = require('./utils')
+const utils = require('./utils')
+const delegateUtils = require('./delegatesUtils')
 
 // Fetch the round-id delegator total stake from the last share and make a sub with the current total stake
 const getDelegatorCurrentRewardTokens = async (
@@ -43,7 +44,10 @@ const getDelegatorCurrentRewardTokens = async (
     console.error('[Delegator utils] - last share not found')
     return await delegatorService.getDelegatorNextReward(delegatorAddress)
   }
-  const newShare = MathBN.sub(currentDelegatorTotalStake, lastDelegatorShare.totalStakeOnRound)
+  const newShare = utils.MathBN.sub(
+    currentDelegatorTotalStake,
+    lastDelegatorShare.totalStakeOnRound
+  )
   console.log(`[Delegator utils] - returning new share: ${newShare}`)
   return newShare
 }
@@ -99,9 +103,69 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
   console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Finished`)
 }
 
+/**
+ * Generates a weekly summary for the given delegator between the (currentRound-7, currentRound)
+ * Throws error if there is no delegator or currentRound received
+ * Or if the delegator does not have a weekly subscription
+ * If the delegator has no rewards at least for one of the last 7 rounds, throws an error
+ * @param delegator
+ * @returns {Promise<{summaryObject}>}
+ */
+const getDelegatorSharesSummary = async (delegator, currentRound) => {
+  if (!delegator) {
+  }
+  if (!currentRound) {
+  }
+  // Calculates totalDelegatePools
+  try {
+    const totalDelegatePools = await delegateUtils.getDelegateLastWeekRoundsPools(
+      delegator.delegateAddress,
+      currentRound
+    )
+
+    const today = new Date()
+    const { startDate, finishDate } = utils.getStartAndFinishDateOfWeeklySummary(today)
+
+    const totalRounds = 7
+
+    // Format: (roundNumber, shareEarned)
+    const {
+      sharesPerRound,
+      averageShares,
+      totalDelegatorShares
+    } = await delegatorUtils.getWeeklySharesPerRound(delegator.delegateAddress, currentRound)
+
+    const missedRewardCalls = await delegateUtils.getMissedRewardCalls(totalRounds)
+
+    return {
+      totalDelegatePools,
+      totalDelegatorShares,
+      startDate,
+      finishDate,
+      totalRounds,
+      sharesPerRound,
+      averageShares,
+      missedRewardCalls
+    }
+  } catch (err) {
+    console.error(`[Delegator utils] - Error on getDelegatorSharesSummary(): ${err}`)
+    throw err
+  }
+}
+
+const getWeeklySharesPerRound = async () => {
+  return {
+    sharesPerRound: [],
+    averageShares: 0,
+    totalDelegatorShares: 0
+  }
+}
+
 const delegatorUtils = {
   checkAndUpdateMissingLocalDelegators,
-  getDelegatorCurrentRewardTokens
+  getDelegatorCurrentRewardTokens,
+  getDelegatorSharesSummary,
+  getWeeklySharesPerRound
 }
 
 module.exports = delegatorUtils
