@@ -189,7 +189,7 @@ describe('## Utils file test', () => {
     })
   })
   describe('# getStartAndFinishDateOfWeeklySummary', () => {
-    it('If no finish date receveid throws error', done => {
+    it('If no finish date received throws error', done => {
       // given
       const finishDay = null
       const msgExpected = '[Utils] - FinishDay not received'
@@ -203,7 +203,36 @@ describe('## Utils file test', () => {
       }
 
       // then
-      expect(msgExpected).to.equal(msgReceived)
+      expect(msgReceived).to.equal(msgExpected)
+      done()
+    })
+    it('If finish date received is not a date, throws error', done => {
+      // given
+      const finishDay = {}
+      const msgExpected = '[Utils] - FinishDay received is not a valid date'
+      let msgReceived = ''
+
+      // when
+      try {
+        utils.getStartAndFinishDateOfWeeklySummary(finishDay)
+      } catch (err) {
+        msgReceived = err.message
+      }
+
+      // then
+      expect(msgReceived).to.equal(msgExpected)
+      done()
+    })
+    it('If the finishDay is today, should return today - 7 days as finishDate', done => {
+      // given
+      const finishDay = new Date()
+      const resultExpected = new Date(Date.now() - 86400000 * 7)
+
+      // when
+      const { startDate, finishDate } = utils.getStartAndFinishDateOfWeeklySummary(finishDay)
+
+      // then
+      expect(finishDate.isSame(resultExpected)).to.equal(true)
       done()
     })
   })

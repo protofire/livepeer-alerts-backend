@@ -211,7 +211,7 @@ const getStartAndFinishDateOfWeeklySummary = finishDay => {
   if (!finishDay) {
     throw new Error('[Utils] - FinishDay not received')
   }
-  if (!finishDay instanceof Date) {
+  if (!(finishDay instanceof Date)) {
     throw new Error('[Utils] - FinishDay received is not a valid date')
   }
   const finishDate = moment(finishDay)
