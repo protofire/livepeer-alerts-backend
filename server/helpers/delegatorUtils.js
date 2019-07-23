@@ -132,11 +132,10 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
     const totalRounds = 7
 
     const {
-      sharesPerRound,
+      weekRoundShares,
       averageShares,
       totalDelegatorShares
-    } = await delegatorUtils.getWeeklySharesPerRound(delegator._id, currentRound)
-
+    } = await delegatorUtils.getWeeklySharesPerRound(delegator.address, currentRound)
     const delegateService = getDelegateService()
     const missedRewardCalls = await delegateService.getMissedRewardCalls(
       delegator.delegateAddress,
@@ -149,7 +148,7 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
       startDate,
       finishDate,
       totalRounds,
-      sharesPerRound,
+      weekRoundShares,
       averageShares,
       missedRewardCalls
     }
