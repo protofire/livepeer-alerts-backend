@@ -1,11 +1,22 @@
 const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
-const { sendRoundNotifications } = require('../server/helpers/notification/notificationUtils')
+const {
+  sendRoundNotifications,
+  generateNotificationList
+} = require('../server/helpers/notification/notificationUtils')
 const notificateDelegateUtil = require('../server/helpers/notification/notificateDelegateUtils')
 const notificateDelegatorUtil = require('../server/helpers/notification/notificateDelegatorUtils')
+const testUtils = require('../server/helpers/test/util')
+
+const { getProtocolService } = require('../server/helpers/services/protocolService')
+
+const { getDelegateService } = require('../server/helpers/services/delegateService')
 
 describe('## Notification utils test', () => {
+  const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
+  const protocolService = getProtocolService()
+  const delegateService = getDelegateService(delegatesGraphql)
   describe('# sendRoundNotifications', () => {
     it('If the is no roundProgress  received, should throw error', async () => {
       // given
@@ -404,6 +415,211 @@ describe('## Notification utils test', () => {
       notificateDelegateMock.restore()
       notificateDelegatorMock.restore()
       roundMock.restore()
+    })
+  })
+  describe('# generateNotificationList', () => {
+    it('if receives an empty list returns []', done => {
+      // given
+      const resultExpected = []
+      const listOfChangedDelegates = []
+      const listOfDelegatesAndDelegators = []
+      const listOfPropertiesChanged = []
+
+      // when
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
+
+      // then
+      expect(result).to.deep.equal(resultExpected)
+      done()
+    })
+    it('if receive a null object returns []', done => {
+      // given
+      const resultExpected = []
+      const listOfChangedDelegates = null
+      const listOfDelegatesAndDelegators = null
+      const listOfPropertiesChanged = []
+
+      // when
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
+
+      // then
+      expect(result).to.deep.equal(resultExpected)
+      done()
+    })
+    it('receives two changed delegates, with two different delegators, should generate two notifications', done => {
+      // given
+      const delegate1 = {
+        _id: '1'
+      }
+      const delegate2 = {
+        _id: '2'
+      }
+      const subscriber1 = {
+        email: 'test@test.com'
+      }
+      const subscriber2 = {
+        email: 'test2@test.com'
+      }
+      const delegatorAdd1 = '10'
+      const delegatorAdd2 = '20'
+      const propertieChanged1 = {
+        hasChanged: true,
+        id: delegate1._id,
+        newProperties: [],
+        oldProperties: {}
+      }
+      const propertieChanged2 = {
+        hasChanged: true,
+        id: delegate2._id,
+        newProperties: [],
+        oldProperties: {}
+      }
+      const resultExpected = [
+        {
+          delegatorAddress: delegatorAdd1,
+          delegateAddress: delegate1._id,
+          delegate: delegate1,
+          subscriber: subscriber1,
+          propertiesChanged: {
+            ...propertieChanged1
+          }
+        },
+        {
+          delegatorAddress: delegatorAdd2,
+          delegateAddress: delegate2._id,
+          delegate: delegate2,
+          subscriber: subscriber2,
+          propertiesChanged: {
+            ...propertieChanged2
+          }
+        }
+      ]
+      const listOfChangedDelegates = [delegate1, delegate2]
+      const listOfDelegatesAndDelegators = [
+        {
+          delegatorAddress: delegatorAdd1,
+          delegateAddress: delegate1._id,
+          subscriber: subscriber1
+        },
+        {
+          delegatorAddress: delegatorAdd2,
+          delegateAddress: delegate2._id,
+          subscriber: subscriber2
+        }
+      ]
+      const listOfPropertiesChanged = [
+        {
+          ...propertieChanged1
+        },
+        {
+          ...propertieChanged2
+        }
+      ]
+
+      // when
+      const result = generateNotificationList(
+        listOfChangedDelegates,
+        listOfDelegatesAndDelegators,
+        listOfPropertiesChanged
+      )
+
+      // then
+      expect(result).to.deep.equal(resultExpected)
+      done()
+    })
+    it('100 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 36.6', async () => {
+      // given
+      const totalStake = testUtils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = testUtils.unitAmountInTokenUnits(1400)
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon
+        .stub(protocolService, 'getMintedTokensForNextRound')
+        .returns(100)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
+
+      const rewardExpected = '36.6'
+
+      // when
+      const result = await delegateService.getDelegateProtocolNextReward()
+
+      // then
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
+    })
+    it('0 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 0', async () => {
+      // given
+      const totalStake = testUtils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = testUtils.unitAmountInTokenUnits(1400)
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon.stub(protocolService, 'getMintedTokensForNextRound').returns(0)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
+      const rewardExpected = '0'
+
+      // when
+      const result = await delegateService.getDelegateProtocolNextReward()
+
+      // then
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
+    })
+    it('1000 minted tokens for next round, protocol bondedStake is 10000, the bondedStake of the delegate is 100 (1% of the totalBonded), result should be 10', async () => {
+      // given
+      const totalStake = testUtils.unitAmountInTokenUnits('100')
+      const totalBondedStake = testUtils.unitAmountInTokenUnits(10000)
+      const getTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .returns(totalStake)
+      const mintedTokensStub = sinon
+        .stub(protocolService, 'getMintedTokensForNextRound')
+        .returns(1000)
+
+      const totalBondedStub = sinon
+        .stub(protocolService, 'getTotalBonded')
+        .returns(totalBondedStake)
+      const rewardExpected = '10'
+
+      // when
+      const result = await delegateService.getDelegateProtocolNextReward()
+
+      // then
+      expect(getTotalStakeStub.called)
+      expect(mintedTokensStub.called)
+      expect(totalBondedStub.called)
+      expect(result).equal(rewardExpected)
+      // restore stubs
+      getTotalStakeStub.restore()
+      mintedTokensStub.restore()
+      totalBondedStub.restore()
     })
   })
 })
