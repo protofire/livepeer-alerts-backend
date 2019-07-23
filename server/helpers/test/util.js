@@ -111,6 +111,21 @@ const createTotalStake = (min, max) => {
   return unitAmountInTokenUnits(stakeInUnits)
 }
 
+const createPool = (
+  delegate = '1',
+  round = '10',
+  rewardTokens = '1000000',
+  totalStakeOnRound = '5000000'
+) => {
+  return {
+    _id: `${delegate}-${round}`,
+    rewardTokens,
+    totalStakeOnRound,
+    delegate,
+    round
+  }
+}
+
 const getLivepeerDefaultConstants = () => {
   return {
     DELEGATOR_STATUS: {
@@ -133,6 +148,7 @@ const utils = {
   createDelegator,
   createTotalStake,
   createSubscriber,
+  createPool,
   getLivepeerDefaultConstants
 }
 

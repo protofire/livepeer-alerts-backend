@@ -1,5 +1,6 @@
 const Delegate = require('../delegate/delegate.model')
 const mongoose = require('../../config/mongoose')
+const utils = require('./utils')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
@@ -191,17 +192,37 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
 
 const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
   if (!delegateAddress) {
+    throw new Error('[DelegatesUtils] - No delegateAddress provided')
   }
   if (!currentRound) {
+    throw new Error('[DelegatesUtils] - No currentRound provided')
   }
-  const totalDelegatePools = 0
+
+  let delegate = await Delegate.findById(delegateAddress)
+    .populate({
+      path: 'pools',
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatePools in descending order based on roundId
+        }
+      }
+    })
+    .exec()
+
+  const startRound = currentRound - 7
+  const delegatePools = delegate.pools.slice(startRound, currentRound)
+  // Sums all the pools in a unique reward
+  const totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
+    return utils.MathBN.add(totalDelegatePools, currentPool.rewardTokens)
+  }, '0')
   return totalDelegatePools
 }
 
 /**
  * Returns the missed rewards calls of the delegate
  * between the last round and the lastRound-roundsPeriod
- * Throws error if no roundPeriod received
+ * If no roundPeriodReceive, returns the missed rewardCalls
+ * Of the last 30 rounds
  * @param roundsPeriod
  * @returns {Promise<number>}
  */
