@@ -192,10 +192,14 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
 
 const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
   if (!delegateAddress) {
-    throw new Error('[DelegatesUtils] - No delegateAddress provided')
+    throw new Error(
+      '[DelegatesUtils] - No delegateAddress provided on getDelegateLastWeekRoundsPools()'
+    )
   }
   if (!currentRound) {
-    throw new Error('[DelegatesUtils] - No currentRound provided')
+    throw new Error(
+      '[DelegatesUtils] - No currentRound provided on getDelegateLastWeekRoundsPools()'
+    )
   }
 
   let delegate = await Delegate.findById(delegateAddress)
@@ -213,7 +217,10 @@ const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => 
   const delegatePools = delegate.pools.slice(startRound, currentRound)
   // Sums all the pools in a unique reward
   const totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
-    return utils.MathBN.add(totalDelegatePools, currentPool.rewardTokens)
+    if (currentPool.rewardTokens) {
+      return utils.MathBN.add(totalDelegatePools, currentPool.rewardTokens)
+    }
+    return totalDelegatePools
   }, '0')
   return totalDelegatePools
 }

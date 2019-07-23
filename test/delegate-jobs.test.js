@@ -897,7 +897,8 @@ describe('## DelegatesUtils test', () => {
       // given
       const delegateAddress = null
       const currentRound = 1
-      const errorExpected = '[DelegatesUtils] - No delegateAddress provided'
+      const errorExpected =
+        '[DelegatesUtils] - No delegateAddress provided on getDelegateLastWeekRoundsPools()'
       let throwedErrorMsg = ''
       // when
       try {
@@ -912,7 +913,8 @@ describe('## DelegatesUtils test', () => {
       // given
       const delegateAddress = 1
       const currentRound = null
-      const errorExpected = '[DelegatesUtils] - No currentRound provided'
+      const errorExpected =
+        '[DelegatesUtils] - No currentRound provided on getDelegateLastWeekRoundsPools()'
       let throwedErrorMsg = ''
       // when
       try {

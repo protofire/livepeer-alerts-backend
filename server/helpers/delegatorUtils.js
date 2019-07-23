@@ -129,12 +129,11 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
 
     const totalRounds = 7
 
-    // Format: (roundNumber, shareEarned)
     const {
       sharesPerRound,
       averageShares,
       totalDelegatorShares
-    } = await delegatorUtils.getWeeklySharesPerRound(delegator.delegateAddress, currentRound)
+    } = await delegatorUtils.getWeeklySharesPerRound(delegator._id, currentRound)
 
     const delegateService = getDelegateService()
     const missedRewardCalls = await delegateService.getMissedRewardCalls(
@@ -158,11 +157,41 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
   }
 }
 
-const getWeeklySharesPerRound = async () => {
+const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
+  if (!delegatorAddress) {
+    throw new Error('[DelegatesUtils] - No delegatorAddress provided on getWeeklySharesPerRound()')
+  }
+  if (!currentRound) {
+    throw new Error('[DelegatesUtils] - No currentRound provided on getWeeklySharesPerRound()')
+  }
+
+  let delegator = await Delegator.findById(delegatorAddress)
+    .populate({
+      path: 'shares',
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatorShares in descending order based on roundId
+        }
+      }
+    })
+    .exec()
+
+  const startRound = currentRound - 7
+  const delegatorShares = delegator.pools.slice(startRound, currentRound)
+  // Sums all the shares in a unique reward
+  const totalDelegatorShares = delegatorShares.reduce((totalDelegatorShares, currentShare) => {
+    if (currentShare.rewardTokens) {
+      return utils.MathBN.add(totalDelegatorShares, currentShare.rewardTokens)
+    }
+    return totalDelegatorShares
+  }, '0')
+
+  const averageShares = utils.MathBN.div(totalDelegatorShares, 7)
+
   return {
-    sharesPerRound: [],
-    averageShares: 0,
-    totalDelegatorShares: 0
+    weekRoundShares: delegatorShares,
+    averageShares,
+    totalDelegatorShares
   }
 }
 
