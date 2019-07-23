@@ -207,7 +207,7 @@ const calculateIntervalAsMinutes = dateEnd => {
   return minutes
 }
 
-module.exports = {
+const utils = {
   MathBN,
   truncateStringInTheMiddle,
   fromBaseUnit,
@@ -223,3 +223,5 @@ module.exports = {
   calculateCurrentBondingRate,
   calculateIntervalAsMinutes
 }
+
+module.exports = utils
