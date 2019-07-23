@@ -3,6 +3,7 @@ const Share = require('../share/share.model')
 const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
 const delegateUtils = require('./delegatesUtils')
+const { getDelegateService } = require('./services/delegateService')
 
 // Fetch the round-id delegator total stake from the last share and make a sub with the current total stake
 const getDelegatorCurrentRewardTokens = async (
@@ -135,7 +136,11 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
       totalDelegatorShares
     } = await delegatorUtils.getWeeklySharesPerRound(delegator.delegateAddress, currentRound)
 
-    const missedRewardCalls = await delegateUtils.getMissedRewardCalls(totalRounds)
+    const delegateService = getDelegateService()
+    const missedRewardCalls = await delegateService.getMissedRewardCalls(
+      delegator.delegateAddress,
+      totalRounds
+    )
 
     return {
       totalDelegatePools,

@@ -153,7 +153,7 @@ const unitAmountInTokenUnits = (amount, decimals = TOKEN_DECIMAL_UNITS) => {
   return MathBN.mul(amount, decimalsPerToken)
 }
 
-const calculateMissedRewardCalls = (rewards, currentRound) => {
+const calculateMissedRewardCalls = (rewards, currentRound, roundsPeriod = 30) => {
   if (!currentRound || !rewards) {
     return 0
   }
@@ -162,7 +162,7 @@ const calculateMissedRewardCalls = (rewards, currentRound) => {
     .filter(
       reward =>
         reward.rewardTokens === null &&
-        reward.round.id >= currentRound.id - 30 &&
+        reward.round.id >= currentRound.id - roundsPeriod &&
         reward.round.id !== currentRound.id
     ).length
 }
