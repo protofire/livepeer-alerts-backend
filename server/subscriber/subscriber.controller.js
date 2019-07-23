@@ -54,7 +54,7 @@ const get = (req, res) => {
  */
 const create = async (req, res, next) => {
   try {
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, telegramFrequency, emailFrequency, telegramChatId } = req.body
     const count = await Subscriber.countDocuments({ address: address, email: email })
     if (count) {
       throw new APIError('Subscriptor already exist', httpStatus.UNPROCESSABLE_ENTITY, true)
@@ -63,7 +63,8 @@ const create = async (req, res, next) => {
     const subscriber = new Subscriber({
       email: email,
       address: address,
-      frequency: frequency,
+      emailFrequency,
+      telegramFrequency,
       telegramChatId: telegramChatId
     })
 
@@ -72,6 +73,11 @@ const create = async (req, res, next) => {
     // Send email notification promise
     let sendNotificationPromise = new Promise(async (resolve, reject) => {
       try {
+        // Get round info
+        const protocolService = getProtocolService()
+        const currentRoundInfo = await protocolService.getCurrentRoundInfo()
+        const currentRound = currentRoundInfo.id
+
         // Detect role
         const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
@@ -81,11 +87,7 @@ const create = async (req, res, next) => {
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
           const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
-          const data = {
-            subscriber: savedSubscriber,
-            delegateCalledReward: delegateCalledReward
-          }
-          await sendDelegateNotificationEmail(data)
+          await sendDelegateNotificationEmail(subscriber, delegateCalledReward, currentRound)
         }
 
         if (role === constants.ROLE.DELEGATOR) {
@@ -133,7 +135,7 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const subscriber = req.subscriber
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, emailFrequency, telegramFrequency, telegramChatId } = req.body
 
     // Check for existing subscriber
     const differentEmail = email !== subscriber.email
@@ -154,8 +156,11 @@ const update = async (req, res, next) => {
     if (address) {
       subscriber.address = address
     }
-    if (frequency) {
-      subscriber.frequency = frequency
+    if (emailFrequency) {
+      subscriber.emailFrequency = emailFrequency
+    }
+    if (telegramFrequency) {
+      subscriber.telegramFrecuency = telegramFrequency
     }
     if (telegramChatId) {
       subscriber.telegramChatId = telegramChatId

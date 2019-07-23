@@ -1,64 +1,47 @@
 const promiseRetry = require('promise-retry')
 const mongoose = require('../../../config/mongoose')
-const config = require('../../../config/config')
-const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
-const Share = require('../../share/share.model')
-const {
-  sendDelegatorNotificationEmail,
-  sendDelegatorNotificationDelegateChangeRulesEmail
-} = require('../sendDelegatorEmail')
-const { sendDelegatorNotificationTelegram } = require('../sendDelegatorTelegram')
-const { getDidDelegateCalledReward, calculateIntervalAsMinutes } = require('../utils')
+const { getProtocolService } = require('../services/protocolService')
+const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
+const delegatorEmailUtils = require('../sendDelegatorEmail')
+const delegatorTelegramUtils = require('../sendDelegatorTelegram')
+const Share = require('../../share/share.model')
 
-const sendEmailRewardCallNotificationToDelegators = async emailSubscribers => {
-  if (!emailSubscribers) {
-    throw new Error('Email subscribers not received')
+const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
   console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
+  const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
   let emailsToSend = []
-  const { getProtocolService } = require('../services/protocolService')
   const protocolService = getProtocolService()
+  const [constants] = await promiseRetry(retry => {
+    return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
+  })
+  const currentRoundId = currentRoundInfo.id
 
-  const currentRoundInfo = await protocolService.getCurrentRoundInfo()
-
-  for (const subscriber of emailSubscribers) {
+  for (const subscriberAndDelegator of subscribersDelegators) {
+    const { subscriber, delegator } = subscriberAndDelegator
     try {
-      const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
-
-      if (subscriber.lastEmailSent) {
-        // Calculate minutes last email sent
-        const minutes = calculateIntervalAsMinutes(subscriber.lastEmailSent)
-
+      const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+        subscriber,
+        currentRoundId
+      )
+      if (!shouldSubscriberReceiveNotifications) {
         console.log(
-          `[Notificate-Delegators] - Minutes last sent email ${minutes} - Email ${subscriber.email} - Address  ${subscriber.address}`
-        )
-
-        if (minutes < minutesToWaitAfterLastSentEmail) {
-          console.log(
-            `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
-          )
-          continue
-        }
-      }
-
-      // Send notification only for delegators
-      if (role === constants.ROLE.TRANSCODER) {
-        console.log(
-          `[Notificate-Delegators] - Not sending email to ${subscriber.email} because is a delegate`
+          `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
         )
         continue
       }
-
       const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
         return Promise.all([
-          getDidDelegateCalledReward(delegator.delegateAddress),
+          utils.getDidDelegateCalledReward(delegator.delegateAddress),
           Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
         ]).catch(err => retry())
       })
 
       emailsToSend.push(
-        sendDelegatorNotificationEmail(
+        delegatorEmailUtils.sendDelegatorNotificationEmail(
           subscriber,
           delegator,
           delegateCalledReward,
@@ -69,9 +52,8 @@ const sendEmailRewardCallNotificationToDelegators = async emailSubscribers => {
         )
       )
     } catch (err) {
-      console.error(err)
       console.error(
-        `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email}`
+        `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email} with error: \n ${err}`
       )
     }
   }
@@ -79,37 +61,31 @@ const sendEmailRewardCallNotificationToDelegators = async emailSubscribers => {
   return await Promise.all(emailsToSend)
 }
 
-const sendTelegramRewardCallNotificationToDelegators = async telegramSubscribers => {
-  if (!telegramSubscribers) {
-    throw new Error('Telegram subscribers not received')
+const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error(
+      'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegators()'
+    )
   }
+  const subscribersDelegators = await subscriberUtils.getTelegramSubscribersDelegators()
+
   let telegramsMessageToSend = []
-  for (const subscriber of telegramSubscribers) {
-    if (subscriber.lastTelegramSent) {
-      // Calculate minutes last telegram sent
-      const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
-
+  const currentRoundId = currentRoundInfo.id
+  for (const subscriberAndDelegator of subscribersDelegators) {
+    const { subscriber, delegator } = subscriberAndDelegator
+    const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+      subscriber,
+      currentRoundId
+    )
+    if (!shouldSubscriberReceiveNotifications) {
       console.log(
-        `[Notificate-Delegators] - Minutes last sent telegram ${minutes} - Telegram chat id ${subscriber.telegramChatId} - Subscriber address ${subscriber.address}`
-      )
-
-      if (minutes < minutesToWaitAfterLastSentTelegram) {
-        console.log(
-          `[Notificate-Delegators] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
-        )
-        continue
-      }
-    }
-
-    // Send notification only for delegators
-    const { role, constants } = await subscriberUtils.getSubscriptorRole(subscriber)
-    if (role === constants.ROLE.TRANSCODER) {
-      console.log(
-        `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because is a delegate`
+        `[Notificate-Delegators] - Not sending telegram to ${subscriber.telegramChatId} because already sent a telegram in the last ${subscriber.lastTelegramSent} round and the frequency is ${subscriber.telegramFrequency}`
       )
       continue
     }
-    telegramsMessageToSend.push(sendDelegatorNotificationTelegram(subscriber))
+    telegramsMessageToSend.push(
+      delegatorTelegramUtils.sendDelegatorNotificationTelegram(subscriber, currentRoundId)
+    )
   }
 
   console.log(
@@ -122,7 +98,7 @@ const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
   let subscribersToNotify = []
 
   for (const subscriber of subscribers) {
-    const item = sendDelegatorNotificationDelegateChangeRulesEmail(subscriber)
+    const item = delegatorEmailUtils.sendDelegatorNotificationDelegateChangeRulesEmail(subscriber)
     subscribersToNotify.push(item)
   }
 

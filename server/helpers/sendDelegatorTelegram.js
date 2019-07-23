@@ -26,15 +26,19 @@ const sendDelegatorTelegram = async (chatId, address, body) => {
   return
 }
 
-const sendDelegatorNotificationTelegram = async subscriber => {
+const sendDelegatorNotificationTelegram = async (subscriber, currentRound) => {
   const { body } = await getDelegatorTelegramBody(subscriber)
   const { telegramChatId, address } = subscriber
   // Send telegram
   await sendDelegatorTelegram(telegramChatId, address, body)
 
   // Save last telegram sent
-  subscriber.lastTelegramSent = Date.now()
+  subscriber.lastTelegramSent = currentRound
   return await subscriber.save()
 }
 
-module.exports = { sendDelegatorNotificationTelegram }
+const delegatorTelegramUtils = {
+  sendDelegatorNotificationTelegram
+}
+
+module.exports = delegatorTelegramUtils

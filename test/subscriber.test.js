@@ -35,7 +35,7 @@ describe('## Subscriber APIs', () => {
     let subscriber = {
       email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-      frequency: 'weekly'
+      emailFrequency: 'weekly'
     }
     const emailToUpdate = `mariano.aguero+${getRandomId()}@altoros.com`
 
@@ -47,7 +47,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
           done()
@@ -61,7 +61,7 @@ describe('## Subscriber APIs', () => {
         .send({
           email: 'test',
           address: 'test',
-          frequency: 'weekly'
+          emailFrequency: 'weekly'
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -77,13 +77,11 @@ describe('## Subscriber APIs', () => {
         .send({
           email: emailToUpdate,
           address: 'test',
-          frequency: 'test'
+          emailFrequency: 'test'
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            '"frequency" must be one of [monthly, weekly, daily, hourly]'
-          )
+          expect(res.body.message).to.equal('"emailFrequency" must be one of [weekly, daily]')
           done()
         })
         .catch(done)
@@ -96,7 +94,7 @@ describe('## Subscriber APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).to.equal(
-            '"email" is required and "address" is required and "frequency" is required'
+            '"email" is required and "address" is required and "emailFrequency" is required'
           )
           done()
         })
@@ -108,12 +106,12 @@ describe('## Subscriber APIs', () => {
     let subscriberToActivate1 = {
       email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-      frequency: 'weekly'
+      emailFrequency: 'weekly'
     }
     let subscriberToActivate2 = {
       email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-      frequency: 'weekly'
+      emailFrequency: 'weekly'
     }
 
     it('should create a new subscriber to activate', done => {
@@ -124,7 +122,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriberToActivate1.email)
           expect(res.body.address).to.equal(subscriberToActivate1.address)
-          expect(res.body.frequency).to.equal(subscriberToActivate1.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriberToActivate1.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriberToActivate1 = res.body
 
@@ -152,7 +150,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriberToActivate2.email)
           expect(res.body.address).to.equal(subscriberToActivate2.address)
-          expect(res.body.frequency).to.equal(subscriberToActivate2.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriberToActivate2.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriberToActivate2 = res.body
 
@@ -176,7 +174,7 @@ describe('## Subscriber APIs', () => {
     let subscriber = {
       email: `mariano.aguero+${getRandomId()}@altoros.com`,
       address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-      frequency: 'weekly'
+      emailFrequency: 'weekly'
     }
 
     it('should get subscriber details', done => {
@@ -187,7 +185,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
           request(app)
@@ -219,7 +217,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let emailToUpdate = `mariano.aguero+${getRandomId()}@altoros.com`
 
@@ -230,7 +228,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -240,7 +238,7 @@ describe('## Subscriber APIs', () => {
             .send({
               email: emailToUpdate,
               address: subscriber.address,
-              frequency: subscriber.frequency
+              emailFrequency: subscriber.emailFrequency
             })
             .expect(httpStatus.OK)
             .then(res => {
@@ -256,7 +254,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let emailToUpdate = `mariano.aguero`
 
@@ -267,7 +265,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -290,7 +288,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let emailToUpdate = ``
 
@@ -301,7 +299,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -326,7 +324,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
 
       request(app)
@@ -336,7 +334,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -361,7 +359,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let addressToUpdate = 111
 
@@ -372,7 +370,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -395,7 +393,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let addressToUpdate = ``
 
@@ -406,7 +404,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
@@ -429,7 +427,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
 
       request(app)
@@ -439,18 +437,18 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
           // Update address
-          subscriber.frequency = 'hourly'
+          subscriber.emailFrequency = 'daily'
           request(app)
             .put(`/api/subscribers/${subscriber._id}`)
             .send(subscriber)
             .expect(httpStatus.OK)
             .then(res => {
-              expect(res.body.frequency).to.equal('hourly')
+              expect(res.body.emailFrequency).to.equal('daily')
               done()
             })
             .catch(done)
@@ -462,7 +460,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       let frequencyToUpdate = 'asdas'
 
@@ -473,20 +471,18 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
           // Update address
-          subscriber.frequency = frequencyToUpdate
+          subscriber.emailFrequency = frequencyToUpdate
           request(app)
             .put(`/api/subscribers/${subscriber._id}`)
             .send(subscriber)
             .expect(httpStatus.BAD_REQUEST)
             .then(res => {
-              expect(res.body.message).to.equal(
-                '"frequency" must be one of [monthly, weekly, daily, hourly]'
-              )
+              expect(res.body.message).to.equal('"emailFrequency" must be one of [weekly, daily]')
               done()
             })
             .catch(done)
@@ -498,8 +494,9 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
+
       let frequencyToUpdate = ``
 
       request(app)
@@ -509,19 +506,19 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
 
           // Update frequency
-          subscriber.frequency = frequencyToUpdate
+          subscriber.emailFrequency = frequencyToUpdate
           request(app)
             .put(`/api/subscribers/${subscriber._id}`)
             .send(subscriber)
             .expect(httpStatus.BAD_REQUEST)
             .then(res => {
               expect(res.body.message).to.equal(
-                '"frequency" is not allowed to be empty. "frequency" must be one of [monthly, weekly, daily, hourly]'
+                '"emailFrequency" is not allowed to be empty. "emailFrequency" must be one of [weekly, daily]'
               )
               done()
             })
@@ -561,7 +558,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
       request(app)
         .post('/api/subscribers')
@@ -570,7 +567,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
           subscriber = res.body
           request(app)
@@ -591,7 +588,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
 
       request(app)
@@ -601,7 +598,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
 
           request(app)
@@ -646,7 +643,7 @@ describe('## Subscriber APIs', () => {
       let subscriber = {
         email: `mariano.aguero+${getRandomId()}@altoros.com`,
         address: '0x18AD183A875e5A42a60Eb5D3a9D6657C3493d064',
-        frequency: 'weekly'
+        emailFrequency: 'weekly'
       }
 
       request(app)
@@ -656,7 +653,7 @@ describe('## Subscriber APIs', () => {
         .then(res => {
           expect(res.body.email).to.equal(subscriber.email)
           expect(res.body.address).to.equal(subscriber.address)
-          expect(res.body.frequency).to.equal(subscriber.frequency)
+          expect(res.body.emailFrequency).to.equal(subscriber.emailFrequency)
           expect(res.body.activated).to.equal(activatedTest)
 
           request(app)

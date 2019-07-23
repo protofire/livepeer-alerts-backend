@@ -1,103 +1,88 @@
-const config = require('../../../config/config')
-const { minutesToWaitAfterLastSentEmail, minutesToWaitAfterLastSentTelegram } = config
 const mongoose = require('../../../config/mongoose')
-const { calculateIntervalAsMinutes } = require('../utils')
+const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
-const { sendDelegateNotificationEmail } = require('../sendDelegateEmail')
-const { sendDelegateNotificationTelegram } = require('../sendDelegateTelegram')
+const delegateEmailUtils = require('../sendDelegateEmail')
+const delegateTelegramUtils = require('../sendDelegateTelegram')
 
-const getSubscribers = async subscribers => {
-  const { getDidDelegateCalledReward } = require('../utils')
-  let subscribersToNotify = []
-
-  for (const subscriber of subscribers) {
-    if (!subscriber || !subscriber.address) {
-      continue
-    }
-
-    // Detect role
-    const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
-
-    if (!delegator || !delegator.delegateAddress) {
-      continue
-    }
-
-    if (role !== constants.ROLE.TRANSCODER) {
-      continue
-    }
-    // OK, is a transcoder, let's send notifications
-
-    // Check if transcoder call reward
-    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
-
-    let subscriberToNotify = {
-      subscriber,
-      delegateCalledReward
-    }
-
-    subscribersToNotify.push(subscriberToNotify)
-  }
-
-  return subscribersToNotify
-}
-
-const sendEmailRewardCallNotificationToDelegates = async emailSubscribers => {
-  if (!emailSubscribers) {
-    throw new Error('Email subscribers not received')
+const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegates()')
   }
   console.log(`[Notificate-Delegates] - Start sending email notification to delegates`)
-  const subscribersToNofity = await getSubscribers(emailSubscribers)
-
+  // Fetchs only the subscribers that are delegates
+  const subscribersToNotify = await subscriberUtils.getEmailSubscribersDelegates()
   const subscribersToSendEmails = []
-  for (const subscriberToNotify of subscribersToNofity) {
+  const currentRoundId = currentRoundInfo.id
+  for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
-    if (subscriber.lastEmailSent) {
-      // Calculate minutes last email sent
-      const minutes = calculateIntervalAsMinutes(subscriber.lastEmailSent)
-
-      if (minutes < minutesToWaitAfterLastSentEmail) {
-        console.log(
-          `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${minutesToWaitAfterLastSentEmail} minutes`
-        )
-        continue
-      }
+    const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveEmailNotifications(
+      subscriber,
+      currentRoundId
+    )
+    if (!shouldSubscriberReceiveNotifications) {
+      console.log(
+        `[Notificate-Delegates] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
+      )
+      continue
     }
 
-    subscribersToSendEmails.push(sendDelegateNotificationEmail(subscriberToNotify))
-  }
+    // Check if delegate called reward
+    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    console.log(
+      `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
+    )
 
+    subscribersToSendEmails.push(
+      delegateEmailUtils.sendDelegateNotificationEmail(
+        subscriber,
+        delegateCalledReward,
+        currentRoundId
+      )
+    )
+  }
   console.log(
     `[Notificate-Delegates] - Emails subscribers to notify ${subscribersToSendEmails.length}`
   )
   await Promise.all(subscribersToSendEmails)
 
-  return subscribersToNofity
+  return subscribersToNotify
 }
 
-const sendTelegramRewardCallNotificationToDelegates = async telegramSubscribers => {
-  if (!telegramSubscribers) {
-    throw new Error('Telegram subscribers not received')
+const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error(
+      'No currentRoundInfo provided on sendTelegramRewardCallNotificationToDelegates()'
+    )
   }
   console.log(`[Notificate-Delegates] - Start sending telegram notifications to delegates`)
-
-  const subscribersToNotify = await getSubscribers(telegramSubscribers)
-
+  const subscribersToNotify = await subscriberUtils.getTelegramSubscribersDelegates()
   const subscribersToSendTelegrams = []
+  const currentRoundId = currentRoundInfo.id
   for (const subscriberToNotify of subscribersToNotify) {
     const { subscriber } = subscriberToNotify
-    if (subscriber.lastTelegramSent) {
-      // Calculate minutes last telegram sent
-      const minutes = calculateIntervalAsMinutes(subscriber.lastTelegramSent)
-
-      if (minutes < minutesToWaitAfterLastSentTelegram) {
-        console.log(
-          `[Notificate-Delegates] - Not sending telegram to ${subscriber.address} because already sent a telegram in the last ${minutesToWaitAfterLastSentTelegram} minutes`
-        )
-        continue
-      }
+    const shouldSubscriberReceiveNotifications = subscriberUtils.shouldSubscriberReceiveTelegramNotifications(
+      subscriber,
+      currentRoundId
+    )
+    if (!shouldSubscriberReceiveNotifications) {
+      console.log(
+        `[Notificate-Delegates] - Not sending telegram to ${subscriber.telegramChatId} because already sent a telegram in the last ${subscriber.lastTelegramSent} round and the frequency is ${subscriber.telegramFrequency}`
+      )
+      continue
     }
+    // Check if delegate called reward
+    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    console.log(
+      `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
+    )
 
-    subscribersToSendTelegrams.push(sendDelegateNotificationTelegram(subscriber))
+    subscribersToSendTelegrams.push(
+      delegateTelegramUtils.sendDelegateNotificationTelegram(
+        subscriber,
+        delegateCalledReward,
+        currentRoundId
+      )
+    )
   }
 
   console.log(

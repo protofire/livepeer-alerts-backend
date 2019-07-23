@@ -86,8 +86,7 @@ const sendEmail = async data => {
       await sgMail.send(msg)
       console.log(`Email sent to ${email} successfully`)
     } catch (err) {
-      console.error(`There was an error trying to send email to ${email}`)
-      console.error(err)
+      console.error(`There was an error trying to send email to ${email} with error: \n ${err}`)
       throw err
     }
   }
@@ -166,8 +165,8 @@ const sendDelegatorNotificationEmail = async (
 
     await sendEmail(body)
 
-    // // Save last email sent
-    subscriber.lastEmailSent = Date.now()
+    // Save the round in which the last email was sent
+    subscriber.lastEmailSent = currentRound
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)
@@ -211,7 +210,9 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   return
 }
 
-module.exports = {
+const delegatorEmailUtils = {
   sendDelegatorNotificationEmail,
   sendDelegatorNotificationDelegateChangeRulesEmail
 }
+
+module.exports = delegatorEmailUtils

@@ -1,10 +1,10 @@
-const Subscriber = require('../../subscriber/subscriber.model')
-
 const { sendDelegatorNotificationDelegateChangeRulesEmail } = require('../sendDelegatorEmail')
 
 const notificateDelegateUtil = require('./notificateDelegateUtils')
 
 const notificateDelegatorUtil = require('./notificateDelegatorUtils')
+
+const subscriberUtils = require('../subscriberUtils')
 
 const sendRoundNotifications = async (roundProgress, round, thresholdSendNotification) => {
   let notificationsSent = false
@@ -40,41 +40,54 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
   }
 
   // Checks if the progress if above a certain threshold
+  /**
+   * Note: the progress of the round goes from 100 (round has just started) to 0 (round ends)
+   * So if you want to check if the round is near the end (90% for example), the threshold should be 10
+   */
+  let percentRoundCompleted = 100 - roundProgress
+  percentRoundCompleted = percentRoundCompleted.toFixed(2)
+  let percentRoundCompletedThreshold = 100 - thresholdSendNotification
+  percentRoundCompletedThreshold = percentRoundCompletedThreshold.toFixed(2)
   if (roundProgress < thresholdSendNotification) {
     console.log(
-      `[Check-Round-Change] - the roundProgress: ${roundProgress} is bellow the threshold: ${thresholdSendNotification}, skipping sendNotifications`
+      `[Check-Round-Change] - the roundProgress: ${roundProgress} (${percentRoundCompleted}% completed) is bellow the threshold: ${thresholdSendNotification} (${percentRoundCompletedThreshold}% completed), skipping sendNotifications`
     )
     return notificationsSent
   }
-
+  console.log(
+    `[Check-Round-Change] - The round progress: ${roundProgress} (${percentRoundCompleted}% completed) is above the threshold: ${thresholdSendNotification} (${percentRoundCompletedThreshold}% completed), sending notifications`
+  )
   // Because the notifications were not sent for the round, and the current round progress is above a certain threshold, send notifications
 
   // Send email notifications for delegate and delegators
   try {
     console.log(`[Check-Round-Change] - Get all subscribers with email`)
+    /*
     const emailSubscribers = await Subscriber.find({
       frequency: 'daily',
       activated: 1,
       email: { $ne: null }
     })
+    */
     // TODO -- Refactor as promise All
     console.log(`[Check-Round-Change] - Sending email round notifications to delegators`)
-    await notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(emailSubscribers)
+    await notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(round)
     console.log(`[Check-Round-Change] - Sending email round notifications to delegates`)
-    await notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates(emailSubscribers)
+    await notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates(round)
+    /*
     const telegramSubscribers = await Subscriber.find({
       frequency: 'daily',
       activated: 1,
       telegramChatId: { $ne: null }
     })
+    
+     */
 
     // Send telegram notifications for delegates
     console.log(`[Check-Round-Change] - Sending telegram round notifications to delegators`)
-    await notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(
-      telegramSubscribers
-    )
+    await notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(round)
     console.log(`[Check-Round-Change] - Sending telegram round notifications to delegates`)
-    await notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates(telegramSubscribers)
+    await notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates(round)
     console.log(`[Check-Round-Change] - finish sending notifications, updating round flag`)
     // Finally updates the current round with the notificationsForRoundSent flag
     round.notificationsForRoundSent = true
@@ -106,7 +119,7 @@ const notifyDelegatorsWhenDelegateChangeTheRules = async (
 
   try {
     // Gets a list of delegators and their delegates
-    const listOfDelegatesAndDelegators = await Subscriber.getListOfDelegateAddressAndDelegatorAddress()
+    const listOfDelegatesAndDelegators = await subscriberUtils.getListOfDelegateAddressAndDelegatorAddress()
     const notificationList = generateNotificationList(
       listOfChangedDelegates,
       listOfDelegatesAndDelegators,
