@@ -19,6 +19,7 @@ const {
   sendgridTemplateIdClaimRewardUnbondedState,
   sendgridTemplateIdClaimRewardUnbondingState,
   sendgridTemplateIdNotificationDelegateChangeRules,
+  sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
   earningDecimals
 } = config
 
@@ -210,9 +211,32 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   return
 }
 
+const sendDelegatorNotificationBondingPeriodHasEnded = async (subscriber, delegateAddress) => {
+  try {
+    if (!subscriber.email) {
+      return
+    }
+
+    let body = {
+      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
+      delegateAddress: delegateAddress,
+      templateId: sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
+      email: subscriber.email
+    }
+
+    console.log(`Sending email to ${subscriber.email} - Bonding period has ended`)
+    await sendEmail(body)
+  } catch (e) {
+    console.error(e)
+  }
+  return
+}
+
 const delegatorEmailUtils = {
   sendDelegatorNotificationEmail,
-  sendDelegatorNotificationDelegateChangeRulesEmail
+  sendDelegatorNotificationDelegateChangeRulesEmail,
+  sendDelegatorNotificationBondingPeriodHasEnded
 }
 
 module.exports = delegatorEmailUtils
