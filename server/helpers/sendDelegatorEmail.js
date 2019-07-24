@@ -136,9 +136,11 @@ const getDailyTemplate = (subscriber, delegator, currentRound, delegatorTemplate
       `[SendDelegatorEmail] - delegatorTemplateData not received on getDailyTemplate()`
     )
   }
-  const { delegateCalledReward, delegatorNextReward } = delegatorTemplateData
-  if (!delegatorNextReward) {
-    throw new Error(`[SendDelegatorEmail] - delegatorNextReward not received on getDailyTemplate()`)
+  const { delegateCalledReward, delegatorRoundReward } = delegatorTemplateData
+  if (!delegatorRoundReward) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegatorRoundReward not received on getDailyTemplate()`
+    )
   }
 
   // Select template based on call reward
@@ -147,7 +149,7 @@ const getDailyTemplate = (subscriber, delegator, currentRound, delegatorTemplate
     : sendgridTemplateIdClaimRewardCallPayAttention
 
   // Calculate lpt earned tokens
-  const lptEarned = utils.formatBalance(delegatorNextReward, earningDecimals, 'wei')
+  const lptEarned = utils.formatBalance(delegatorRoundReward, earningDecimals, 'wei')
 
   const dateYesterday = moment()
     .subtract(1, 'days')
