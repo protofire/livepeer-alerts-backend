@@ -23,14 +23,17 @@ const expect = chai.expect
 const sinon = require('sinon')
 const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
 
+const mongoose = require('../config/mongoose')
+
+after(done => {
+  mongoose.connection.close()
+  done()
+})
+
 describe('## DelegatesUtils test', () => {
   const protocolService = getProtocolService()
   const delegateService = getDelegateService(delegatesGraphql)
   const delegatorService = getDelegatorService()
-  const mongoose = require('../config/mongoose')
-  after('Close mongo connection', () => {
-    mongoose.connection.close()
-  })
   describe('# getListOfUpdatedDelegates', () => {
     it('Old list has 3 delegates, new list has same 3 but the last one has a different reward cut, should return the last one', done => {
       // given
@@ -694,7 +697,7 @@ describe('## DelegatesUtils test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
@@ -728,7 +731,7 @@ describe('## DelegatesUtils test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
@@ -758,7 +761,7 @@ describe('## DelegatesUtils test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
