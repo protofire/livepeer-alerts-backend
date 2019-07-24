@@ -184,19 +184,19 @@ const getWeeklyTemplate = delegatorTemplateData => {
     )
   }
   const {
-    startDate,
-    endDate,
     totalRounds,
     totalDelegatePools,
     totalDelegatorShares,
     averageShares,
     missedRewardCalls,
-    weekRoundShares
+    weekRoundShares,
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
   } = delegatorTemplateData
   const [share1, share2, share3, share4, share5, share6, share7] = weekRoundShares
   const body = {
-    startDate,
-    endDate,
     totalRounds,
     totalDelegatePools,
     totalDelegatorShares,
@@ -208,7 +208,11 @@ const getWeeklyTemplate = delegatorTemplateData => {
     share4,
     share5,
     share6,
-    share7
+    share7,
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
   }
   return {
     body,
