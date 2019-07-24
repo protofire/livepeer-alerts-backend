@@ -128,8 +128,13 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
     )
 
     const today = new Date()
-    const { startDate, finishDate } = utils.getStartAndFinishDateOfWeeklySummary(today)
 
+    const {
+      fromDateCardinal,
+      toDateCardinal,
+      startRoundDate,
+      endRoundDate
+    } = utils.getStartAndFinishDateOfWeeklySummary(today)
     const totalRounds = 7
 
     const {
@@ -144,10 +149,12 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
     )
 
     return {
+      fromDateCardinal,
+      toDateCardinal,
+      startRoundDate,
+      endRoundDate,
       totalDelegatePools,
       totalDelegatorShares,
-      startDate,
-      finishDate,
       totalRounds,
       weekRoundShares,
       averageShares,

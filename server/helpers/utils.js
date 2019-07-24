@@ -231,9 +231,16 @@ const getStartAndFinishDateOfWeeklySummary = finishDay => {
   }
   const finishDate = moment(finishDay)
   const startDate = finishDate.subtract(7, 'days')
+
+  const fromDateCardinal = startDate.format('MMMM do')
+  const toDateCardinal = finishDate.format('MMMM do')
+  const startRoundDate = startDate.format('MMM D')
+  const endRoundDate = finishDate.format('MMM D, YYYY')
   return {
-    startDate,
-    finishDate
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
   }
 }
 
