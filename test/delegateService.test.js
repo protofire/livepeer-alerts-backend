@@ -11,16 +11,23 @@ const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
 const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
+const mongoose = require('../config/mongoose')
+
+after(done => {
+  mongoose.connection.close()
+  done()
+})
 
 describe('## DelegateService test', () => {
   const protocolService = getProtocolService()
   const delegateService = getDelegateService(delegatesGraphql)
   const delegatorService = getDelegatorService()
+  /*
   const mongoose = require('../config/mongoose')
   after('Close mongo connection', () => {
     mongoose.connection.close()
   })
-
+  */
   describe('# getDelegate', () => {
     it('getDelegate should return a delegate', async () => {
       // given

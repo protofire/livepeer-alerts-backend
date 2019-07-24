@@ -4,12 +4,14 @@ const Delegate = require('../server/delegate/delegate.model')
 const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
+const mongoose = require('../config/mongoose')
+
+after(done => {
+  mongoose.connection.close()
+  done()
+})
 
 describe('## DelegatesUtils test', () => {
-  const mongoose = require('../config/mongoose')
-  after('Close mongo connection', () => {
-    mongoose.connection.close()
-  })
   describe('# getListOfUpdatedDelegates', () => {
     it('Old list has 3 delegates, new list has same 3 but the last one has a different reward cut, should return the last one', done => {
       // given

@@ -7,7 +7,7 @@ const {
 } = require('../server/helpers/notification/notificationUtils')
 const notificateDelegateUtil = require('../server/helpers/notification/notificateDelegateUtils')
 const notificateDelegatorUtil = require('../server/helpers/notification/notificateDelegatorUtils')
-const testUtils = require('../server/helpers/test/util')
+const utils = require('../server/helpers/utils')
 
 const { getProtocolService } = require('../server/helpers/services/protocolService')
 
@@ -537,8 +537,8 @@ describe('## Notification utils test', () => {
     })
     it('100 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 36.6', async () => {
       // given
-      const totalStake = testUtils.unitAmountInTokenUnits('512.4')
-      const totalBondedStake = testUtils.unitAmountInTokenUnits(1400)
+      const totalStake = utils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = utils.unitAmountInTokenUnits(1400)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -567,8 +567,8 @@ describe('## Notification utils test', () => {
     })
     it('0 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 0', async () => {
       // given
-      const totalStake = testUtils.unitAmountInTokenUnits('512.4')
-      const totalBondedStake = testUtils.unitAmountInTokenUnits(1400)
+      const totalStake = utils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = utils.unitAmountInTokenUnits(1400)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -594,8 +594,8 @@ describe('## Notification utils test', () => {
     })
     it('1000 minted tokens for next round, protocol bondedStake is 10000, the bondedStake of the delegate is 100 (1% of the totalBonded), result should be 10', async () => {
       // given
-      const totalStake = testUtils.unitAmountInTokenUnits('100')
-      const totalBondedStake = testUtils.unitAmountInTokenUnits(10000)
+      const totalStake = utils.unitAmountInTokenUnits('100')
+      const totalBondedStake = utils.unitAmountInTokenUnits(10000)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
