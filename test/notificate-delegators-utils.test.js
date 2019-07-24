@@ -586,8 +586,8 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('sendDelegatorNotificationEmail')
         .never()
         .resolves(null)
-
       // when
+
       await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then

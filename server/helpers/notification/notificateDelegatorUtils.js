@@ -14,9 +14,11 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
   console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
+
   const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
   let emailsToSend = []
   const protocolService = getProtocolService()
+
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
   })
@@ -29,6 +31,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         subscriber,
         currentRoundId
       )
+
       if (!shouldSubscriberReceiveNotifications) {
         console.log(
           `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
@@ -37,6 +40,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
       }
 
       let delegatorTemplateData = {}
+
       if (subscriber.emailFrequency === DAILY_FREQUENCY) {
         // If daily subscription send normal email
         const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {

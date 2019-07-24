@@ -2,6 +2,7 @@ const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 const Delegate = require('../delegate/delegate.model')
 const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
+const Big = require('big.js')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
@@ -226,7 +227,7 @@ const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => 
       return utils.MathBN.addAsBN(totalDelegatePools, rewardTokensToTokenUnits)
     }
     return totalDelegatePools
-  }, '0')
+  }, new Big('0'))
   totalDelegatePools = totalDelegatePools.toFixed(TO_FIXED_VALUES_DECIMALS)
   return totalDelegatePools
 }
