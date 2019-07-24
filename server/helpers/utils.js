@@ -230,7 +230,8 @@ const getStartAndFinishDateOfWeeklySummary = finishDay => {
     throw new Error('[Utils] - FinishDay received is not a valid date')
   }
   const finishDate = moment(finishDay)
-  const startDate = finishDate.subtract(7, 'days')
+  const finishDateCopy = finishDate.clone()
+  const startDate = finishDateCopy.subtract(7, 'days')
 
   const fromDateCardinal = startDate.format('MMMM do')
   const toDateCardinal = finishDate.format('MMMM do')
