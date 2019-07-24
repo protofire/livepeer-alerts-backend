@@ -18,6 +18,11 @@ const MathBN = {
     const bBN = new Big(b || '0')
     return aBN.add(bBN).toString(10)
   },
+  addAsBN: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    return aBN.add(bBN)
+  },
   gt: (a, b) => {
     const aBN = new BN(a || '0')
     const bBN = new BN(b || '0')
@@ -48,6 +53,16 @@ const MathBN = {
     const bBN = new Big(b || '0')
     try {
       return aBN.div(bBN).toString()
+    } catch (err) {
+      console.error(err)
+      return 0
+    }
+  },
+  divAsBig: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    try {
+      return aBN.div(bBN)
     } catch (err) {
       console.error(err)
       return 0
