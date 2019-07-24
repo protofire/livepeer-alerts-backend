@@ -220,6 +220,7 @@ const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => 
   const delegatePools = delegate.pools.filter(
     poolElement => poolElement.round >= startRound && poolElement.round <= currentRound
   )
+
   // Sums all the pools in a unique reward
   let totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
     if (currentPool.rewardTokens) {

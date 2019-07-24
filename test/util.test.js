@@ -228,7 +228,8 @@ describe('## Utils file test', () => {
       // given
       const finishDay = new Date()
       const finishDate = moment(finishDay)
-      const startDate = finishDate.subtract(7, 'days')
+      const finishDateCopy = finishDate.clone()
+      const startDate = finishDateCopy.subtract(7, 'days')
       const fromDateExpected = startDate.format('MMMM do')
       const toDateExpected = finishDate.format('MMMM do')
       const startRoundDateExpected = startDate.format('MMM D')
