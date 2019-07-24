@@ -3,6 +3,7 @@ const utils = require('../server/helpers/utils')
 const chai = require('chai') // eslint-disable-line import/newline-after-import
 const expect = chai.expect
 chai.config.includeStack = true
+const moment = require('moment')
 
 describe('## Utils file test', () => {
   describe('# Missed reward call calculation', () => {
@@ -223,16 +224,29 @@ describe('## Utils file test', () => {
       expect(msgReceived).to.equal(msgExpected)
       done()
     })
-    it('If the finishDay is today, should return today - 7 days as finishDate', done => {
+    it('If the finishDay is today, should return today - 7 days as finishDate formated ', done => {
       // given
       const finishDay = new Date()
-      const resultExpected = new Date(Date.now() - 86400000 * 7)
+      const finishDate = moment(finishDay)
+      const startDate = finishDate.subtract(7, 'days')
+      const fromDateExpected = startDate.format('MMMM do')
+      const toDateExpected = finishDate.format('MMMM do')
+      const startRoundDateExpected = startDate.format('MMM D')
+      const endRoundDateExpected = finishDate.format('MMM D, YYYY')
 
       // when
-      const { startDate, finishDate } = utils.getStartAndFinishDateOfWeeklySummary(finishDay)
+      const {
+        fromDateCardinal,
+        toDateCardinal,
+        startRoundDate,
+        endRoundDate
+      } = utils.getStartAndFinishDateOfWeeklySummary(finishDay)
 
       // then
-      expect(finishDate.isSame(resultExpected)).to.equal(true)
+      expect(fromDateCardinal).to.equal(fromDateExpected)
+      expect(toDateCardinal).to.equal(toDateExpected)
+      expect(startRoundDate).to.equal(startRoundDateExpected)
+      expect(endRoundDate).to.equal(endRoundDateExpected)
       done()
     })
   })
