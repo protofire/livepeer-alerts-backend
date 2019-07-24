@@ -4,6 +4,7 @@ const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
 const delegateUtils = require('./delegatesUtils')
 const { getDelegateService } = require('./services/delegateService')
+const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 
 // Fetch the round-id delegator total stake from the last share and make a sub with the current total stake
 const getDelegatorCurrentRewardTokens = async (
@@ -178,7 +179,10 @@ const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
     .exec()
 
   const startRound = currentRound - 7
-  const delegatorShares = delegator.shares.slice(startRound, currentRound)
+  // Filters all the shares that are not within the last 7 rounds
+  const delegatorShares = delegator.shares.filter(
+    shareElement => shareElement.round >= startRound && shareElement.round <= currentRound
+  )
   // Sums all the shares in a unique reward
   const totalDelegatorShares = delegatorShares.reduce((totalDelegatorShares, currentShare) => {
     if (currentShare.rewardTokens) {
@@ -187,8 +191,9 @@ const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
     return totalDelegatorShares
   }, '0')
 
-  const averageShares = utils.MathBN.div(totalDelegatorShares, 7)
-
+  const averageShares = utils.MathBN.divAsBig(totalDelegatorShares, 7).toFixed(
+    TO_FIXED_VALUES_DECIMALS
+  )
   return {
     weekRoundShares: delegatorShares,
     averageShares,
