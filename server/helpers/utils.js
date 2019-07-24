@@ -233,10 +233,12 @@ const getStartAndFinishDateOfWeeklySummary = finishDay => {
   const finishDateCopy = finishDate.clone()
   const startDate = finishDateCopy.subtract(7, 'days')
 
-  const fromDateCardinal = startDate.format('MMMM do')
-  const toDateCardinal = finishDate.format('MMMM do')
+  const fromDateCardinal = startDate.format('MMMM Do')
+
+  const toDateCardinal = finishDate.format('MMMM Do')
   const startRoundDate = startDate.format('MMM D')
   const endRoundDate = finishDate.format('MMM D, YYYY')
+
   return {
     fromDateCardinal,
     toDateCardinal,
