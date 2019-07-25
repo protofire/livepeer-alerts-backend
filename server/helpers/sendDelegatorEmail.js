@@ -211,7 +211,11 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   return
 }
 
-const sendDelegatorNotificationBondingPeriodHasEnded = async (subscriber, delegateAddress) => {
+const sendDelegatorNotificationBondingPeriodHasEnded = async (
+  subscriber,
+  delegateAddress,
+  currentRoundId
+) => {
   try {
     if (!subscriber.email) {
       throw new Error('The subscriber has no email')
@@ -227,6 +231,9 @@ const sendDelegatorNotificationBondingPeriodHasEnded = async (subscriber, delega
 
     console.log(`Sending email to ${subscriber.email} - Bonding period has ended`)
     await sendEmail(body)
+
+    subscriber.lastPendingToBondingPeriodEmailSent = currentRoundId
+    await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)
   }
