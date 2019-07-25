@@ -182,7 +182,7 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
 ) => {
   try {
     if (!subscriber.email) {
-      return
+      throw new Error('The subscriber has no email')
     }
 
     let body = {
@@ -214,7 +214,7 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
 const sendDelegatorNotificationBondingPeriodHasEnded = async (subscriber, delegateAddress) => {
   try {
     if (!subscriber.email) {
-      return
+      throw new Error('The subscriber has no email')
     }
 
     let body = {
