@@ -64,11 +64,11 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
 const sendEmailAfterBondingPeriodHasEndedNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error(
-      'No currentRoundInfo provided on sendEmailAfterBondingPeriodHasEndedNotificationToDelegates()'
+      'No currentRoundInfo provided on sendEmailAfterBondingPeriodHasEndedNotificationToDelegators()'
     )
   }
   console.log(
-    `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegates`
+    `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
   )
 
   const subscribers = await subscriberUtils.getEmailSubscribersDelegators()
