@@ -18,6 +18,11 @@ const MathBN = {
     const bBN = new Big(b || '0')
     return aBN.add(bBN).toString(10)
   },
+  addAsBN: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    return aBN.add(bBN)
+  },
   gt: (a, b) => {
     const aBN = new BN(a || '0')
     const bBN = new BN(b || '0')
@@ -48,6 +53,16 @@ const MathBN = {
     const bBN = new Big(b || '0')
     try {
       return aBN.div(bBN).toString()
+    } catch (err) {
+      console.error(err)
+      return 0
+    }
+  },
+  divAsBig: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    try {
+      return aBN.div(bBN)
     } catch (err) {
       console.error(err)
       return 0
@@ -215,10 +230,20 @@ const getStartAndFinishDateOfWeeklySummary = finishDay => {
     throw new Error('[Utils] - FinishDay received is not a valid date')
   }
   const finishDate = moment(finishDay)
-  const startDate = finishDate.subtract(7, 'days')
+  const finishDateCopy = finishDate.clone()
+  const startDate = finishDateCopy.subtract(7, 'days')
+
+  const fromDateCardinal = startDate.format('MMMM Do')
+
+  const toDateCardinal = finishDate.format('MMMM Do')
+  const startRoundDate = startDate.format('MMM D')
+  const endRoundDate = finishDate.format('MMM D, YYYY')
+
   return {
-    startDate,
-    finishDate
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
   }
 }
 

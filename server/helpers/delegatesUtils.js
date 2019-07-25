@@ -1,6 +1,8 @@
+const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 const Delegate = require('../delegate/delegate.model')
 const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
+const Big = require('big.js')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
@@ -214,14 +216,20 @@ const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => 
     .exec()
 
   const startRound = currentRound - 7
-  const delegatePools = delegate.pools.slice(startRound, currentRound)
+  // Filters all the pools that are not within the last 7 rounds
+  const delegatePools = delegate.pools.filter(
+    poolElement => poolElement.round >= startRound && poolElement.round <= currentRound
+  )
+
   // Sums all the pools in a unique reward
-  const totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
+  let totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
     if (currentPool.rewardTokens) {
-      return utils.MathBN.add(totalDelegatePools, currentPool.rewardTokens)
+      const rewardTokensToTokenUnits = utils.tokenAmountInUnits(currentPool.rewardTokens)
+      return utils.MathBN.addAsBN(totalDelegatePools, rewardTokensToTokenUnits)
     }
     return totalDelegatePools
-  }, '0')
+  }, new Big('0'))
+  totalDelegatePools = totalDelegatePools.toFixed(TO_FIXED_VALUES_DECIMALS)
   return totalDelegatePools
 }
 

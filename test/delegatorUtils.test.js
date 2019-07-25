@@ -7,6 +7,7 @@ const Delegator = require('../server/delegator/delegator.model')
 const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
+const { TO_FIXED_VALUES_DECIMALS } = require('../config/constants')
 
 describe('## DelegatorsUtils test', () => {
   describe('# getWeeklySharesPerRound', () => {
@@ -49,7 +50,7 @@ describe('## DelegatorsUtils test', () => {
       const delegatorAddress = 1
       const currentRound = 7
       const totalDelegatorSharesExpected = '0'
-      const averageSharesExpected = '0'
+      const averageSharesExpected = '0.0000'
       const sharesExpected = []
       const shares = []
       const delegator = testUtil.createDelegator(delegatorAddress)
@@ -98,7 +99,9 @@ describe('## DelegatorsUtils test', () => {
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
       const totalDelegatorSharesExpected = '600'
-      const averageSharesExpected = utils.MathBN.div(totalDelegatorSharesExpected, 7)
+      const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
+        TO_FIXED_VALUES_DECIMALS
+      )
 
       const mockQuery = {
         exec: sinon.stub().returns(delegator)
@@ -147,7 +150,9 @@ describe('## DelegatorsUtils test', () => {
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
       const totalDelegatorSharesExpected = '2800'
-      const averageSharesExpected = utils.MathBN.div(totalDelegatorSharesExpected, 7)
+      const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
+        TO_FIXED_VALUES_DECIMALS
+      )
 
       const mockQuery = {
         exec: sinon.stub().returns(delegator)
@@ -193,11 +198,13 @@ describe('## DelegatorsUtils test', () => {
       const share7 = testUtil.createShare(delegatorAddress, '7', '700')
       const share8 = testUtil.createShare(delegatorAddress, '8', '800')
       const shares = [share8, share7, share6, share5, share4, share3, share2, share1]
-      const sharesExpected = shares.slice(0, currentRound)
+      const sharesExpected = [share7, share6, share5, share4, share3, share2, share1]
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
-      const totalDelegatorSharesExpected = '3500'
-      const averageSharesExpected = utils.MathBN.div(totalDelegatorSharesExpected, 7)
+      const totalDelegatorSharesExpected = '2800'
+      const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
+        TO_FIXED_VALUES_DECIMALS
+      )
 
       const mockQuery = {
         exec: sinon.stub().returns(delegator)
