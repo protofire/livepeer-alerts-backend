@@ -32,7 +32,7 @@ const getDelegator = async (req, res, next) => {
 const getSummary30RoundsRewards = async (req, res, next) => {
   const { address } = req.params
   try {
-    const summary = await delegatorUtils.getSummary30RoundsRewards(address)
+    const summary = await delegatorUtils.getDelegatorSummary30RoundsRewards(address)
     res.json({ summary })
   } catch (error) {
     next(error)
