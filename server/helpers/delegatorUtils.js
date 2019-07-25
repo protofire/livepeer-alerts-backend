@@ -4,6 +4,7 @@ const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
 const delegateUtils = require('./delegatesUtils')
 const { getDelegateService } = require('./services/delegateService')
+const { getDelegatorService } = require('./services/delegatorService')
 const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 
 // Fetch the round-id delegator total stake from the last share and make a sub with the current total stake
@@ -172,10 +173,15 @@ const getSummary30RoundsRewards = async delegatorAddress => {
       '[DelegatorUtils] - No delegatorAddress provided on getSummary30RoundsRewards()'
     )
   }
+  const delegatorService = getDelegatorService()
+  const {
+    delegatorNextReward,
+    delegateNextReward
+  } = await delegatorService.getDelegatorAndDelegateNextReward(delegatorAddress)
   return {
     nextReward: {
-      delegatorReward: '',
-      delegateReward: ''
+      delegatorReward: delegatorNextReward,
+      delegateReward: delegateNextReward
     },
     lastRoundReward: {
       delegatorReward: '',

@@ -29,6 +29,21 @@ class DelegatorService {
     return await getLivepeerDelegatorStake(address)
   }
 
+  getDelegatorAndDelegateNextReward = async delegatorAddress => {
+    const { getDelegateService } = require('./delegateService')
+    const delegator = await this.getDelegatorAccount(delegatorAddress)
+    const { delegateAddress } = delegator
+    const delegateService = getDelegateService()
+    const [delegateNextReward, delegatorNextReward] = await Promise.all([
+      delegateService.getDelegateProtocolNextReward(delegateAddress),
+      this.getDelegatorNextReward(delegatorAddress)
+    ])
+    return {
+      delegateNextReward,
+      delegatorNextReward
+    }
+  }
+
   // Returns the delegator's next round-reward
   getDelegatorNextReward = async delegatorAddress => {
     try {
