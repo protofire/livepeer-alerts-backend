@@ -166,6 +166,32 @@ const getDelegatorSharesSummary = async (delegator, currentRound) => {
   }
 }
 
+const getSummary30RoundsRewards = async delegatorAddress => {
+  if (!delegatorAddress) {
+    throw new Error(
+      '[DelegatorUtils] - No delegatorAddress provided on getSummary30RoundsRewards()'
+    )
+  }
+  return {
+    nextReward: {
+      delegatorReward: '',
+      delegateReward: ''
+    },
+    lastRoundReward: {
+      delegatorReward: '',
+      delegateReward: ''
+    },
+    last7RoundsReward: {
+      delegatorReward: '',
+      delegateReward: ''
+    },
+    last30RoundsReward: {
+      delegatorReward: '',
+      delegateReward: ''
+    }
+  }
+}
+
 const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
   if (!delegatorAddress) {
     throw new Error('[DelegatorUtils] - No delegatorAddress provided on getWeeklySharesPerRound()')
@@ -212,7 +238,8 @@ const delegatorUtils = {
   checkAndUpdateMissingLocalDelegators,
   getDelegatorCurrentRewardTokens,
   getDelegatorSharesSummary,
-  getWeeklySharesPerRound
+  getWeeklySharesPerRound,
+  getSummary30RoundsRewards
 }
 
 module.exports = delegatorUtils
