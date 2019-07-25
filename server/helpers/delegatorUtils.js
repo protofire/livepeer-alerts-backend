@@ -1,7 +1,10 @@
 const Delegator = require('../delegator/delegator.model')
 const Share = require('../share/share.model')
 const mongoose = require('../../config/mongoose')
-const { MathBN } = require('./utils')
+const utils = require('./utils')
+const delegateUtils = require('./delegatesUtils')
+const { getDelegateService } = require('./services/delegateService')
+const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 
 // Fetch the round-id delegator total stake from the last share and make a sub with the current total stake
 const getDelegatorCurrentRewardTokens = async (
@@ -43,7 +46,10 @@ const getDelegatorCurrentRewardTokens = async (
     console.error('[Delegator utils] - last share not found')
     return await delegatorService.getDelegatorNextReward(delegatorAddress)
   }
-  const newShare = MathBN.sub(currentDelegatorTotalStake, lastDelegatorShare.totalStakeOnRound)
+  const newShare = utils.MathBN.sub(
+    currentDelegatorTotalStake,
+    lastDelegatorShare.totalStakeOnRound
+  )
   console.log(`[Delegator utils] - returning new share: ${newShare}`)
   return newShare
 }
@@ -99,9 +105,114 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
   console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Finished`)
 }
 
+/**
+ * Generates a weekly summary for the given delegator between the (currentRound-7, currentRound)
+ * Throws error if there is no delegator or currentRound received
+ * Or if the delegator does not have a weekly subscription
+ * If the delegator has no rewards at least for one of the last 7 rounds, throws an error
+ * @param delegator
+ * @returns {Promise<{summaryObject}>}
+ */
+const getDelegatorSharesSummary = async (delegator, currentRound) => {
+  if (!delegator) {
+    throw new Error('[DelegatorUtils] no delegator provided on getDelegatorSharesSummary()')
+  }
+  if (!currentRound) {
+    throw new Error('[DelegatorUtils] no currentRound provided on getDelegatorSharesSummary()')
+  }
+  // Calculates totalDelegatePools
+  try {
+    const totalDelegatePools = await delegateUtils.getDelegateLastWeekRoundsPools(
+      delegator.delegateAddress,
+      currentRound
+    )
+
+    const today = new Date()
+
+    const {
+      fromDateCardinal,
+      toDateCardinal,
+      startRoundDate,
+      endRoundDate
+    } = utils.getStartAndFinishDateOfWeeklySummary(today)
+    const totalRounds = 7
+
+    const {
+      weekRoundShares,
+      averageShares,
+      totalDelegatorShares
+    } = await delegatorUtils.getWeeklySharesPerRound(delegator.address, currentRound)
+    const delegateService = getDelegateService()
+    const missedRewardCalls = await delegateService.getMissedRewardCalls(
+      delegator.delegateAddress,
+      totalRounds
+    )
+
+    return {
+      fromDateCardinal,
+      toDateCardinal,
+      startRoundDate,
+      endRoundDate,
+      totalDelegatePools,
+      totalDelegatorShares,
+      totalRounds,
+      weekRoundShares,
+      averageShares,
+      missedRewardCalls
+    }
+  } catch (err) {
+    console.error(`[DelegatorUtils] - Error on getDelegatorSharesSummary(): ${err}`)
+    throw err
+  }
+}
+
+const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
+  if (!delegatorAddress) {
+    throw new Error('[DelegatorUtils] - No delegatorAddress provided on getWeeklySharesPerRound()')
+  }
+  if (!currentRound) {
+    throw new Error('[DelegatorUtils] - No currentRound provided on getWeeklySharesPerRound()')
+  }
+
+  let delegator = await Delegator.findById(delegatorAddress)
+    .populate({
+      path: 'shares',
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatorShares in descending order based on roundId
+        }
+      }
+    })
+    .exec()
+
+  const startRound = currentRound - 7
+  // Filters all the shares that are not within the last 7 rounds
+  const delegatorShares = delegator.shares.filter(
+    shareElement => shareElement.round >= startRound && shareElement.round <= currentRound
+  )
+  // Sums all the shares in a unique reward
+  const totalDelegatorShares = delegatorShares.reduce((totalDelegatorShares, currentShare) => {
+    if (currentShare.rewardTokens) {
+      return utils.MathBN.add(totalDelegatorShares, currentShare.rewardTokens)
+    }
+    return totalDelegatorShares
+  }, '0')
+
+  const averageShares = utils.MathBN.divAsBig(totalDelegatorShares, 7).toFixed(
+    TO_FIXED_VALUES_DECIMALS
+  )
+  return {
+    weekRoundShares: delegatorShares,
+    averageShares,
+    totalDelegatorShares
+  }
+}
+
 const delegatorUtils = {
   checkAndUpdateMissingLocalDelegators,
-  getDelegatorCurrentRewardTokens
+  getDelegatorCurrentRewardTokens,
+  getDelegatorSharesSummary,
+  getWeeklySharesPerRound
 }
 
 module.exports = delegatorUtils

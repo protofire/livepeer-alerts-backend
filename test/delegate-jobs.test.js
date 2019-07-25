@@ -1,41 +1,45 @@
-const delegateUtils = require('../server/helpers/delegatesUtils')
+const { generateNotificationList } = require('../server/helpers/notification/notificationUtils')
 
+const { getDelegatorService } = require('../server/helpers/services/delegatorService')
+
+const { getProtocolService } = require('../server/helpers/services/protocolService')
+
+const { MathBN, unitAmountInTokenUnits } = require('../server/helpers/utils')
+
+const { getDelegateService } = require('../server/helpers/services/delegateService')
+
+const testUtil = require('../server/helpers/test/util')
+const delegateUtils = require('../server/helpers/delegatesUtils')
 const {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   getDelegateRulesChanged
 } = delegateUtils
 
-const { generateNotificationList } = require('../server/helpers/notification/notificationUtils')
-
-const { createDelegator } = require('../server/helpers/test/util')
-const { getDelegatorService } = require('../server/helpers/services/delegatorService')
-
-const { getProtocolService } = require('../server/helpers/services/protocolService')
-
-const { MathBN } = require('../server/helpers/utils')
-
-const { unitAmountInTokenUnits } = require('../server/helpers/utils')
-
-const { getDelegateService } = require('../server/helpers/services/delegateService')
-
-const { createTranscoder, createRewardObject } = require('../server/helpers/test/util')
+const Delegate = require('../server/delegate/delegate.model')
 
 const chai = require('chai')
 const expect = chai.expect
 const sinon = require('sinon')
 const delegatesGraphql = require('../server/helpers/graphql/queries/delegate')
 
-describe('## Check-delegate-change-rules test', () => {
+const mongoose = require('../config/mongoose')
+
+after(done => {
+  mongoose.connection.close()
+  done()
+})
+
+describe('## DelegatesUtils test', () => {
   const protocolService = getProtocolService()
   const delegateService = getDelegateService(delegatesGraphql)
   const delegatorService = getDelegatorService()
   describe('# getListOfUpdatedDelegates', () => {
     it('Old list has 3 delegates, new list has same 3 but the last one has a different reward cut, should return the last one', done => {
       // given
-      const delegate1 = createTranscoder('1', '10', '15', '0', '0')
-      const delegate2 = createTranscoder('2', '15', '9', '0', '0')
-      const delegate3 = createTranscoder('3', '19', '39', '10', '0')
+      const delegate1 = testUtil.createTranscoder('1', '10', '15', '0', '0')
+      const delegate2 = testUtil.createTranscoder('2', '15', '9', '0', '0')
+      const delegate3 = testUtil.createTranscoder('3', '19', '39', '10', '0')
       const delegate3New = {
         ...delegate3,
         rewardCut: '25'
@@ -80,7 +84,7 @@ describe('## Check-delegate-change-rules test', () => {
   describe('# getDelegateRulesChanged', () => {
     it('Old delegate and new delegate have the same properties ; new has same but with different active property => result should be true with property active', done => {
       // given
-      const delegate3 = createTranscoder('3', '19', '39', '10', '0')
+      const delegate3 = testUtil.createTranscoder('3', '19', '39', '10', '0')
       const delegate3New = {
         ...delegate3,
         active: !delegate3.active
@@ -121,7 +125,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
       const active = false
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -150,7 +154,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
       const active = false
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -179,7 +183,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
       const active = false
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -207,7 +211,7 @@ describe('## Check-delegate-change-rules test', () => {
       const feeShare = '1'
       const pendingRewardCut = '1'
       const pendingFeeShare = '1'
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -236,7 +240,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingFeeShare = '1'
       const totalStake = '1'
       const active = false
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -269,7 +273,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingFeeShare = '1'
       const totalStake = '1'
       const active = false
-      const oldDelegate = createTranscoder(
+      const oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -302,7 +306,7 @@ describe('## Check-delegate-change-rules test', () => {
       const pendingFeeShare = '1'
       const totalStake = '1'
       const active = false
-      let oldDelegate = createTranscoder(
+      let oldDelegate = testUtil.createTranscoder(
         transcoderId,
         rewardCut,
         feeShare,
@@ -542,7 +546,7 @@ describe('## Check-delegate-change-rules test', () => {
   describe('# getDelegateNextReward', () => {
     it('delegatorRewardForNextRound = 1000, rewardCut = 10%, result should be 10', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -563,7 +567,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('delegatorRewardForNextRound = 198761, rewardCut = 10%, result should be 19876.1', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -584,7 +588,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('delegatorRewardForNextRound = 0, rewardCut = 10%, result should be 0', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -607,7 +611,7 @@ describe('## Check-delegate-change-rules test', () => {
   describe('# getDelegateRewardToDelegators', () => {
     it('delegateNextProtocolReward = 1000, rewardCut = 10%, result should be 900', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -628,7 +632,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('delegateNextProtocolReward = 19843.21064318, rewardCut = 10%, result should be 17859.889578862', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -649,7 +653,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('delegateNextProtocolReward = 0, rewardCut = 10%, result should be 0', async () => {
       // given
-      const delegate = createTranscoder()
+      const delegate = testUtil.createTranscoder()
       delegate.pendingRewardCut = MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
@@ -679,7 +683,7 @@ describe('## Check-delegate-change-rules test', () => {
           id: '30'
         }
         for (let roundI = 1; roundI <= 30; roundI++) {
-          const newReward = createRewardObject(transcoderId, roundI)
+          const newReward = testUtil.createRewardObject(transcoderId, roundI)
           if (roundI <= 10) {
             newReward.rewardTokens = null
           }
@@ -693,7 +697,7 @@ describe('## Check-delegate-change-rules test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
@@ -710,7 +714,7 @@ describe('## Check-delegate-change-rules test', () => {
           id: 40
         }
         for (let roundI = 1; roundI <= 40; roundI++) {
-          const newReward = createRewardObject(transcoderId, roundI)
+          const newReward = testUtil.createRewardObject(transcoderId, roundI)
           if (roundI <= 5) {
             newReward.rewardTokens = null
           }
@@ -727,7 +731,7 @@ describe('## Check-delegate-change-rules test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
@@ -745,7 +749,7 @@ describe('## Check-delegate-change-rules test', () => {
           id: 30
         }
         for (let roundI = 1; roundI <= 30; roundI++) {
-          const newReward = createRewardObject(transcoderId, roundI)
+          const newReward = testUtil.createRewardObject(transcoderId, roundI)
           rewards.push(newReward)
         }
 
@@ -757,7 +761,7 @@ describe('## Check-delegate-change-rules test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
@@ -776,7 +780,7 @@ describe('## Check-delegate-change-rules test', () => {
     // Result = 50
     it('the next reward to delegators is 500, the % of participation of the delegator is 10%, result should be 50', async () => {
       // given
-      const delegator = createDelegator()
+      const delegator = testUtil.createDelegator()
       delegator.totalStake = unitAmountInTokenUnits(100)
       const delegateTotalStake = unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
@@ -805,7 +809,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('the next reward to delegators is 4866341500, the % of participation of the delegator is 10%, result should be 486634150', async () => {
       // given
-      const delegator = createDelegator()
+      const delegator = testUtil.createDelegator()
       delegator.totalStake = unitAmountInTokenUnits(100)
       const delegateTotalStake = unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
@@ -834,7 +838,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('the next reward to delegators is 4866341500, the % of participation of the delegator is 99%, result should be 4817678085', async () => {
       // given
-      const delegator = createDelegator()
+      const delegator = testUtil.createDelegator()
       delegator.totalStake = unitAmountInTokenUnits(990)
       const delegateTotalStake = unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
@@ -863,7 +867,7 @@ describe('## Check-delegate-change-rules test', () => {
     })
     it('the next reward to delegators is 0, the % of participation of the delegator is 99%, result should be 0', async () => {
       // given
-      const delegator = createDelegator()
+      const delegator = testUtil.createDelegator()
       delegator.totalStake = unitAmountInTokenUnits(990)
       const delegateTotalStake = unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
@@ -889,6 +893,224 @@ describe('## Check-delegate-change-rules test', () => {
       getLivepeerDelegatorAccountSub.restore()
       getDelegateTotalStakeStub.restore()
       getDelegateRewardToDelegatorsSub.restore()
+    })
+  })
+  describe('# getDelegateLastWeekRoundsPools', () => {
+    it('Throws error if no delegateAddress given', async () => {
+      // given
+      const delegateAddress = null
+      const currentRound = 1
+      const errorExpected =
+        '[DelegatesUtils] - No delegateAddress provided on getDelegateLastWeekRoundsPools()'
+      let throwedErrorMsg = ''
+      // when
+      try {
+        await delegateUtils.getDelegateLastWeekRoundsPools(delegateAddress, currentRound)
+      } catch (err) {
+        throwedErrorMsg = err.message
+      }
+      // then
+      expect(throwedErrorMsg).equal(errorExpected)
+    })
+    it('Throws error if no currentRound given', async () => {
+      // given
+      const delegateAddress = 1
+      const currentRound = null
+      const errorExpected =
+        '[DelegatesUtils] - No currentRound provided on getDelegateLastWeekRoundsPools()'
+      let throwedErrorMsg = ''
+      // when
+      try {
+        await delegateUtils.getDelegateLastWeekRoundsPools(delegateAddress, currentRound)
+      } catch (err) {
+        throwedErrorMsg = err.message
+      }
+      // then
+      expect(throwedErrorMsg).equal(errorExpected)
+    })
+    it('Delegate has 0 pools on the last week, returns 0', async () => {
+      // given
+      const delegateAddress = 1
+      const currentRound = 7
+      const resultExpected = '0.0000'
+      const pools = []
+      const delegate = testUtil.createTranscoder(delegateAddress)
+      delegate.pools = pools
+
+      const mockQuery = {
+        exec: sinon.stub().returns(delegate)
+      }
+
+      const populateQuery = {
+        populate: sinon.stub().returns(mockQuery)
+      }
+
+      const delegateMock = sinon.mock(Delegate)
+
+      const expectationDelegate = delegateMock
+        .expects('findById')
+        .once()
+        .withArgs(delegateAddress)
+        .returns(populateQuery)
+
+      // when
+      const result = await delegateUtils.getDelegateLastWeekRoundsPools(
+        delegateAddress,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      delegateMock.verify()
+      // restore mocks
+      delegateMock.restore()
+    })
+    it('Delegate has 3 pools on the last week, returns the sum of them', async () => {
+      // given
+      const delegateAddress = 1
+      const currentRound = 7
+      const reward1 = unitAmountInTokenUnits('100')
+      const reward2 = unitAmountInTokenUnits('200')
+      const reward3 = unitAmountInTokenUnits('300')
+      const pool1 = testUtil.createPool(delegateAddress, '7', reward1)
+      const pool2 = testUtil.createPool(delegateAddress, '5', reward2)
+      const pool3 = testUtil.createPool(delegateAddress, '1', reward3)
+      const resultExpected = '600.0000'
+      const pools = [pool3, pool2, pool1]
+      const delegate = testUtil.createTranscoder(delegateAddress)
+      delegate.pools = pools
+
+      const mockQuery = {
+        exec: sinon.stub().returns(delegate)
+      }
+
+      const populateQuery = {
+        populate: sinon.stub().returns(mockQuery)
+      }
+
+      const delegateMock = sinon.mock(Delegate)
+
+      const expectationDelegate = delegateMock
+        .expects('findById')
+        .once()
+        .withArgs(delegateAddress)
+        .returns(populateQuery)
+
+      // when
+      const result = await delegateUtils.getDelegateLastWeekRoundsPools(
+        delegateAddress,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      delegateMock.verify()
+      // restore mocks
+      delegateMock.restore()
+    })
+    it('Delegate has 7 pools on the last week, returns the sum of them', async () => {
+      // given
+      const delegateAddress = 1
+      const currentRound = 7
+      const reward1 = unitAmountInTokenUnits('100')
+      const reward2 = unitAmountInTokenUnits('200')
+      const reward3 = unitAmountInTokenUnits('300')
+      const reward4 = unitAmountInTokenUnits('400')
+      const reward5 = unitAmountInTokenUnits('500')
+      const reward6 = unitAmountInTokenUnits('600')
+      const reward7 = unitAmountInTokenUnits('700')
+      const pool1 = testUtil.createPool(delegateAddress, '1', reward1)
+      const pool2 = testUtil.createPool(delegateAddress, '2', reward2)
+      const pool3 = testUtil.createPool(delegateAddress, '3', reward3)
+      const pool4 = testUtil.createPool(delegateAddress, '4', reward4)
+      const pool5 = testUtil.createPool(delegateAddress, '5', reward5)
+      const pool6 = testUtil.createPool(delegateAddress, '6', reward6)
+      const pool7 = testUtil.createPool(delegateAddress, '7', reward7)
+      const resultExpected = '2800.0000'
+      const pools = [pool7, pool6, pool5, pool4, pool3, pool2, pool1]
+      const delegate = testUtil.createTranscoder(delegateAddress)
+      delegate.pools = pools
+
+      const mockQuery = {
+        exec: sinon.stub().returns(delegate)
+      }
+
+      const populateQuery = {
+        populate: sinon.stub().returns(mockQuery)
+      }
+
+      const delegateMock = sinon.mock(Delegate)
+
+      const expectationDelegate = delegateMock
+        .expects('findById')
+        .once()
+        .withArgs(delegateAddress)
+        .returns(populateQuery)
+
+      // when
+      const result = await delegateUtils.getDelegateLastWeekRoundsPools(
+        delegateAddress,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      delegateMock.verify()
+      // restore mocks
+      delegateMock.restore()
+    })
+    it('Delegate has 8 pools in total, returns the sum of the first 7 (the ones that are part of the week)', async () => {
+      // given
+      const delegateAddress = 1
+      const currentRound = 7
+      const reward1 = unitAmountInTokenUnits('100')
+      const reward2 = unitAmountInTokenUnits('200')
+      const reward3 = unitAmountInTokenUnits('300')
+      const reward4 = unitAmountInTokenUnits('400')
+      const reward5 = unitAmountInTokenUnits('500')
+      const reward6 = unitAmountInTokenUnits('600')
+      const reward7 = unitAmountInTokenUnits('700')
+      const reward8 = unitAmountInTokenUnits('800')
+      const pool1 = testUtil.createPool(delegateAddress, '1', reward1)
+      const pool2 = testUtil.createPool(delegateAddress, '2', reward2)
+      const pool3 = testUtil.createPool(delegateAddress, '3', reward3)
+      const pool4 = testUtil.createPool(delegateAddress, '4', reward4)
+      const pool5 = testUtil.createPool(delegateAddress, '5', reward5)
+      const pool6 = testUtil.createPool(delegateAddress, '6', reward6)
+      const pool7 = testUtil.createPool(delegateAddress, '7', reward7)
+      const pool8 = testUtil.createPool(delegateAddress, '8', reward8)
+      const resultExpected = '2800.0000'
+      const pools = [pool8, pool7, pool6, pool5, pool4, pool3, pool2, pool1]
+      const delegate = testUtil.createTranscoder(delegateAddress)
+      delegate.pools = pools
+
+      const mockQuery = {
+        exec: sinon.stub().returns(delegate)
+      }
+
+      const populateQuery = {
+        populate: sinon.stub().returns(mockQuery)
+      }
+
+      const delegateMock = sinon.mock(Delegate)
+
+      const expectationDelegate = delegateMock
+        .expects('findById')
+        .once()
+        .withArgs(delegateAddress)
+        .returns(populateQuery)
+
+      // when
+      const result = await delegateUtils.getDelegateLastWeekRoundsPools(
+        delegateAddress,
+        currentRound
+      )
+
+      // then
+      expect(result).equal(resultExpected)
+      delegateMock.verify()
+      // restore mocks
+      delegateMock.restore()
     })
   })
 })

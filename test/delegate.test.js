@@ -1,18 +1,15 @@
-const { createDelegator } = require('../server/helpers/test/util')
 const { getDelegatorService } = require('../server/helpers/services/delegatorService')
 
 const { getProtocolService } = require('../server/helpers/services/protocolService')
 
-const { MathBN } = require('../server/helpers/utils')
-
-const { tokenAmountInUnits, unitAmountInTokenUnits } = require('../server/helpers/utils')
-
 const { getDelegateService } = require('../server/helpers/services/delegateService')
+
+const utils = require('../server/helpers/utils')
 
 const {
   createTranscoder,
   createRewardObject,
-  createTotalStake
+  createDelegator
 } = require('../server/helpers/test/util')
 
 const chai = require('chai')
@@ -34,7 +31,7 @@ describe('## DelegateService test', () => {
         .returns(delegate)
       const resultExpected = {
         ...delegate,
-        totalStake: tokenAmountInUnits(delegate.totalStake)
+        totalStake: utils.tokenAmountInUnits(delegate.totalStake)
       }
 
       // when
@@ -57,7 +54,7 @@ describe('## DelegateService test', () => {
     const resultExpected = {
       summary: {
         ...delegate,
-        totalStake: tokenAmountInUnits(delegate.totalStake)
+        totalStake: utils.tokenAmountInUnits(delegate.totalStake)
       }
     }
 
@@ -79,8 +76,8 @@ describe('## DelegateService test', () => {
     // result (delegateReward) = 14
     it('140 minted tokens for next round, protocol bondedStake is 400, the bondedStake of the delegate is 40 (10% of the totalBonded), result should be 14 (10% of 140)', async () => {
       // given
-      const totalStake = unitAmountInTokenUnits(40)
-      const totalBondedStake = unitAmountInTokenUnits(400)
+      const totalStake = utils.unitAmountInTokenUnits(40)
+      const totalBondedStake = utils.unitAmountInTokenUnits(400)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -107,8 +104,8 @@ describe('## DelegateService test', () => {
     })
     it('100 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 36.6', async () => {
       // given
-      const totalStake = unitAmountInTokenUnits('512.4')
-      const totalBondedStake = unitAmountInTokenUnits(1400)
+      const totalStake = utils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = utils.unitAmountInTokenUnits(1400)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -137,8 +134,8 @@ describe('## DelegateService test', () => {
     })
     it('0 minted tokens for next round, protocol bondedStake is 1400, the bondedStake of the delegate is 512.4 (36.6% of the totalBonded), result should be 0', async () => {
       // given
-      const totalStake = unitAmountInTokenUnits('512.4')
-      const totalBondedStake = unitAmountInTokenUnits(1400)
+      const totalStake = utils.unitAmountInTokenUnits('512.4')
+      const totalBondedStake = utils.unitAmountInTokenUnits(1400)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -164,8 +161,8 @@ describe('## DelegateService test', () => {
     })
     it('1000 minted tokens for next round, protocol bondedStake is 10000, the bondedStake of the delegate is 100 (1% of the totalBonded), result should be 10', async () => {
       // given
-      const totalStake = unitAmountInTokenUnits('100')
-      const totalBondedStake = unitAmountInTokenUnits(10000)
+      const totalStake = utils.unitAmountInTokenUnits('100')
+      const totalBondedStake = utils.unitAmountInTokenUnits(10000)
       const getTotalStakeStub = sinon
         .stub(delegateService, 'getDelegateTotalStake')
         .returns(totalStake)
@@ -196,7 +193,7 @@ describe('## DelegateService test', () => {
     it('delegatorRewardForNextRound = 1000, rewardCut = 10%, result should be 10', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -217,7 +214,7 @@ describe('## DelegateService test', () => {
     it('delegatorRewardForNextRound = 198761, rewardCut = 10%, result should be 19876.1', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -238,7 +235,7 @@ describe('## DelegateService test', () => {
     it('delegatorRewardForNextRound = 0, rewardCut = 10%, result should be 0', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -261,7 +258,7 @@ describe('## DelegateService test', () => {
     it('delegateNextProtocolReward = 1000, rewardCut = 10%, result should be 900', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -282,7 +279,7 @@ describe('## DelegateService test', () => {
     it('delegateNextProtocolReward = 19843.21064318, rewardCut = 10%, result should be 17859.889578862', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -303,7 +300,7 @@ describe('## DelegateService test', () => {
     it('delegateNextProtocolReward = 0, rewardCut = 10%, result should be 0', async () => {
       // given
       const delegate = createTranscoder()
-      delegate.pendingRewardCut = MathBN.mul(10, 10000)
+      delegate.pendingRewardCut = utils.MathBN.mul(10, 10000)
       const getSummaryStub = sinon.stub(delegateService, 'getDelegate').returns(delegate)
       const getDelegateProtocolNextRewardStub = sinon
         .stub(delegateService, 'getDelegateProtocolNextReward')
@@ -323,7 +320,7 @@ describe('## DelegateService test', () => {
     })
   })
   describe('# getMissedRewardCalls', () => {
-    describe('# Missed reward call calculation', () => {
+    describe('# Missed reward call calculation without round period', () => {
       it('There are 30 rounds, 10 of them do not have reward object, result should be 10', async () => {
         // given
         const rewards = []
@@ -346,7 +343,7 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
@@ -355,19 +352,20 @@ describe('## DelegateService test', () => {
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
-      it('There are 40 rounds, the firsts 5 of them do not have reward object, neither the last 10 of them, result should be 5', async () => {
+      it('There are 40 rounds, the first 5 of them do not have reward object, neither the last 10 of them, result should be 10', async () => {
         // given
         const rewards = []
         const transcoderId = '1'
         const currentRound = {
           id: 40
         }
+        const resultExpected = 10
         for (let roundI = 1; roundI <= 40; roundI++) {
           const newReward = createRewardObject(transcoderId, roundI)
           if (roundI <= 5) {
             newReward.rewardTokens = null
           }
-          if (roundI >= 35) {
+          if (roundI >= 30) {
             newReward.rewardTokens = null
           }
           rewards.push(newReward)
@@ -380,12 +378,12 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
-        expect(missedRewardCalls).to.equal(5)
+        expect(missedRewardCalls).to.equal(resultExpected)
         // restore stubs
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
@@ -397,6 +395,7 @@ describe('## DelegateService test', () => {
         const currentRound = {
           id: 30
         }
+        const resultExpected = 0
         for (let roundI = 1; roundI <= 30; roundI++) {
           const newReward = createRewardObject(transcoderId, roundI)
           rewards.push(newReward)
@@ -410,27 +409,27 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards)
 
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
-        expect(missedRewardCalls).to.equal(0)
+        expect(missedRewardCalls).to.equal(resultExpected)
         // restore stubs
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
     })
-  })
-  describe('# getMissedRewardCalls', () => {
-    describe('# Missed reward call calculation', () => {
-      it('There are 30 rounds, 10 of them do not have reward object, result should be 10', async () => {
+    describe('# Missed reward call calculation with round period', () => {
+      it('There are 30 rounds, the first 10 of them do not have reward object, the periods are 7 rounds => result should be 0', async () => {
         // given
         const rewards = []
         const transcoderId = '1'
         const currentRound = {
           id: '30'
         }
+        const roundsPeriod = 7
+        const resultExpected = 0
         for (let roundI = 1; roundI <= 30; roundI++) {
           const newReward = createRewardObject(transcoderId, roundI)
           if (roundI <= 10) {
@@ -446,28 +445,63 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, roundsPeriod)
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
-        expect(missedRewardCalls).to.equal(10)
+        expect(missedRewardCalls).to.equal(resultExpected)
         // restore stubs
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
-      it('There are 40 rounds, the firsts 5 of them do not have reward object, neither the last 10 of them, result should be 5', async () => {
+      it('There are 30 rounds, the first 10 of them do not have reward object, the periods are 30 rounds => result should be 10', async () => {
+        // given
+        const rewards = []
+        const transcoderId = '1'
+        const currentRound = {
+          id: '30'
+        }
+        const roundsPeriod = 30
+        const resultExpected = 10
+        for (let roundI = 1; roundI <= 30; roundI++) {
+          const newReward = createRewardObject(transcoderId, roundI)
+          if (roundI <= 10) {
+            newReward.rewardTokens = null
+          }
+          rewards.push(newReward)
+        }
+        const getDelegateRewardsStub = sinon
+          .stub(delegateService, 'getDelegateRewards')
+          .returns(rewards)
+        const getCurrentRoundStub = sinon
+          .stub(protocolService, 'getCurrentRound')
+          .returns(currentRound)
+
+        // when
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, roundsPeriod)
+        // then
+        expect(getDelegateRewardsStub.called)
+        expect(getCurrentRoundStub.called)
+        expect(missedRewardCalls).to.equal(resultExpected)
+        // restore stubs
+        getDelegateRewardsStub.restore()
+        getCurrentRoundStub.restore()
+      })
+      it('There are 40 rounds, the first 5 of them do not have reward object, neither the last 10 of them, the periods are 40 rounds, result should be 15', async () => {
         // given
         const rewards = []
         const transcoderId = '1'
         const currentRound = {
           id: 40
         }
+        const roundsPeriod = 40
+        const resultExpected = 15
         for (let roundI = 1; roundI <= 40; roundI++) {
           const newReward = createRewardObject(transcoderId, roundI)
           if (roundI <= 5) {
             newReward.rewardTokens = null
           }
-          if (roundI >= 35) {
+          if (roundI >= 30) {
             newReward.rewardTokens = null
           }
           rewards.push(newReward)
@@ -480,25 +514,65 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, roundsPeriod)
 
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
-        expect(missedRewardCalls).to.equal(5)
+        expect(missedRewardCalls).to.equal(resultExpected)
         // restore stubs
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
       })
-      it('There are 30 rounds, all of them have reward, result should be 0', async () => {
+      it('There are 40 rounds, the first 5 of them do not have reward object, neither the last 10 of them, the periods are 6 rounds, result should be 6', async () => {
+        // given
+        const rewards = []
+        const transcoderId = '1'
+        const currentRound = {
+          id: 40
+        }
+        const roundsPeriod = 6
+        const resultExpected = 6
+        for (let roundI = 1; roundI <= 40; roundI++) {
+          const newReward = createRewardObject(transcoderId, roundI)
+          if (roundI <= 5) {
+            newReward.rewardTokens = null
+          }
+          if (roundI >= 30) {
+            newReward.rewardTokens = null
+          }
+          rewards.push(newReward)
+        }
+        const getDelegateRewardsStub = sinon
+          .stub(delegateService, 'getDelegateRewards')
+          .returns(rewards)
+        const getCurrentRoundStub = sinon
+          .stub(protocolService, 'getCurrentRound')
+          .returns(currentRound)
+
+        // when
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, roundsPeriod)
+
+        // then
+        expect(getDelegateRewardsStub.called)
+        expect(getCurrentRoundStub.called)
+        expect(missedRewardCalls).to.equal(resultExpected)
+        // restore stubs
+        getDelegateRewardsStub.restore()
+        getCurrentRoundStub.restore()
+      })
+      it('There are 30 rounds, none of them have reward, the roundPeriod is 25 result should be 25', async () => {
         // given
         const rewards = []
         const transcoderId = '1'
         const currentRound = {
           id: 30
         }
+        const roundsPeriod = 25
+        const resultExpected = 25
         for (let roundI = 1; roundI <= 30; roundI++) {
           const newReward = createRewardObject(transcoderId, roundI)
+          newReward.rewardTokens = null
           rewards.push(newReward)
         }
 
@@ -510,12 +584,12 @@ describe('## DelegateService test', () => {
           .returns(currentRound)
 
         // when
-        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, currentRound)
+        const missedRewardCalls = await delegateService.getMissedRewardCalls(rewards, roundsPeriod)
 
         // then
         expect(getDelegateRewardsStub.called)
         expect(getCurrentRoundStub.called)
-        expect(missedRewardCalls).to.equal(0)
+        expect(missedRewardCalls).to.equal(resultExpected)
         // restore stubs
         getDelegateRewardsStub.restore()
         getCurrentRoundStub.restore()
@@ -551,7 +625,7 @@ describe('## DelegateService test', () => {
         for (let iterator = 0; iterator < totalDelegates; iterator++) {
           // Create delegates
           const newStake = 1000
-          const stakeInTokens = unitAmountInTokenUnits(newStake)
+          const stakeInTokens = utils.unitAmountInTokenUnits(newStake)
           const newDelegate = createTranscoder(iterator, stakeInTokens)
           delegates.push(newDelegate)
 
@@ -563,14 +637,14 @@ describe('## DelegateService test', () => {
           // Create results
           const rewardToDelegators = rewards[iterator].rewardTokens
           const delegateTotalStake = delegates[iterator].totalStake
-          const delegatorAmountToStake = unitAmountInTokenUnits(amountToStake)
-          const rewardInTokens = unitAmountInTokenUnits(rewardToDelegators)
+          const delegatorAmountToStake = utils.unitAmountInTokenUnits(amountToStake)
+          const rewardInTokens = utils.unitAmountInTokenUnits(rewardToDelegators)
           const newRoiResult = delegateService.simulateNextReturnForGivenDelegatorStakedAmount(
             rewardInTokens,
             delegateTotalStake,
             delegatorAmountToStake
           )
-          const totalStakeInUnits = tokenAmountInUnits(delegateTotalStake)
+          const totalStakeInUnits = utils.tokenAmountInUnits(delegateTotalStake)
           resultExpected.push({
             id: iterator,
             totalStake: totalStakeInUnits,
@@ -580,8 +654,8 @@ describe('## DelegateService test', () => {
 
         // Orders the results desc by ROI value
         resultExpected.sort((a, b) => {
-          const aBn = MathBN.toBig(a.roi)
-          const bBn = MathBN.toBig(b.roi)
+          const aBn = utils.MathBN.toBig(a.roi)
+          const bBn = utils.MathBN.toBig(b.roi)
           return bBn.sub(aBn)
         })
         // Filters the first 25 results
@@ -616,9 +690,9 @@ describe('## DelegateService test', () => {
     describe('# simulateNextReturnForGivenDelegatorStakedAmount calculation', () => {
       it('100 rewardsToDelegators, the delegateTotalStake is 10000, the amount to bond is 1000 (10% participation), should return 10', async () => {
         // given
-        const rewardsToDelegators = unitAmountInTokenUnits(100)
-        const totalStake = unitAmountInTokenUnits(10000)
-        const amountToBond = unitAmountInTokenUnits(1000)
+        const rewardsToDelegators = utils.unitAmountInTokenUnits(100)
+        const totalStake = utils.unitAmountInTokenUnits(10000)
+        const amountToBond = utils.unitAmountInTokenUnits(1000)
         const resultExpected = '10'
 
         // when
@@ -633,9 +707,9 @@ describe('## DelegateService test', () => {
       })
       it('100 rewardsToDelegators, the delegateTotalStake is 10000, the amount to bond is 0 (0% participation), should return 0', async () => {
         // given
-        const rewardsToDelegators = unitAmountInTokenUnits(100)
-        const totalStake = unitAmountInTokenUnits(10000)
-        const amountToBond = unitAmountInTokenUnits(0)
+        const rewardsToDelegators = utils.unitAmountInTokenUnits(100)
+        const totalStake = utils.unitAmountInTokenUnits(10000)
+        const amountToBond = utils.unitAmountInTokenUnits(0)
         const resultExpected = '0'
 
         // when
@@ -650,9 +724,9 @@ describe('## DelegateService test', () => {
       })
       it('100 rewardsToDelegators, the delegateTotalStake is 10000, the amount to bond is 5000 (50% participation), should return 50', async () => {
         // given
-        const rewardsToDelegators = unitAmountInTokenUnits(100)
-        const totalStake = unitAmountInTokenUnits(10000)
-        const amountToBond = unitAmountInTokenUnits(5000)
+        const rewardsToDelegators = utils.unitAmountInTokenUnits(100)
+        const totalStake = utils.unitAmountInTokenUnits(10000)
+        const amountToBond = utils.unitAmountInTokenUnits(5000)
         const resultExpected = '50'
 
         // when
@@ -675,8 +749,8 @@ describe('## DelegateService test', () => {
     it('the next reward to delegators is 500, the % of participation of the delegator is 10%, result should be 50', async () => {
       // given
       const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(100)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      delegator.totalStake = utils.unitAmountInTokenUnits(100)
+      const delegateTotalStake = utils.unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
         .stub(delegatorService, 'getDelegatorAccount')
         .returns(delegator)
@@ -704,8 +778,8 @@ describe('## DelegateService test', () => {
     it('the next reward to delegators is 4866341500, the % of participation of the delegator is 10%, result should be 486634150', async () => {
       // given
       const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(100)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      delegator.totalStake = utils.unitAmountInTokenUnits(100)
+      const delegateTotalStake = utils.unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
         .stub(delegatorService, 'getDelegatorAccount')
         .returns(delegator)
@@ -733,8 +807,8 @@ describe('## DelegateService test', () => {
     it('the next reward to delegators is 4866341500, the % of participation of the delegator is 99%, result should be 4817678085', async () => {
       // given
       const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(990)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      delegator.totalStake = utils.unitAmountInTokenUnits(990)
+      const delegateTotalStake = utils.unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
         .stub(delegatorService, 'getDelegatorAccount')
         .returns(delegator)
@@ -762,8 +836,8 @@ describe('## DelegateService test', () => {
     it('the next reward to delegators is 0, the % of participation of the delegator is 99%, result should be 0', async () => {
       // given
       const delegator = createDelegator()
-      delegator.totalStake = unitAmountInTokenUnits(990)
-      const delegateTotalStake = unitAmountInTokenUnits(1000)
+      delegator.totalStake = utils.unitAmountInTokenUnits(990)
+      const delegateTotalStake = utils.unitAmountInTokenUnits(1000)
       const getLivepeerDelegatorAccountSub = sinon
         .stub(delegatorService, 'getDelegatorAccount')
         .returns(delegator)
