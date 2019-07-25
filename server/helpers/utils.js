@@ -18,6 +18,11 @@ const MathBN = {
     const bBN = new Big(b || '0')
     return aBN.add(bBN).toString(10)
   },
+  addAsBN: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    return aBN.add(bBN)
+  },
   gt: (a, b) => {
     const aBN = new BN(a || '0')
     const bBN = new BN(b || '0')
@@ -48,6 +53,16 @@ const MathBN = {
     const bBN = new Big(b || '0')
     try {
       return aBN.div(bBN).toString()
+    } catch (err) {
+      console.error(err)
+      return 0
+    }
+  },
+  divAsBig: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    try {
+      return aBN.div(bBN)
     } catch (err) {
       console.error(err)
       return 0
@@ -153,7 +168,7 @@ const unitAmountInTokenUnits = (amount, decimals = TOKEN_DECIMAL_UNITS) => {
   return MathBN.mul(amount, decimalsPerToken)
 }
 
-const calculateMissedRewardCalls = (rewards, currentRound) => {
+const calculateMissedRewardCalls = (rewards, currentRound, roundsPeriod = 30) => {
   if (!currentRound || !rewards) {
     return 0
   }
@@ -162,7 +177,7 @@ const calculateMissedRewardCalls = (rewards, currentRound) => {
     .filter(
       reward =>
         reward.rewardTokens === null &&
-        reward.round.id >= currentRound.id - 30 &&
+        reward.round.id >= currentRound.id - roundsPeriod &&
         reward.round.id !== currentRound.id
     ).length
 }
@@ -207,7 +222,32 @@ const calculateIntervalAsMinutes = dateEnd => {
   return minutes
 }
 
-module.exports = {
+const getStartAndFinishDateOfWeeklySummary = finishDay => {
+  if (!finishDay) {
+    throw new Error('[Utils] - FinishDay not received')
+  }
+  if (!(finishDay instanceof Date)) {
+    throw new Error('[Utils] - FinishDay received is not a valid date')
+  }
+  const finishDate = moment(finishDay)
+  const finishDateCopy = finishDate.clone()
+  const startDate = finishDateCopy.subtract(7, 'days')
+
+  const fromDateCardinal = startDate.format('MMMM Do')
+
+  const toDateCardinal = finishDate.format('MMMM Do')
+  const startRoundDate = startDate.format('MMM D')
+  const endRoundDate = finishDate.format('MMM D, YYYY')
+
+  return {
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
+  }
+}
+
+const utils = {
   MathBN,
   truncateStringInTheMiddle,
   fromBaseUnit,
@@ -221,5 +261,8 @@ module.exports = {
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
   calculateCurrentBondingRate,
-  calculateIntervalAsMinutes
+  calculateIntervalAsMinutes,
+  getStartAndFinishDateOfWeeklySummary
 }
+
+module.exports = utils

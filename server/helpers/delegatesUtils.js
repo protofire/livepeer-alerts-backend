@@ -1,5 +1,8 @@
+const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 const Delegate = require('../delegate/delegate.model')
 const mongoose = require('../../config/mongoose')
+const utils = require('./utils')
+const Big = require('big.js')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
@@ -189,12 +192,54 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
+const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
+  if (!delegateAddress) {
+    throw new Error(
+      '[DelegatesUtils] - No delegateAddress provided on getDelegateLastWeekRoundsPools()'
+    )
+  }
+  if (!currentRound) {
+    throw new Error(
+      '[DelegatesUtils] - No currentRound provided on getDelegateLastWeekRoundsPools()'
+    )
+  }
+
+  let delegate = await Delegate.findById(delegateAddress)
+    .populate({
+      path: 'pools',
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatePools in descending order based on roundId
+        }
+      }
+    })
+    .exec()
+
+  const startRound = currentRound - 7
+  // Filters all the pools that are not within the last 7 rounds
+  const delegatePools = delegate.pools.filter(
+    poolElement => poolElement.round >= startRound && poolElement.round <= currentRound
+  )
+
+  // Sums all the pools in a unique reward
+  let totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
+    if (currentPool.rewardTokens) {
+      const rewardTokensToTokenUnits = utils.tokenAmountInUnits(currentPool.rewardTokens)
+      return utils.MathBN.addAsBN(totalDelegatePools, rewardTokensToTokenUnits)
+    }
+    return totalDelegatePools
+  }, new Big('0'))
+  totalDelegatePools = totalDelegatePools.toFixed(TO_FIXED_VALUES_DECIMALS)
+  return totalDelegatePools
+}
+
 const delegateUtils = {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   updateDelegatesLocally,
   checkAndUpdateMissingLocalDelegates,
-  getDelegateRulesChanged
+  getDelegateRulesChanged,
+  getDelegateLastWeekRoundsPools
 }
 
 module.exports = delegateUtils

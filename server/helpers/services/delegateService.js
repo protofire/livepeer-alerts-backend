@@ -95,13 +95,24 @@ class DelegateService {
     return MathBN.sub(protocolNextReward, rewardToDelegate)
   }
 
-  getMissedRewardCalls = async delegateAddress => {
+  /**
+   * Returns the missed rewards calls of the delegate
+   * between the last round and the lastRound-roundsPeriod
+   * If no roundPeriodReceive, returns the missed rewardCalls
+   * Of the last 30 rounds
+   * @param delegateAddress, roundsPeriod
+   * @returns {Promise<number>}
+   */
+  getMissedRewardCalls = async (delegateAddress, roundsPeriod) => {
+    if (!delegateAddress) {
+      throw new Error('[DelegateService] - no delegateAddress received on getMissedRewardCalls')
+    }
     const protocolService = getProtocolService()
     let missedCalls = 0
     const rewards = await this.getDelegateRewards(delegateAddress)
     const currentRound = await protocolService.getCurrentRound()
     if (rewards) {
-      missedCalls = calculateMissedRewardCalls(rewards, currentRound)
+      missedCalls = calculateMissedRewardCalls(rewards, currentRound, roundsPeriod)
     }
     return missedCalls
   }
