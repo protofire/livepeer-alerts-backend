@@ -200,7 +200,7 @@ describe('## DelegatorsUtils test', () => {
       const shares = [share8, share7, share6, share5, share4, share3, share2, share1]
       const sharesExpected = [share7, share6, share5, share4, share3, share2, share1]
       const delegator = testUtil.createDelegator(delegatorAddress)
-      delegator.shares = shares
+      delegator.shares = sharesExpected
       const totalDelegatorSharesExpected = '2800'
       const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
         TO_FIXED_VALUES_DECIMALS

@@ -504,7 +504,7 @@ describe('## DelegatesUtils test', () => {
       const resultExpected = '2800.0000'
       const pools = [pool8, pool7, pool6, pool5, pool4, pool3, pool2, pool1]
       const delegate = testUtil.createTranscoder(delegateAddress)
-      delegate.pools = pools
+      delegate.pools = [pool7, pool6, pool5, pool4, pool3, pool2, pool1]
 
       const mockQuery = {
         exec: sinon.stub().returns(delegate)

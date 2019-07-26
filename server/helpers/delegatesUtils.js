@@ -196,7 +196,6 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
 const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundPools) => {
   console.log(`[DelegatesUtils] - Getting delegate last ${lastXRoundPools} pools`)
   const startRound = currentRound - lastXRoundPools
-
   let delegate = await Delegate.findById(delegateAddress)
     .populate({
       path: 'pools',
