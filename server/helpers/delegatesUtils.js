@@ -192,6 +192,31 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
+const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundShares) => {
+  console.log(`[DelegatesUtils] - Getting delegate last ${lastXRoundShares} shares`)
+  const startRound = currentRound - 7
+  let delegate = await Delegate.findById(delegateAddress)
+    .populate({
+      path: 'pools',
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatePools in descending order based on roundId
+        }
+      },
+      match: {
+        round: { $gte: startRound, $lte: currentRound }
+      }
+    })
+    .exec()
+  let delegatePools = []
+
+  if (delegate) {
+    delegatePools = delegate.pools
+  }
+  console.log(`[DelegatesUtils] - Pools found: ${delegatePools.length}`)
+  return delegatePools
+}
+
 const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
   if (!delegateAddress) {
     throw new Error(
@@ -204,23 +229,8 @@ const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => 
     )
   }
 
-  let delegate = await Delegate.findById(delegateAddress)
-    .populate({
-      path: 'pools',
-      options: {
-        sort: {
-          round: -1 // Sorts the delegatePools in descending order based on roundId
-        }
-      }
-    })
-    .exec()
-
-  const startRound = currentRound - 7
-  // Filters all the pools that are not within the last 7 rounds
-  const delegatePools = delegate.pools.filter(
-    poolElement => poolElement.round >= startRound && poolElement.round <= currentRound
-  )
-
+  // Gets all the pools within 7 the last 7 rounds
+  const delegatePools = await getDelegateLastXPools(delegateAddress, currentRound, 7)
   // Sums all the pools in a unique reward
   let totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
     if (currentPool.rewardTokens) {
@@ -239,7 +249,8 @@ const delegateUtils = {
   updateDelegatesLocally,
   checkAndUpdateMissingLocalDelegates,
   getDelegateRulesChanged,
-  getDelegateLastWeekRoundsPools
+  getDelegateLastWeekRoundsPools,
+  getDelegateLastXPools
 }
 
 module.exports = delegateUtils
