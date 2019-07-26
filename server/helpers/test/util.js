@@ -127,16 +127,16 @@ const createPool = (
 }
 
 const createShare = (
-  delegate = '1',
+  delegator = '1',
   round = '10',
   rewardTokens = '1000000',
   totalStakeOnRound = '5000000'
 ) => {
   return {
-    _id: `${delegate}-${round}`,
+    _id: `${delegator}-${round}`,
     rewardTokens,
     totalStakeOnRound,
-    delegate,
+    delegator,
     round
   }
 }

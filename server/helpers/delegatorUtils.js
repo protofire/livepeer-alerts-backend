@@ -216,19 +216,15 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   const protocolService = getProtocolService()
 
   // Get next reward
-
   const {
     delegatorNextReward,
     delegateNextReward,
     delegator
   } = await delegatorService.getDelegatorAndDelegateNextReward(delegatorAddress)
-
   // Get current round
-
   const currentRound = await protocolService.getCurrentRound()
 
   // Get last 30 delegator rewards
-
   const delegatorShares = await delegatorUtils.getDelegatorLastXShares(
     delegatorAddress,
     currentRound,
@@ -236,7 +232,6 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   )
 
   // Get last 30 delegate reward
-
   const delegatePools = await delegateUtils.getDelegateLastXPools(
     delegator.delegateAddress,
     currentRound,
@@ -244,7 +239,6 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   )
 
   // Sums all the shares  and pools in a unique reward
-
   let delegatorLastRoundReward = new Big(0)
   let delegator7RoundsRewards = new Big(0)
   let delegator30RoundsRewards = new Big(0)
@@ -272,17 +266,22 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   delegatePools.forEach(pool => {
     if (pool.round === lastRoundStartValue.toString()) {
       delegateLastRoundReward = utils.MathBN.add(delegateLastRoundReward, pool.rewardTokens)
-      delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
     }
     if (pool.round >= last7RoundStartValue.toString()) {
       delegate7RoundsRewards = utils.MathBN.add(delegate7RoundsRewards, pool.rewardTokens)
-      delegate7RoundsRewards = utils.tokenAmountInUnits(delegate7RoundsRewards)
     }
     if (pool.round >= last30RoundStartValue.toString()) {
       delegate30RoundsRewards = utils.MathBN.add(delegate30RoundsRewards, pool.rewardTokens)
-      delegate30RoundsRewards = utils.tokenAmountInUnits(delegate30RoundsRewards)
     }
   })
+
+  // Formats the values to token units
+  delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
+  delegate7RoundsRewards = utils.tokenAmountInUnits(delegate7RoundsRewards)
+  delegate30RoundsRewards = utils.tokenAmountInUnits(delegate30RoundsRewards)
+  delegatorLastRoundReward = utils.tokenAmountInUnits(delegatorLastRoundReward)
+  delegator7RoundsRewards = utils.tokenAmountInUnits(delegator7RoundsRewards)
+  delegator30RoundsRewards = utils.tokenAmountInUnits(delegator30RoundsRewards)
 
   return {
     nextReward: {
