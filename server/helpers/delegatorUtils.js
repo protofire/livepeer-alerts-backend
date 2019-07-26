@@ -1,7 +1,7 @@
 const Big = require('big.js')
+const mongoose = require('../../config/mongoose')
 const Delegator = require('../delegator/delegator.model')
 const Share = require('../share/share.model')
-const mongoose = require('../../config/mongoose')
 const utils = require('./utils')
 const delegateUtils = require('./delegatesUtils')
 const { getDelegateService } = require('./services/delegateService')
@@ -185,6 +185,7 @@ const getDelegatorLastXShares = async (delegatorAddress, currentRound, lastXRoun
   const delegator = await Delegator.findById(delegatorAddress)
     .populate({
       path: 'shares',
+      model: Share,
       options: {
         sort: {
           round: -1 // Sorts the delegatorShares in descending order based on roundId
@@ -213,24 +214,34 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   const rewardsRound = 30
   const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
+
   // Get next reward
+
   const {
     delegatorNextReward,
-    delegateNextReward
+    delegateNextReward,
+    delegator
   } = await delegatorService.getDelegatorAndDelegateNextReward(delegatorAddress)
 
   // Get current round
+
   const currentRound = await protocolService.getCurrentRound()
 
   // Get last 30 delegator rewards
-  const delegatorShares = await getDelegatorLastXShares(
+
+  const delegatorShares = await delegatorUtils.getDelegatorLastXShares(
     delegatorAddress,
     currentRound,
     rewardsRound
   )
 
   // Get last 30 delegate reward
-  const delegatePools = await delegateUtils.getDelegateLastXPools('', currentRound, rewardsRound)
+
+  const delegatePools = await delegateUtils.getDelegateLastXPools(
+    delegator.delegateAddress,
+    currentRound,
+    rewardsRound
+  )
 
   // Sums all the shares  and pools in a unique reward
 
@@ -261,19 +272,22 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   delegatePools.forEach(pool => {
     if (pool.round === lastRoundStartValue.toString()) {
       delegateLastRoundReward = utils.MathBN.add(delegateLastRoundReward, pool.rewardTokens)
+      delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
     }
     if (pool.round >= last7RoundStartValue.toString()) {
       delegate7RoundsRewards = utils.MathBN.add(delegate7RoundsRewards, pool.rewardTokens)
+      delegate7RoundsRewards = utils.tokenAmountInUnits(delegate7RoundsRewards)
     }
     if (pool.round >= last30RoundStartValue.toString()) {
       delegate30RoundsRewards = utils.MathBN.add(delegate30RoundsRewards, pool.rewardTokens)
+      delegate30RoundsRewards = utils.tokenAmountInUnits(delegate30RoundsRewards)
     }
   })
 
   return {
     nextReward: {
-      //  delegatorReward: delegatorNextReward,
-      // delegateReward: delegateNextReward
+      delegatorReward: delegatorNextReward,
+      delegateReward: delegateNextReward
     },
     lastRoundReward: {
       delegatorReward: delegatorLastRoundReward,
@@ -299,7 +313,11 @@ const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
   }
 
   // Filters all the last 7 rounds shares of the delegator
-  const delegatorShares = await getDelegatorLastXShares(delegatorAddress, currentRound, 7)
+  const delegatorShares = await delegatorUtils.getDelegatorLastXShares(
+    delegatorAddress,
+    currentRound,
+    7
+  )
   // Sums all the shares in a unique reward
   const totalDelegatorShares = delegatorShares.reduce((totalDelegatorShares, currentShare) => {
     if (currentShare.rewardTokens) {
@@ -323,7 +341,8 @@ const delegatorUtils = {
   getDelegatorCurrentRewardTokens,
   getDelegatorSharesSummary,
   getWeeklySharesPerRound,
-  getDelegatorSummary30RoundsRewards
+  getDelegatorSummary30RoundsRewards,
+  getDelegatorLastXShares
 }
 
 module.exports = delegatorUtils

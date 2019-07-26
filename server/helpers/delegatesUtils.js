@@ -1,6 +1,7 @@
 const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
-const Delegate = require('../delegate/delegate.model')
 const mongoose = require('../../config/mongoose')
+const Delegate = require('../delegate/delegate.model')
+const Pool = require('../pool/pool.model')
 const utils = require('./utils')
 const Big = require('big.js')
 
@@ -192,12 +193,14 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
-const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundShares) => {
-  console.log(`[DelegatesUtils] - Getting delegate last ${lastXRoundShares} shares`)
-  const startRound = currentRound - 7
+const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundPools) => {
+  console.log(`[DelegatesUtils] - Getting delegate last ${lastXRoundPools} pools`)
+  const startRound = currentRound - lastXRoundPools
+
   let delegate = await Delegate.findById(delegateAddress)
     .populate({
       path: 'pools',
+      model: Pool,
       options: {
         sort: {
           round: -1 // Sorts the delegatePools in descending order based on roundId
@@ -208,6 +211,7 @@ const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundSh
       }
     })
     .exec()
+
   let delegatePools = []
 
   if (delegate) {
