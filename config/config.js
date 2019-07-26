@@ -75,6 +75,9 @@ const envVarsSchema = Joi.object({
     .description(
       'Sendgrid template id for notification related to delegator bonding period has ended'
     ),
+  SENDGRID_TEMPLATE_ID_DELEGATOR_WEEKLY_SUMMARY: Joi.string()
+    .required()
+    .description('Sendgrid template id for the summary week of the delegators'),
   MAINNET_CONTROLLER_ADDRESS: Joi.string()
     .required()
     .description('Mainnet controller adddress'),
@@ -137,6 +140,7 @@ const config = {
     envVars.SENDGRID_TEMPLATE_ID_NOTIFICATION_DELEGATE_CHANGE_RULES,
   sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded:
     envVars.SENDGRID_TEMPLATE_ID_NOTIFICATION_DELEGATOR_BONDING_PERIOD_HAS_ENDED,
+  sendgrindTemplateIdDelegatorWeeklySummary: envVars.SENDGRID_TEMPLATE_ID_DELEGATOR_WEEKLY_SUMMARY,
   mainnetControllerAddress: envVars.MAINNET_CONTROLLER_ADDRESS,
   rinkebyControllerAddress: envVars.RINKEBY_CONTROLLER_ADDRESS,
   thresholdSendNotification: envVars.THRESHOLD_SEND_NOTIFICATION,

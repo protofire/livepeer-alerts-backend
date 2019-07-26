@@ -1,12 +1,9 @@
 const sgMail = require('@sendgrid/mail')
 const config = require('../../config/config')
 const moment = require('moment')
+const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../../config/constants')
 
-const {
-  truncateStringInTheMiddle,
-  formatBalance,
-  getDelegatorRoundsUntilUnbonded
-} = require('./utils')
+const utils = require('./utils')
 
 const {
   sendgridAPIKEY,
@@ -19,34 +16,12 @@ const {
   sendgridTemplateIdClaimRewardUnbondedState,
   sendgridTemplateIdClaimRewardUnbondingState,
   sendgridTemplateIdNotificationDelegateChangeRules,
+  sendgrindTemplateIdDelegatorWeeklySummary,
   sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
   earningDecimals
 } = config
 
-const sendEmail = async data => {
-  const {
-    email,
-    templateId,
-    transcoderAddress,
-    dateYesterday,
-    roundFrom,
-    roundTo,
-    lptEarned,
-    delegatingStatusUrl,
-    delegateAddress,
-    roundsUntilUnbonded,
-    oldRewardCut,
-    oldFeeShare,
-    oldPendingFeeShare,
-    oldPendingRewardCut,
-    oldActive,
-    newRewardCut,
-    newFeeShare,
-    newPendingFeeShare,
-    newPendingRewardCut,
-    newActive
-  } = data
-
+const sendEmail = async (email, templateId, dynamicTemplateData) => {
   sgMail.setApiKey(sendgridAPIKEY)
   sgMail.setSubstitutionWrappers('{{', '}}')
 
@@ -59,25 +34,8 @@ const sendEmail = async data => {
     },
     templateId: templateId,
     dynamic_template_data: {
-      delegateAddress,
-      transcoderAddress,
-      dateYesterday,
-      roundFrom,
-      roundTo,
-      lptEarned,
-      delegatingStatusUrl,
-      unsubscribeEmailUrl,
-      roundsUntilUnbonded,
-      oldRewardCut,
-      oldFeeShare,
-      oldPendingFeeShare,
-      oldPendingRewardCut,
-      oldActive,
-      newRewardCut,
-      newFeeShare,
-      newPendingFeeShare,
-      newPendingRewardCut,
-      newActive
+      ...dynamicTemplateData,
+      unsubscribeEmailUrl
     }
   }
 
@@ -94,80 +52,229 @@ const sendEmail = async data => {
   return
 }
 
+const getBodyAndTemplateIdBasedOnDelegatorStatus = (
+  subscriber,
+  delegator,
+  constants,
+  currentRoundInfo,
+  delegatorTemplateData
+) => {
+  if (!subscriber) {
+    throw new Error(
+      `[SendDelegatorEmail] - subscriber not received on getBodyAndTemplateIdBasedOnDelegatorStatus()`
+    )
+  }
+  if (!delegator) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegator not received on getBodyAndTemplateIdBasedOnDelegatorStatus()`
+    )
+  }
+  if (!constants) {
+    throw new Error(
+      `[SendDelegatorEmail] - constants not received on getBodyAndTemplateIdBasedOnDelegatorStatus()`
+    )
+  }
+  if (!currentRoundInfo) {
+    throw new Error(
+      `[SendDelegatorEmail] - currentRoundInfo not received on getBodyAndTemplateIdBasedOnDelegatorStatus()`
+    )
+  }
+  let templateId
+  let body = {}
+  switch (delegator.status) {
+    case constants.DELEGATOR_STATUS.Unbonded:
+      templateId = sendgridTemplateIdClaimRewardUnbondedState
+      break
+    case constants.DELEGATOR_STATUS.Unbonding:
+      templateId = sendgridTemplateIdClaimRewardUnbondingState
+
+      const roundsUntilUnbonded = utils.getDelegatorRoundsUntilUnbonded({
+        delegator,
+        constants,
+        currentRoundInfo
+      })
+
+      // Generate params for body
+      body = {
+        roundsUntilUnbonded
+      }
+      break
+    case constants.DELEGATOR_STATUS.Bonded:
+      if (subscriber.emailFrequency === DAILY_FREQUENCY) {
+        const result = getDailyTemplate(
+          subscriber,
+          delegator,
+          currentRoundInfo.id,
+          delegatorTemplateData
+        )
+        body = result.body
+        templateId = result.templateId
+      }
+      if (subscriber.emailFrequency === WEEKLY_FREQUENCY) {
+        const result = getWeeklyTemplate(delegatorTemplateData)
+        body = result.body
+        templateId = result.templateId
+      }
+      break
+    default:
+      throw new Error(`[SendDelegatorEmail] - delegator status: ${delegator.status} not supported`)
+  }
+  return { templateId, body }
+}
+
+const getDailyTemplate = (subscriber, delegator, currentRound, delegatorTemplateData) => {
+  if (!subscriber) {
+    throw new Error(`[SendDelegatorEmail] - subscriber not received on getDailyTemplate()`)
+  }
+  if (!delegator) {
+    throw new Error(`[SendDelegatorEmail] - delegator not received on getDailyTemplate()`)
+  }
+  if (!currentRound) {
+    throw new Error(`[SendDelegatorEmail] - currentRound not received on getDailyTemplate()`)
+  }
+  if (!delegatorTemplateData) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegatorTemplateData not received on getDailyTemplate()`
+    )
+  }
+  const { delegateCalledReward, delegatorRoundReward } = delegatorTemplateData
+  if (!delegatorRoundReward) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegatorRoundReward not received on getDailyTemplate()`
+    )
+  }
+
+  // Select template based on call reward
+  const templateId = delegateCalledReward
+    ? sendgridTemplateIdClaimRewardCallAllGood
+    : sendgridTemplateIdClaimRewardCallPayAttention
+
+  // Calculate lpt earned tokens
+  const lptEarned = utils.formatBalance(delegatorRoundReward, earningDecimals, 'wei')
+
+  const dateYesterday = moment()
+    .subtract(1, 'days')
+    .startOf('day')
+    .format('dddd DD, YYYY hh:mm A')
+
+  const { delegateAddress, totalStake } = delegator
+
+  // Generate params for body
+  const body = {
+    callReward: delegateCalledReward,
+    totalStake,
+    transcoderAddress: utils.truncateStringInTheMiddle(delegateAddress),
+    dateYesterday,
+    roundFrom: currentRound - 1,
+    roundTo: currentRound,
+    lptEarned,
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
+    delegateAddress
+  }
+
+  return {
+    templateId,
+    body
+  }
+}
+
+const getWeeklyTemplate = delegatorTemplateData => {
+  if (!delegatorTemplateData) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegatorTemplateData not received on getWeeklyTemplate()`
+    )
+  }
+  const {
+    totalRounds,
+    totalDelegatePools,
+    totalDelegatorShares,
+    averageShares,
+    missedRewardCalls,
+    weekRoundShares,
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
+  } = delegatorTemplateData
+  const [share1, share2, share3, share4, share5, share6, share7] = weekRoundShares
+  const body = {
+    totalRounds,
+    totalDelegatePools,
+    totalDelegatorShares,
+    averageShares,
+    missedRewardCalls,
+    share1,
+    share2,
+    share3,
+    share4,
+    share5,
+    share6,
+    share7,
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
+  }
+  return {
+    body,
+    templateId: sendgrindTemplateIdDelegatorWeeklySummary
+  }
+}
+
+const getRulesChangedTemplate = (subscriberAddress, delegateAddress, propertiesChanged) => {
+  if (!subscriberAddress) {
+    throw new Error(
+      `[SendDelegatorEmail] - subscriberAddress not received on getRulesChangedTemplate()`
+    )
+  }
+  if (!delegateAddress) {
+    throw new Error(
+      `[SendDelegatorEmail] - delegateAddress not received on getRulesChangedTemplate()`
+    )
+  }
+  if (!propertiesChanged) {
+    throw new Error(
+      `[SendDelegatorEmail] - propertiesChanged not received on getRulesChangedTemplate()`
+    )
+  }
+  const body = {
+    transcoderAddress: utils.truncateStringInTheMiddle(delegateAddress),
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriberAddress}/delegating`,
+    delegateAddress: delegateAddress,
+    oldRewardCut: propertiesChanged.oldProperties.rewardCut,
+    oldFeeShare: propertiesChanged.oldProperties.feeShare,
+    oldPendingFeeShare: propertiesChanged.oldProperties.pendingFeeShare,
+    oldPendingRewardCut: propertiesChanged.oldProperties.pendingRewardCut,
+    oldActive: propertiesChanged.oldProperties.active,
+    newRewardCut: propertiesChanged.newProperties.rewardCut,
+    newFeeShare: propertiesChanged.newProperties.feeShare,
+    newPendingFeeShare: propertiesChanged.newProperties.pendingFeeShare,
+    newPendingRewardCut: propertiesChanged.newProperties.pendingRewardCut,
+    newActive: propertiesChanged.newProperties.active
+  }
+  return body
+}
+
 const sendDelegatorNotificationEmail = async (
   subscriber,
   delegator,
-  delegateCalledReward,
-  delegatorNextReward,
-  currentRound,
   currentRoundInfo,
-  constants
+  constants,
+  delegatorTemplateData
 ) => {
   try {
-    let templateId
-    let body = {}
+    const { templateId, body } = getBodyAndTemplateIdBasedOnDelegatorStatus(
+      subscriber,
+      delegator,
+      constants,
+      currentRoundInfo,
+      delegatorTemplateData
+    )
 
-    switch (delegator.status) {
-      case constants.DELEGATOR_STATUS.Bonded:
-        // Select template based on call reward
-        templateId = delegateCalledReward
-          ? sendgridTemplateIdClaimRewardCallAllGood
-          : sendgridTemplateIdClaimRewardCallPayAttention
-
-        // Calculate lpt earned tokens
-        const lptEarned = formatBalance(delegatorNextReward, earningDecimals, 'wei')
-
-        const dateYesterday = moment()
-          .subtract(1, 'days')
-          .startOf('day')
-          .format('dddd DD, YYYY hh:mm A')
-
-        const { delegateAddress, totalStake } = delegator
-
-        // Generate params for body
-        body = {
-          callReward: delegateCalledReward,
-          totalStake,
-          transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-          dateYesterday,
-          roundFrom: currentRound - 1,
-          roundTo: currentRound,
-          lptEarned,
-          delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
-          delegateAddress
-        }
-        break
-
-      case constants.DELEGATOR_STATUS.Unbonded:
-        templateId = sendgridTemplateIdClaimRewardUnbondedState
-        break
-
-      case constants.DELEGATOR_STATUS.Unbonding:
-        templateId = sendgridTemplateIdClaimRewardUnbondingState
-
-        const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
-          delegator,
-          constants,
-          currentRoundInfo
-        })
-
-        // Generate params for body
-        body = {
-          roundsUntilUnbonded
-        }
-
-        break
-      default:
-        return
-    }
-
-    body.email = subscriber.email
-    body.templateId = templateId
-
-    await sendEmail(body)
+    await sendEmail(subscriber.email, templateId, body)
 
     // Save the round in which the last email was sent
-    subscriber.lastEmailSent = currentRound
+    subscriber.lastEmailSent = currentRoundInfo.id
     return await subscriber.save({ validateBeforeSave: false })
   } catch (e) {
     console.error(e)
@@ -180,31 +287,18 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   delegateAddress,
   propertiesChanged
 ) => {
+  const { email } = subscriber
   try {
-    if (!subscriber.email) {
+    if (!email) {
       throw new Error('The subscriber has no email')
     }
 
-    let body = {
-      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
-      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
-      delegateAddress: delegateAddress,
-      templateId: sendgridTemplateIdNotificationDelegateChangeRules,
-      email: subscriber.email,
-      oldRewardCut: propertiesChanged.oldProperties.rewardCut,
-      oldFeeShare: propertiesChanged.oldProperties.feeShare,
-      oldPendingFeeShare: propertiesChanged.oldProperties.pendingFeeShare,
-      oldPendingRewardCut: propertiesChanged.oldProperties.pendingRewardCut,
-      oldActive: propertiesChanged.oldProperties.active,
-      newRewardCut: propertiesChanged.newProperties.rewardCut,
-      newFeeShare: propertiesChanged.newProperties.feeShare,
-      newPendingFeeShare: propertiesChanged.newProperties.pendingFeeShare,
-      newPendingRewardCut: propertiesChanged.newProperties.pendingRewardCut,
-      newActive: propertiesChanged.newProperties.active
-    }
+    const body = getRulesChangedTemplate(subscriber.address, delegateAddress, propertiesChanged)
 
-    console.log(`Sending email to ${subscriber.email} - Delegate change the rules`)
-    await sendEmail(body)
+    const templateId = sendgridTemplateIdNotificationDelegateChangeRules
+
+    console.log(`Sending email to ${email} - Delegate change the rules`)
+    await sendEmail(email, templateId, body)
   } catch (e) {
     console.error(e)
   }
