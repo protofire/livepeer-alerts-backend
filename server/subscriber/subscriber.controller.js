@@ -101,14 +101,18 @@ const create = async (req, res, next) => {
             currentRound,
             delegator.address
           )
+
+          const delegatorTemplateData = {
+            delegateCalledReward,
+            delegatorRoundReward
+          }
+
           await sendDelegatorNotificationEmail(
             subscriber,
             delegator,
-            delegateCalledReward,
-            delegatorRoundReward,
-            currentRound,
             currentRoundInfo,
-            constants
+            constants,
+            delegatorTemplateData
           )
         }
         resolve()
