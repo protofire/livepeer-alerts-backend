@@ -17,6 +17,7 @@ const {
   sendgridTemplateIdClaimRewardUnbondingState,
   sendgridTemplateIdNotificationDelegateChangeRules,
   sendgrindTemplateIdDelegatorWeeklySummary,
+  sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
   earningDecimals
 } = config
 
@@ -289,7 +290,7 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   const { email } = subscriber
   try {
     if (!email) {
-      return
+      throw new Error('The subscriber has no email')
     }
 
     const body = getRulesChangedTemplate(subscriber.address, delegateAddress, propertiesChanged)
@@ -304,9 +305,38 @@ const sendDelegatorNotificationDelegateChangeRulesEmail = async (
   return
 }
 
+const sendDelegatorNotificationBondingPeriodHasEnded = async (
+  subscriber,
+  delegateAddress,
+  currentRoundId
+) => {
+  try {
+    if (!subscriber.email) {
+      throw new Error('The subscriber has no email')
+    }
+
+    let body = {
+      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+      delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
+      delegateAddress: delegateAddress,
+      templateId: sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
+      email: subscriber.email
+    }
+
+    await sendEmail(body)
+
+    subscriber.lastPendingToBondingPeriodEmailSent = currentRoundId
+    await subscriber.save({ validateBeforeSave: false })
+  } catch (e) {
+    console.error(e)
+  }
+  return
+}
+
 const delegatorEmailUtils = {
   sendDelegatorNotificationEmail,
-  sendDelegatorNotificationDelegateChangeRulesEmail
+  sendDelegatorNotificationDelegateChangeRulesEmail,
+  sendDelegatorNotificationBondingPeriodHasEnded
 }
 
 module.exports = delegatorEmailUtils

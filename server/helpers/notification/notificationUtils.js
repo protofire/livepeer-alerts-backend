@@ -62,12 +62,18 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
   // Send email notifications for delegate and delegators
   try {
     console.log(`[Check-Round-Change] - Get all subscribers with email`)
+
     // TODO -- Refactor as promise All
     console.log(`[Check-Round-Change] - Sending email round notifications to delegators`)
     await notificateDelegatorUtil.sendEmailRewardCallNotificationToDelegators(round)
     console.log(`[Check-Round-Change] - Sending email round notifications to delegates`)
     await notificateDelegateUtil.sendEmailRewardCallNotificationToDelegates(round)
-    // Send telegram notifications for delegates
+    console.log(
+      `[Check-Round-Change] - Sending bonding period has ended email notifications to delegators`
+    )
+    await notificateDelegatorUtil.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(round)
+
+    // Send telegram notifications
     console.log(`[Check-Round-Change] - Sending telegram round notifications to delegators`)
     await notificateDelegatorUtil.sendTelegramRewardCallNotificationToDelegators(round)
     console.log(`[Check-Round-Change] - Sending telegram round notifications to delegates`)
