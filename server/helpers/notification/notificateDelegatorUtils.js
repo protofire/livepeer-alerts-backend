@@ -5,16 +5,20 @@ const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const delegatorEmailUtils = require('../sendDelegatorEmail')
 const delegatorTelegramUtils = require('../sendDelegatorTelegram')
+const delegatorsUtils = require('../delegatorUtils')
 const Share = require('../../share/share.model')
+const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../../../config/constants')
 
 const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
   }
   console.log(`[Notificate-Delegators] - Start sending email notification to delegators`)
+
   const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
   let emailsToSend = []
   const protocolService = getProtocolService()
+
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
   })
@@ -27,30 +31,52 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         subscriber,
         currentRoundId
       )
+
       if (!shouldSubscriberReceiveNotifications) {
         console.log(
           `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
         )
         continue
       }
-      const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
-        return Promise.all([
-          utils.getDidDelegateCalledReward(delegator.delegateAddress),
-          Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
-        ]).catch(err => retry())
-      })
+
+      let delegatorTemplateData = {}
+
+      if (subscriber.emailFrequency === DAILY_FREQUENCY) {
+        // If daily subscription send normal email
+        const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
+          return Promise.all([
+            utils.getDidDelegateCalledReward(delegator.delegateAddress),
+            Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
+          ]).catch(err => retry())
+        })
+
+        delegatorTemplateData = {
+          delegateCalledReward,
+          delegatorRoundReward
+        }
+      }
+      if (subscriber.emailFrequency === WEEKLY_FREQUENCY) {
+        // If weekly subscription send weekly summary
+        const delegatorSharesSummary = await delegatorsUtils.getDelegatorSharesSummary(
+          delegator,
+          currentRoundId
+        )
+        delegatorTemplateData = {
+          ...delegatorSharesSummary
+        }
+      }
 
       emailsToSend.push(
         delegatorEmailUtils.sendDelegatorNotificationEmail(
           subscriber,
           delegator,
-          delegateCalledReward,
-          delegatorRoundReward,
-          currentRoundInfo.id,
           currentRoundInfo,
-          constants
+          constants,
+          delegatorTemplateData
         )
       )
+
+      // If weekly subscription, send summary email
     } catch (err) {
       console.error(
         `[Notificate-Delegators] - An error occurred sending an email to the subscriber ${subscriber.email} with error: \n ${err}`

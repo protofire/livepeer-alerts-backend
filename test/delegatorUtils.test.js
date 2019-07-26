@@ -49,7 +49,7 @@ describe('## DelegatorsUtils test', () => {
       // given
       const delegatorAddress = 1
       const currentRound = 7
-      const totalDelegatorSharesExpected = '0'
+      const totalDelegatorSharesExpected = '0.0000'
       const averageSharesExpected = '0.0000'
       const sharesExpected = []
       const shares = []
@@ -98,7 +98,7 @@ describe('## DelegatorsUtils test', () => {
       const sharesExpected = shares
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
-      const totalDelegatorSharesExpected = '600'
+      const totalDelegatorSharesExpected = '600.0000'
       const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
         TO_FIXED_VALUES_DECIMALS
       )
@@ -149,7 +149,7 @@ describe('## DelegatorsUtils test', () => {
       const sharesExpected = shares
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
-      const totalDelegatorSharesExpected = '2800'
+      const totalDelegatorSharesExpected = '2800.0000'
       const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
         TO_FIXED_VALUES_DECIMALS
       )
@@ -201,7 +201,7 @@ describe('## DelegatorsUtils test', () => {
       const sharesExpected = [share7, share6, share5, share4, share3, share2, share1]
       const delegator = testUtil.createDelegator(delegatorAddress)
       delegator.shares = shares
-      const totalDelegatorSharesExpected = '2800'
+      const totalDelegatorSharesExpected = '2800.0000'
       const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
         TO_FIXED_VALUES_DECIMALS
       )

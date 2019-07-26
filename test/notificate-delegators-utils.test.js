@@ -10,6 +10,7 @@ const { getDelegatorService } = require('../server/helpers/services/delegatorSer
 const subscriberUtils = require('../server/helpers/subscriberUtils')
 const delegatorEmailUtils = require('../server/helpers/sendDelegatorEmail')
 const notificateDelegatorUtils = require('../server/helpers/notification/notificateDelegatorUtils')
+const delegatorsUtils = require('../server/helpers/delegatorUtils')
 const utils = require('../server/helpers/utils')
 const Subscriber = require('../server/subscriber/subscriber.model')
 const chai = require('chai')
@@ -28,7 +29,8 @@ describe('## NotificateDelegatorsUtils', () => {
     getDelegatorNextRewardStub,
     delegatorEmailUtilsMock,
     getLivepeerDefaultConstantsStub,
-    getSubscribersDelegatorsAndDelegatorStub
+    getSubscribersDelegatorsAndDelegatorStub,
+    delegatorsUtilsMock
   afterEach('Restore all the mocks', () => {
     if (subscriberMock) {
       subscriberMock.restore()
@@ -56,6 +58,9 @@ describe('## NotificateDelegatorsUtils', () => {
     }
     if (getSubscribersDelegatorsAndDelegatorStub) {
       getSubscribersDelegatorsAndDelegatorStub.restore()
+    }
+    if (delegatorsUtilsMock) {
+      delegatorsUtilsMock.restore()
     }
   })
   describe('# sendEmailRewardCallNotificationToDelegators', () => {
@@ -387,6 +392,14 @@ describe('## NotificateDelegatorsUtils', () => {
         .once()
         .resolves(null)
 
+      // Should get the delegator weekly summary
+      delegatorsUtilsMock = sinon.mock(delegatorsUtils)
+
+      const expectation2 = delegatorsUtilsMock
+        .expects('getDelegatorSharesSummary')
+        .once()
+        .resolves(null)
+
       // when
       await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
@@ -394,6 +407,7 @@ describe('## NotificateDelegatorsUtils', () => {
       consoleLogMock.verify()
       subscriberMock.verify()
       delegatorEmailUtilsMock.verify()
+      delegatorsUtilsMock.verify()
       expect(getLivepeerDefaultConstantsStub.called)
       expect(getDelegatorNextRewardStub.called)
       expect(getDidDelegateCalledRewardStub.called)
@@ -572,8 +586,8 @@ describe('## NotificateDelegatorsUtils', () => {
         .expects('sendDelegatorNotificationEmail')
         .never()
         .resolves(null)
-
       // when
+
       await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
 
       // then
