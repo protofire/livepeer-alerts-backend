@@ -88,9 +88,11 @@ const sendEmailAfterBondingPeriodHasEndedNotificationToDelegators = async curren
     const differenceAlreadySended =
       +currentRoundId - (+subscriber.lastPendingToBondingPeriodEmailSent || 0)
     const isNotificationAlreadySended =
-      differenceAlreadySended === 1 || differenceAlreadySended === 2
+      differenceAlreadySended === 0 ||
+      differenceAlreadySended === 1 ||
+      differenceAlreadySended === 2
 
-    if (!isNotificationAlreadySended) {
+    if (isNotificationAlreadySended) {
       console.log(
         `[Notificate-After-Bonding-Period-Has-Ended] - Not sending email to ${subscriber.email} because already sent an email in the ${subscriber.lastPendingToBondingPeriodEmailSent} round`
       )
@@ -101,10 +103,10 @@ const sendEmailAfterBondingPeriodHasEndedNotificationToDelegators = async curren
 
     // Check difference between rounds, and if status is bonded, if the difference is between 1 or 2 since startRound, it means the subscriber is starting the bonded status
     const difference = +currentRoundId - +delegator.startRound
-    const isDifferenceBetweenRoundsEqualToOne = difference === 1 || difference === 2
+    const isDifferenceBetweenRoundsEqualTo = difference === 1 || difference === 2
 
     if (
-      isDifferenceBetweenRoundsEqualToOne &&
+      isDifferenceBetweenRoundsEqualTo &&
       delegator.status === constants.DELEGATOR_STATUS.Bonded
     ) {
       subscribersToSendEmails.push(

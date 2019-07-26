@@ -21,6 +21,7 @@ describe('## NotificateDelegatorsUtils', () => {
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
   let subscriberMock,
+    subscriberMockSave,
     consoleLogMock,
     getSubscriptorRoleStub,
     getCurrentRoundInfoStub,
@@ -29,9 +30,13 @@ describe('## NotificateDelegatorsUtils', () => {
     delegatorEmailUtilsMock,
     getLivepeerDefaultConstantsStub,
     getSubscribersDelegatorsAndDelegatorStub
+
   afterEach('Restore all the mocks', () => {
     if (subscriberMock) {
       subscriberMock.restore()
+    }
+    if (subscriberMockSave) {
+      subscriberMockSave.restore()
     }
     if (consoleLogMock) {
       consoleLogMock.restore()
@@ -58,6 +63,7 @@ describe('## NotificateDelegatorsUtils', () => {
       getSubscribersDelegatorsAndDelegatorStub.restore()
     }
   })
+
   describe('# sendEmailRewardCallNotificationToDelegators', () => {
     it('Should throw an error if no currentRoundInfo received', async () => {
       // given
@@ -73,6 +79,7 @@ describe('## NotificateDelegatorsUtils', () => {
       // then
       expect(result).equal(resultExpected)
     })
+
     it('If there are no subscribers delegators, should sent no emails', async () => {
       // given
       const currentRound = 1
@@ -127,6 +134,7 @@ describe('## NotificateDelegatorsUtils', () => {
       consoleLogMock.verify()
       delegatorEmailUtilsMock.verify()
     })
+
     it('If there are delegators on the subscribers list which they never received an email, should send an email to them', async () => {
       // given
       const delegator = createDelegator()
@@ -215,6 +223,7 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
     it('There is one delegator with weekly subscription, the current round is 10 and the last round in which an email was sent is 9, no emails should be sent', async () => {
       // given
       const delegator = createDelegator()
@@ -311,6 +320,7 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
     it('There is one delegator with weekly subscription, the current round is 10 and the last round in which an email was sent is 3, an email should be sent', async () => {
       // given
       const delegator = createDelegator()
@@ -400,6 +410,7 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
     it('There is one delegator with daily subscription, the current round is 10 and the last round in which an email was sent is 9, an email should be sent', async () => {
       // given
       const delegator = createDelegator()
@@ -490,6 +501,7 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
     it('There is one delegator with daily subscription, the current round is 10 and the last round in which an email was sent is 10, no emails should be sent', async () => {
       // given
       const delegator = createDelegator()
@@ -584,6 +596,263 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getDelegatorNextRewardStub.called)
       expect(getDidDelegateCalledRewardStub.called)
       expect(getCurrentRoundInfoStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+  })
+
+  describe('# sendEmailAfterBondingPeriodHasEndedNotificationToDelegators', () => {
+    it('Should throw an error if no currentRoundInfo received', async () => {
+      // given
+      const currentRoundInfo = null
+      let result = false
+      const resultExpected = true
+      // when
+      try {
+        await notificateDelegatorUtils.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(
+          currentRoundInfo
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+    })
+
+    it('If there are no subscribers delegators, should sent no emails', async () => {
+      // given
+      const currentRound = 1
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      const delegator = createDelegator()
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+
+      const subscribersDelegators = []
+      const resultExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
+      const resultExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Emails subscribers to notify 0`
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getEmailSubscribersDelegators')
+        .returns(subscribersDelegators)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      consoleLogMock.verify()
+      delegatorEmailUtilsMock.verify()
+    })
+
+    it('If there are delegators on the subscribers list which they never received an email, should set lastPendingToBondingPeriodEmailSent', async () => {
+      // given
+      const delegator = createDelegator()
+      let subscriberData = createSubscriber()
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Emails subscribers to notify 0`
+      const currentRound = 1
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getEmailSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+      //
+      // // then
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      consoleLogMock.verify()
+      delegatorEmailUtilsMock.verify()
+    })
+
+    it('If there are delegators on the subscribers list which they never received an email, should send an email if property lastPendingToBondingPeriodEmailSent is already set ', async () => {
+      // given
+      const delegator = createDelegator('127351273516735127')
+      let subscriberData = createSubscriber()
+      subscriberData.lastPendingToBondingPeriodEmailSent = 1
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Emails subscribers to notify 1`
+      const currentRound = 1242
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getEmailSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .once()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      consoleLogMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+
+    it('Should not receive and email if was already sent', async () => {
+      // given
+      const delegator = createDelegator('127351273516735127')
+      let subscriberData = createSubscriber()
+      subscriberData.lastPendingToBondingPeriodEmailSent = 1242
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Not sending email to test@subscriber.com because already sent an email in the 1242 round`
+      const logExpected3 = `[Notificate-After-Bonding-Period-Has-Ended] - Emails subscribers to notify 0`
+      const currentRound = 1242
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getEmailSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected3)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      consoleLogMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
       expect(getSubscriptorRoleStub.called)
     })
   })

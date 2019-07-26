@@ -229,7 +229,6 @@ const sendDelegatorNotificationBondingPeriodHasEnded = async (
       email: subscriber.email
     }
 
-    console.log(`Sending email to ${subscriber.email} - Bonding period has ended`)
     await sendEmail(body)
 
     subscriber.lastPendingToBondingPeriodEmailSent = currentRoundId
