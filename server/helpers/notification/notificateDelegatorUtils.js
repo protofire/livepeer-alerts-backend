@@ -32,6 +32,20 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         currentRoundId
       )
 
+      if (
+        delegator.status === constants.DELEGATOR_STATUS.Unbonded &&
+        subscriber.lastEmailSentForUnbondedStatus
+      ) {
+        console.log(
+          `[Notificate-Delegators] - Not sending email to ${subscriber.email} because is in Unbonded state and already sent an email in the last ${subscriber.lastEmailSentForUnbondedStatus} round`
+        )
+        continue
+      } else if (subscriber.lastEmailSentForUnbondedStatus) {
+        // Unset lastEmailSentForUnbondedStatus for any other status than Unbonded and property lastEmailSentForUnbondedStatus not null
+        subscriber.lastEmailSentForUnbondedStatus = null
+        await subscriber.save()
+      }
+
       if (!shouldSubscriberReceiveNotifications) {
         console.log(
           `[Notificate-Delegators] - Not sending email to ${subscriber.email} because already sent an email in the last ${subscriber.lastEmailSent} round and the frequency is ${subscriber.emailFrequency}`
