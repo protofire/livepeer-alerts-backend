@@ -216,35 +216,16 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   const protocolService = getProtocolService()
 
   // Get next reward
-
-  const {
-    delegatorNextReward,
-    delegateNextReward,
-    delegator
-  } = await delegatorService.getDelegatorAndDelegateNextReward(delegatorAddress)
-
-  // Get current round
-
-  const currentRound = await protocolService.getCurrentRound()
-
+  const [{ delegatorNextReward, delegateNextReward, delegator }, currentRound] = await Promise.all([
+    delegatorService.getDelegatorAndDelegateNextReward(delegatorAddress),
+    protocolService.getCurrentRound()
+  ])
   // Get last 30 delegator rewards
-
-  const delegatorShares = await delegatorUtils.getDelegatorLastXShares(
-    delegatorAddress,
-    currentRound,
-    rewardsRound
-  )
-
-  // Get last 30 delegate reward
-
-  const delegatePools = await delegateUtils.getDelegateLastXPools(
-    delegator.delegateAddress,
-    currentRound,
-    rewardsRound
-  )
-
+  const [delegatorShares, delegatePools] = await Promise.all([
+    delegatorUtils.getDelegatorLastXShares(delegatorAddress, currentRound, rewardsRound),
+    delegateUtils.getDelegateLastXPools(delegator.delegateAddress, currentRound, rewardsRound)
+  ])
   // Sums all the shares  and pools in a unique reward
-
   let delegatorLastRoundReward = new Big(0)
   let delegator7RoundsRewards = new Big(0)
   let delegator30RoundsRewards = new Big(0)
