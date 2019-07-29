@@ -92,11 +92,7 @@ const create = async (req, res, next) => {
 
         if (role === constants.ROLE.DELEGATOR) {
           const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
-          const protocolService = getProtocolService()
-          const [currentRound, currentRoundInfo] = await Promise.all([
-            protocolService.getCurrentRound(),
-            protocolService.getCurrentRoundInfo()
-          ])
+
           const delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
             currentRound,
             delegator.address
