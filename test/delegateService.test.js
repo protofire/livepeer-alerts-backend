@@ -866,4 +866,154 @@ describe('## DelegateService test', () => {
       getDelegateProtocolNextRewardStub.restore()
     })
   })
+  describe('# getDelegateRoi', () => {
+    it('Throws error if no delegateAddress given', async () => {
+      // given
+      const delegateAddress = null
+      const errorExpected = '[DelegateService] - no delegateAddress received on getDelegateRoi'
+      let throwedErrorMsg = ''
+      // when
+      try {
+        await delegateService.getDelegateRoi(delegateAddress)
+      } catch (err) {
+        throwedErrorMsg = err.message
+      }
+      // then
+      expect(throwedErrorMsg).equal(errorExpected)
+    })
+    it('Should call simulateNextReturnForGivenDelegatorStakedAmount with the rewardsToDelegators and amountToStake converted in token units', async () => {
+      // given
+      const delegateAddress = 1
+      const amountToStake = 1000
+      const rewardsToDelegators = 1000
+      const delegateTotalStake = 1000
+      const roiExpected = 1
+      const amountToStakeInTokens = utils.unitAmountInTokenUnits(amountToStake)
+      const rewardsConverted = utils.unitAmountInTokenUnits(rewardsToDelegators)
+
+      // Mocks
+      const getDelegateRewardToDelegatorsStub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .resolves(rewardsToDelegators)
+
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .resolves(delegateTotalStake)
+
+      const delegateServiceMock = sinon.mock(delegateService)
+
+      const expectationNextReturn = delegateServiceMock
+        .expects('simulateNextReturnForGivenDelegatorStakedAmount')
+        .once()
+        .withArgs(rewardsConverted, delegateTotalStake, amountToStakeInTokens)
+        .returns(roiExpected)
+
+      // when
+      const result = await delegateService.getDelegateRoi(delegateAddress, amountToStake)
+
+      // then
+      delegateServiceMock.verify()
+      // Restore mocks
+      getDelegateRewardToDelegatorsStub.restore()
+      getDelegateTotalStakeStub.restore()
+      delegateServiceMock.restore()
+    })
+    it('Should return roi and roi in percent', async () => {
+      // given
+      const delegateAddress = 1
+      const amountToStake = 650
+      const rewardsToDelegators = 500
+      const delegateTotalStake = 5000
+      const roiExpected = '65'
+      const roiPercentExpected = '10'
+      const totalStakeConverted = utils.unitAmountInTokenUnits(delegateTotalStake)
+      // 500 rewards a delegators, 5000 delegator total stake, 650 the amount to stake -> participation is 13% -> roi abs: 65, roi percent: 10%
+      // Mocks
+      const getDelegateRewardToDelegatorsStub = sinon
+        .stub(delegateService, 'getDelegateRewardToDelegators')
+        .resolves(rewardsToDelegators)
+
+      const getDelegateTotalStakeStub = sinon
+        .stub(delegateService, 'getDelegateTotalStake')
+        .resolves(totalStakeConverted)
+
+      const delegateServiceMock = sinon.mock(delegateService)
+
+      // when
+      const result = await delegateService.getDelegateRoi(delegateAddress, amountToStake)
+      // then
+      expect(getDelegateTotalStakeStub.called)
+      expect(getDelegateTotalStakeStub.called)
+      delegateServiceMock.verify()
+      expect(result.roiPercent).equal(roiPercentExpected)
+      expect(result.roi).equal(roiExpected)
+      // Restore mocks
+      getDelegateRewardToDelegatorsStub.restore()
+      getDelegateTotalStakeStub.restore()
+      delegateServiceMock.restore()
+    })
+  })
+  describe('# getDelegateRewardStatus', () => {
+    it('Throws error if no delegateAddress given', async () => {
+      // given
+      const delegateAddress = null
+      const errorExpected =
+        '[DelegateService] - no delegateAddress received on getDelegateRewardStatus'
+      let throwedErrorMsg = ''
+      // when
+      try {
+        await delegateService.getDelegateRewardStatus(delegateAddress)
+      } catch (err) {
+        throwedErrorMsg = err.message
+      }
+      // then
+      expect(throwedErrorMsg).equal(errorExpected)
+    })
+    it('Should return totalStake, rewardCut, last30RoundsMissedRewardCalls, roiAbs and roiPercent', async () => {
+      // given
+      const delegateAddress = 1
+      const missedRewardCalls = 1
+      const rewardCut = 0
+      const totalStake = 10000
+      const roiAbs = 3
+      const roiPercent = 0.3
+
+      const resultExpected = {
+        totalStake,
+        rewardCut,
+        last30RoundsMissedRewardCalls: missedRewardCalls,
+        roiAbs,
+        roiPercent
+      }
+
+      // Mocks
+      const getMissedRewardCallsStub = sinon
+        .stub(delegateService, 'getMissedRewardCalls')
+        .resolves(missedRewardCalls)
+
+      const getDelegateRoiStub = sinon
+        .stub(delegateService, 'getDelegateRoi')
+        .resolves({ roi: roiAbs, roiPercent })
+
+      const getDelegateSummaryStub = sinon.stub(delegateService, 'getDelegateSummary').resolves({
+        summary: {
+          rewardCut,
+          totalStake
+        }
+      })
+
+      // when
+      const result = await delegateService.getDelegateRewardStatus(delegateAddress)
+
+      // then
+      expect(getMissedRewardCallsStub.called)
+      expect(getDelegateRoiStub.called)
+      expect(getDelegateSummaryStub.called)
+      expect(result).to.deep.equal(resultExpected)
+      // restore mocks
+      getDelegateRoiStub.restore()
+      getMissedRewardCallsStub.restore()
+      getDelegateSummaryStub.restore()
+    })
+  })
 })
