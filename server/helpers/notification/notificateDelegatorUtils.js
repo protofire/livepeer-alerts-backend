@@ -185,7 +185,7 @@ const sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators = async cur
 
     if (isNotificationAlreadySended) {
       console.log(
-        `[Notificate-After-Bonding-Period-Has-Ended] - Not sending telegram to ${subscriber.telegramChatId} because already sent an email in the ${subscriber.lastPendingToBondingPeriodTelegramSent} round`
+        `[Notificate-After-Bonding-Period-Has-Ended] - Not sending a telegram to ${subscriber.telegramChatId} because already sent a telegram in the ${subscriber.lastPendingToBondingPeriodTelegramSent} round`
       )
       continue
     }
