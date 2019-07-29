@@ -59,6 +59,11 @@ let SubscriberSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // References the roundID in which the last pending to bonding period email was sent
+  lastPendingToBondingPeriodTelegramSent: {
+    type: String,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
