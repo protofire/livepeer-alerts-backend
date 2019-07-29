@@ -101,6 +101,71 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   return await Promise.all(emailsToSend)
 }
 
+const sendEmailAfterBondingPeriodHasEndedNotificationToDelegators = async currentRoundInfo => {
+  if (!currentRoundInfo) {
+    throw new Error(
+      'No currentRoundInfo provided on sendEmailAfterBondingPeriodHasEndedNotificationToDelegators()'
+    )
+  }
+  console.log(
+    `[Notificate-After-Bonding-Period-Has-Ended] - Start sending email notification to delegators`
+  )
+
+  const subscribers = await subscriberUtils.getEmailSubscribersDelegators()
+  const subscribersToSendEmails = []
+  const currentRoundId = currentRoundInfo.id
+
+  for (const subscriberItem of subscribers) {
+    const { subscriber } = subscriberItem
+
+    if (!subscriber.lastPendingToBondingPeriodEmailSent) {
+      subscriber.lastPendingToBondingPeriodEmailSent = currentRoundId
+      await subscriber.save()
+      continue
+    }
+
+    // Check if notification was already sent, backward to 1 or 2 rounds
+    const differenceAlreadySended =
+      +currentRoundId - (+subscriber.lastPendingToBondingPeriodEmailSent || 0)
+    const isNotificationAlreadySended =
+      differenceAlreadySended === 0 ||
+      differenceAlreadySended === 1 ||
+      differenceAlreadySended === 2
+
+    if (isNotificationAlreadySended) {
+      console.log(
+        `[Notificate-After-Bonding-Period-Has-Ended] - Not sending email to ${subscriber.email} because already sent an email in the ${subscriber.lastPendingToBondingPeriodEmailSent} round`
+      )
+      continue
+    }
+
+    const { constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+
+    // Check difference between rounds, and if status is bonded, if the difference is between 1 or 2 since startRound, it means the subscriber is starting the bonded status
+    const difference = +currentRoundId - +delegator.startRound
+    const isDifferenceBetweenRoundsEqualTo = difference === 1 || difference === 2
+
+    if (
+      isDifferenceBetweenRoundsEqualTo &&
+      delegator.status === constants.DELEGATOR_STATUS.Bonded
+    ) {
+      subscribersToSendEmails.push(
+        delegatorEmailUtils.sendDelegatorNotificationBondingPeriodHasEnded(
+          subscriber,
+          delegator.delegateAddress,
+          currentRoundId
+        )
+      )
+    }
+  }
+  console.log(
+    `[Notificate-After-Bonding-Period-Has-Ended] - Emails subscribers to notify ${subscribersToSendEmails.length}`
+  )
+  await Promise.all(subscribersToSendEmails)
+
+  return subscribers
+}
+
 const sendTelegramRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error(
@@ -148,7 +213,8 @@ const sendNotificationDelegateChangeRuleToDelegators = async subscribers => {
 const notificateDelegatorService = {
   sendEmailRewardCallNotificationToDelegators,
   sendTelegramRewardCallNotificationToDelegators,
-  sendNotificationDelegateChangeRuleToDelegators
+  sendNotificationDelegateChangeRuleToDelegators,
+  sendEmailAfterBondingPeriodHasEndedNotificationToDelegators
 }
 
 module.exports = notificateDelegatorService
