@@ -79,7 +79,7 @@ const sendRoundNotifications = async (roundProgress, round, thresholdSendNotific
     console.log(`[Check-Round-Change] - Sending telegram round notifications to delegates`)
     await notificateDelegateUtil.sendTelegramRewardCallNotificationToDelegates(round)
     console.log(
-      `[Check-Round-Change] - Sending telegram bonding period has ended email notifications to delegators`
+      `[Check-Round-Change] - Sending bonding period has ended telegram notification to delegators`
     )
     await notificateDelegatorUtil.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
       round
