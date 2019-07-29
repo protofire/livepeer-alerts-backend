@@ -162,9 +162,16 @@ class DelegateService {
   getTopDelegates = async (topNumber, amountToStake = 1000) => {
     let topDelegates = []
     const delegates = await this.getRegisteredDelegates()
+    const amountToStakeInTokens = utils.unitAmountInTokenUnits(amountToStake)
     for (let delegateIterator of delegates) {
-      const { roi } = await this.delegateRoi(delegateIterator.address, amountToStake)
-
+      const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateIterator.address)
+      const rewardsConverted = utils.unitAmountInTokenUnits(rewardsToDelegators)
+      // Best return formula = order delegates by the best amount of return that will be given towards bonded delegators
+      const roi = this.simulateNextReturnForGivenDelegatorStakedAmount(
+        rewardsConverted,
+        delegateIterator.totalStake,
+        amountToStakeInTokens
+      )
       const totalStake = utils.tokenAmountInUnits(delegateIterator.totalStake)
       topDelegates.push({
         id: delegateIterator.id,
@@ -192,7 +199,10 @@ class DelegateService {
     return await getPoolsPerRound(roundNumber)
   }
 
-  delegateRoi = async (delegateAddress, amountToStake = 1000) => {
+  getDelegateRoi = async (delegateAddress, amountToStake = 1000) => {
+    if (!delegateAddress) {
+      throw new Error('[DelegateService] - no delegateAddress received on getDelegateRoi')
+    }
     const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
     const rewardsConverted = utils.unitAmountInTokenUnits(rewardsToDelegators)
     const totalStake = await this.getDelegateTotalStake(delegateAddress)
@@ -203,8 +213,8 @@ class DelegateService {
       totalStake,
       amountToStakeInTokens
     )
-    const percent = utils.MathBN.div(100, 1000)
-    const roiPercent = utils.MathBN.mul(percent, roi)
+    const percent = utils.MathBN.mul(roi, 100)
+    const roiPercent = utils.MathBN.div(percent, amountToStake)
     return {
       roi,
       roiPercent
@@ -212,16 +222,19 @@ class DelegateService {
   }
 
   getDelegateRewardStatus = async delegateAddress => {
+    if (!delegateAddress) {
+      throw new Error('[DelegateService] - no delegateAddress received on getDelegateRewardStatus')
+    }
     const missedRewardCalls = await this.getMissedRewardCalls(delegateAddress, 30)
     const delegateSummary = await this.getDelegateSummary(delegateAddress)
-    const delegateRoi = await this.delegateRoi(delegateAddress)
+    const delegateRoi = await this.getDelegateRoi(delegateAddress)
     const { rewardCut, totalStake } = delegateSummary.summary
     const { roi, roiPercent } = delegateRoi
     return {
       totalStake,
       rewardCut,
       last30RoundsMissedRewardCalls: missedRewardCalls,
-      roi,
+      roiAbs: roi,
       roiPercent
     }
   }
