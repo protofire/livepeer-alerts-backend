@@ -27,7 +27,19 @@ const topDelegates = async (req, res, next) => {
   }
 }
 
+const getDelegateRewardStatus = async (req, res, next) => {
+  const { address } = req.params
+  try {
+    const delegateService = getDelegateService()
+    const summary = await delegateService.getDelegateRewardStatus(address)
+    res.json({ summary })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getByAddress,
-  topDelegates
+  topDelegates,
+  getDelegateRewardStatus
 }

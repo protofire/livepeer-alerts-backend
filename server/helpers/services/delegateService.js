@@ -2,12 +2,8 @@ const promiseRetry = require('promise-retry')
 const _ = require('lodash')
 
 const { getProtocolService } = require('./protocolService')
-const {
-  MathBN,
-  tokenAmountInUnits,
-  unitAmountInTokenUnits,
-  calculateMissedRewardCalls
-} = require('../utils')
+
+const utils = require('../utils')
 const { PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
 
 let delegateServiceInstance
@@ -34,7 +30,7 @@ class DelegateService {
       summary: {
         ...summary,
         id: delegateAddress,
-        totalStake: tokenAmountInUnits(_.get(summary, 'totalStake', 0))
+        totalStake: utils.tokenAmountInUnits(_.get(summary, 'totalStake', 0))
       }
     }
   }
@@ -64,8 +60,8 @@ class DelegateService {
     )
 
     // FORMULA: delegateTotalStake / protocolTotalBonded
-    const participationInTotalBondedRatio = MathBN.div(totalStake, totalBondedInProtocol)
-    return MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
+    const participationInTotalBondedRatio = utils.MathBN.div(totalStake, totalBondedInProtocol)
+    return utils.MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
   }
 
   // Receives a delegateAddress and returns the REAL reward of the delegate (nextReward*rewardCut)
@@ -78,8 +74,8 @@ class DelegateService {
       ]).catch(err => retry())
     })
     const { pendingRewardCut } = delegate
-    const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
-    return MathBN.mul(protocolNextReward, rewardCut)
+    const rewardCut = utils.MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
+    return utils.MathBN.mul(protocolNextReward, rewardCut)
   }
 
   // For a given delegateAddress return the next reward that will be distributed towards delegators
@@ -90,9 +86,9 @@ class DelegateService {
       this.getDelegateProtocolNextReward(delegateAddress)
     ])
     const { pendingRewardCut } = delegate
-    const rewardCut = MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
-    const rewardToDelegate = MathBN.mul(protocolNextReward, rewardCut)
-    return MathBN.sub(protocolNextReward, rewardToDelegate)
+    const rewardCut = utils.MathBN.div(pendingRewardCut, PROTOCOL_DIVISION_BASE)
+    const rewardToDelegate = utils.MathBN.mul(protocolNextReward, rewardCut)
+    return utils.MathBN.sub(protocolNextReward, rewardToDelegate)
   }
 
   /**
@@ -112,7 +108,7 @@ class DelegateService {
     const rewards = await this.getDelegateRewards(delegateAddress)
     const currentRound = await protocolService.getCurrentRound()
     if (rewards) {
-      missedCalls = calculateMissedRewardCalls(rewards, currentRound, roundsPeriod)
+      missedCalls = utils.calculateMissedRewardCalls(rewards, currentRound, roundsPeriod)
     }
     return missedCalls
   }
@@ -144,16 +140,19 @@ class DelegateService {
     delegateTotalStakeInTokens,
     delegatorAmountToStakeInTokens
   ) => {
-    const rewardsToDelegators = tokenAmountInUnits(rewardsToDelegatorsInTokens)
-    const delegateTotalStake = tokenAmountInUnits(delegateTotalStakeInTokens)
-    const delegatorAmountToStake = tokenAmountInUnits(delegatorAmountToStakeInTokens)
+    const rewardsToDelegators = utils.tokenAmountInUnits(rewardsToDelegatorsInTokens)
+    const delegateTotalStake = utils.tokenAmountInUnits(delegateTotalStakeInTokens)
+    const delegatorAmountToStake = utils.tokenAmountInUnits(delegatorAmountToStakeInTokens)
     // Checks that the delegatorStakedAmount is <= delegateTotalStake
-    if (MathBN.lte(delegatorAmountToStake, delegateTotalStake)) {
+    if (utils.MathBN.lte(delegatorAmountToStake, delegateTotalStake)) {
       // Calculates the delegatorParticipation in the totalStake
       // FORMULA: delegatorStakedAmount / delegateTotalStake
-      const participationInTotalStakeRatio = MathBN.div(delegatorAmountToStake, delegateTotalStake)
+      const participationInTotalStakeRatio = utils.MathBN.div(
+        delegatorAmountToStake,
+        delegateTotalStake
+      )
       // Then calculates the reward with FORMULA: participationInTotalStakeRatio * rewardToDelegators
-      return MathBN.mul(rewardsToDelegators, participationInTotalStakeRatio)
+      return utils.MathBN.mul(rewardsToDelegators, participationInTotalStakeRatio)
     } else {
       return 0
     }
@@ -163,17 +162,10 @@ class DelegateService {
   getTopDelegates = async (topNumber, amountToStake = 1000) => {
     let topDelegates = []
     const delegates = await this.getRegisteredDelegates()
-    const amountToStakeInTokens = unitAmountInTokenUnits(amountToStake)
     for (let delegateIterator of delegates) {
-      const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateIterator.address)
-      const rewardsConverted = unitAmountInTokenUnits(rewardsToDelegators)
-      // Best return formula = order delegates by the best amount of return that will be given towards bonded delegators
-      const roi = this.simulateNextReturnForGivenDelegatorStakedAmount(
-        rewardsConverted,
-        delegateIterator.totalStake,
-        amountToStakeInTokens
-      )
-      const totalStake = tokenAmountInUnits(delegateIterator.totalStake)
+      const { roi } = await this.delegateRoi(delegateIterator.address, amountToStake)
+
+      const totalStake = utils.tokenAmountInUnits(delegateIterator.totalStake)
       topDelegates.push({
         id: delegateIterator.id,
         totalStake,
@@ -182,8 +174,8 @@ class DelegateService {
     }
     // Sorts in ROI descending order
     topDelegates.sort((a, b) => {
-      const aBn = MathBN.toBig(a.roi)
-      const bBn = MathBN.toBig(b.roi)
+      const aBn = utils.MathBN.toBig(a.roi)
+      const bBn = utils.MathBN.toBig(b.roi)
       return bBn.sub(aBn)
     })
     return topDelegates.slice(0, topNumber)
@@ -198,6 +190,40 @@ class DelegateService {
   getPoolsPerRound = async roundNumber => {
     const { getPoolsPerRound } = this.source
     return await getPoolsPerRound(roundNumber)
+  }
+
+  delegateRoi = async (delegateAddress, amountToStake = 1000) => {
+    const rewardsToDelegators = await this.getDelegateRewardToDelegators(delegateAddress)
+    const rewardsConverted = utils.unitAmountInTokenUnits(rewardsToDelegators)
+    const totalStake = await this.getDelegateTotalStake(delegateAddress)
+    const amountToStakeInTokens = utils.unitAmountInTokenUnits(amountToStake)
+    // Best return formula = order delegates by the best amount of return that will be given towards bonded delegators
+    const roi = this.simulateNextReturnForGivenDelegatorStakedAmount(
+      rewardsConverted,
+      totalStake,
+      amountToStakeInTokens
+    )
+    const percent = utils.MathBN.div(100, 1000)
+    const roiPercent = utils.MathBN.mul(percent, roi)
+    return {
+      roi,
+      roiPercent
+    }
+  }
+
+  getDelegateRewardStatus = async delegateAddress => {
+    const missedRewardCalls = await this.getMissedRewardCalls(delegateAddress, 30)
+    const delegateSummary = await this.getDelegateSummary(delegateAddress)
+    const delegateRoi = await this.delegateRoi(delegateAddress)
+    const { rewardCut, totalStake } = delegateSummary.summary
+    const { roi, roiPercent } = delegateRoi
+    return {
+      totalStake,
+      rewardCut,
+      last30RoundsMissedRewardCalls: missedRewardCalls,
+      roi,
+      roiPercent
+    }
   }
 }
 module.exports = {
