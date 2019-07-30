@@ -196,6 +196,24 @@ const getDelegateTelegramBody = delegateCalledReward => {
   }
 }
 
+const getDelegatorBondingPeriodHasEndedTelegramBody = subscriber => {
+  const filename =
+    '../notifications/telegram/delegator-bonding-period-has-ended/notification-bonding-period-has-ended.hbs'
+  const fileTemplate = path.join(__dirname, filename)
+  const source = fs.readFileSync(fileTemplate, 'utf8')
+
+  // Create telegram body
+  const templateBonded = Handlebars.compile(source)
+
+  const body = templateBonded({
+    delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+  })
+
+  return {
+    body
+  }
+}
+
 const telegramUtils = {
   subscribe,
   unsubscribe,
@@ -204,7 +222,8 @@ const telegramUtils = {
   findAddressFromChatId,
   getTelegramBodyBySubscriptor,
   getDelegatorTelegramBody,
-  getDelegateTelegramBody
+  getDelegateTelegramBody,
+  getDelegatorBondingPeriodHasEndedTelegramBody
 }
 
 module.exports = telegramUtils
