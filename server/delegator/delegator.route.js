@@ -16,9 +16,9 @@ router
 
   .get(validate(paramValidation.getByAddress), getDelegator)
 
-/** GET /api/delegators/lastRewards/:address - Get delegator last 30 rewards by address */
+/** GET /api/delegators/last-rewards/:address - Get delegator last 30 rewards by address */
 router
-  .route('/lastRewards/:address')
+  .route('/last-rewards/:address')
 
   .get(validate(paramValidation.getByAddress), getSummary30RoundsRewards)
 

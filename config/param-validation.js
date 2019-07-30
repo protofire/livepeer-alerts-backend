@@ -78,7 +78,7 @@ module.exports = {
   // GET /api/delegates/roi/:address
   // GET /api/delegators/address/:address
   // GET /api/delegators/reward/:address
-  // GET /api/delegators/lastRewards/:address
+  // GET /api/delegators/last-rewards/:address
   getByAddress: {
     params: {
       address: Joi.string().required()
