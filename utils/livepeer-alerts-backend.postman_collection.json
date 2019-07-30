@@ -535,6 +535,38 @@
 				"description": "Gets information about a delegator"
 			},
 			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegators/lastRewards/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegators/lastRewards/0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegators",
+						"lastRewards",
+						"0xE19bf801A681B8Ba37Da23092c0438716D1E3415"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

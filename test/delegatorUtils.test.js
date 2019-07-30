@@ -3,6 +3,8 @@ const delegatesUtils = require('../server/helpers/delegatesUtils')
 const testUtil = require('../server/helpers/test/util')
 const utils = require('../server/helpers/utils')
 const { getDelegateService } = require('../server/helpers/services/delegateService')
+const { getDelegatorService } = require('../server/helpers/services/delegatorService')
+const { getProtocolService } = require('../server/helpers/services/protocolService')
 const Delegator = require('../server/delegator/delegator.model')
 const chai = require('chai')
 const expect = chai.expect
@@ -200,7 +202,7 @@ describe('## DelegatorsUtils test', () => {
       const shares = [share8, share7, share6, share5, share4, share3, share2, share1]
       const sharesExpected = [share7, share6, share5, share4, share3, share2, share1]
       const delegator = testUtil.createDelegator(delegatorAddress)
-      delegator.shares = shares
+      delegator.shares = sharesExpected
       const totalDelegatorSharesExpected = '2800.0000'
       const averageSharesExpected = utils.MathBN.divAsBig(totalDelegatorSharesExpected, 7).toFixed(
         TO_FIXED_VALUES_DECIMALS
@@ -331,6 +333,132 @@ describe('## DelegatorsUtils test', () => {
       getStartAndFinishDateOfWeeklySummaryStub.restore()
       getWeeklySharesPerRoundStub.restore()
       getMissedRewardCallsStub.restore()
+    })
+  })
+  describe('# getDelegatorSummary30RoundsRewards', () => {
+    it('Throws error if no delegatorAddress given', async () => {
+      // given
+      const delegatorAddress = null
+      const errorExpected =
+        '[DelegatorUtils] - No delegatorAddress provided on getSummary30RoundsRewards()'
+      let throwedErrorMsg = ''
+      // when
+      try {
+        await delegatorUtils.getDelegatorSummary30RoundsRewards(delegatorAddress)
+      } catch (err) {
+        throwedErrorMsg = err.message
+      }
+      // then
+      expect(throwedErrorMsg).equal(errorExpected)
+    })
+    it('Returns delegatorSummary with nextReward, lastRoundReward, last7RoundsReward and last30RoundsReward', async () => {
+      // given
+      const delegatorAddress = 1
+      const delegateAddress = 2
+      const currentRound = 8
+      const delegator = testUtil.createDelegator(delegatorAddress)
+      delegator.delegateAddress = delegateAddress
+
+      const delegatorNextReward = '100'
+      const delegateNextReward = '1000'
+      const nextRewardExpected = {
+        delegatorNextReward,
+        delegateNextReward,
+        delegator
+      }
+
+      const shareReward1 = utils.unitAmountInTokenUnits('1000')
+      const shareReward2 = utils.unitAmountInTokenUnits('2000')
+      const shareReward3 = utils.unitAmountInTokenUnits('3000')
+      const shareReward4 = utils.unitAmountInTokenUnits('4000')
+      const shareReward5 = utils.unitAmountInTokenUnits('5000')
+      const shareReward6 = utils.unitAmountInTokenUnits('6000')
+      const shareReward7 = utils.unitAmountInTokenUnits('7000')
+
+      const share1 = testUtil.createShare(delegatorAddress, '1', shareReward1)
+      const share2 = testUtil.createShare(delegatorAddress, '2', shareReward2)
+      const share3 = testUtil.createShare(delegatorAddress, '3', shareReward3)
+      const share4 = testUtil.createShare(delegatorAddress, '4', shareReward4)
+      const share5 = testUtil.createShare(delegatorAddress, '5', shareReward5)
+      const share6 = testUtil.createShare(delegatorAddress, '6', shareReward6)
+      const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
+      const delegatorLastRoundReward = utils.tokenAmountInUnits(shareReward7)
+      const delegator7RoundsRewards = '28000'
+      const delegator30RoundsRewards = '28000' // Because there are only 7 rewards, should be the same as 7 rounds rewards
+
+      const poolReward1 = utils.unitAmountInTokenUnits('1000')
+      const poolReward2 = utils.unitAmountInTokenUnits('2000')
+      const poolReward3 = utils.unitAmountInTokenUnits('3000')
+      const poolReward4 = utils.unitAmountInTokenUnits('4000')
+      const poolReward5 = utils.unitAmountInTokenUnits('5000')
+      const poolReward6 = utils.unitAmountInTokenUnits('6000')
+      const poolReward7 = utils.unitAmountInTokenUnits('7000')
+
+      const pool1 = testUtil.createShare(delegateAddress, '1', poolReward1)
+      const pool2 = testUtil.createShare(delegateAddress, '2', poolReward2)
+      const pool3 = testUtil.createShare(delegateAddress, '3', poolReward3)
+      const pool4 = testUtil.createShare(delegateAddress, '4', poolReward4)
+      const pool5 = testUtil.createShare(delegateAddress, '5', poolReward5)
+      const pool6 = testUtil.createShare(delegateAddress, '6', poolReward6)
+      const pool7 = testUtil.createShare(delegateAddress, '7', poolReward7)
+      const delegateLastRoundReward = utils.tokenAmountInUnits(poolReward7)
+      const delegate7RoundsRewards = '28000'
+      const delegate30RoundsRewards = '28000' // Because there are only 7 rewards, should be the same as 7 rounds rewards
+
+      const resultExpected = {
+        nextReward: {
+          delegatorReward: delegatorNextReward,
+          delegateReward: delegateNextReward
+        },
+        lastRoundReward: {
+          delegatorReward: delegatorLastRoundReward,
+          delegateReward: delegateLastRoundReward
+        },
+        last7RoundsReward: {
+          delegatorReward: delegator7RoundsRewards,
+          delegateReward: delegate7RoundsRewards
+        },
+
+        last30RoundsReward: {
+          delegatorReward: delegator30RoundsRewards,
+          delegateReward: delegate30RoundsRewards
+        }
+      }
+
+      const delegatorShares = [share1, share2, share3, share4, share5, share6, share7]
+      const delegatePools = [pool1, pool2, pool3, pool4, pool5, pool6, pool7]
+      const delegatorService = getDelegatorService()
+      const protocolService = getProtocolService()
+      // Mocks nextRewards
+      const getDelegatorAndDelegateNextRewardStub = sinon
+        .stub(delegatorService, 'getDelegatorAndDelegateNextReward')
+        .resolves(nextRewardExpected)
+      // Mocks last 30 delegator rewards
+      const getDelegatorLastXSharesStub = sinon
+        .stub(delegatorUtils, 'getDelegatorLastXShares')
+        .resolves(delegatorShares)
+      // Mocks last 30 delegate reward
+      const getDelegateLastXPoolsStub = sinon
+        .stub(delegatesUtils, 'getDelegateLastXPools')
+        .resolves(delegatePools)
+      // Mocks currentRound
+      const getCurrentRoundStub = sinon
+        .stub(protocolService, 'getCurrentRound')
+        .resolves(currentRound)
+
+      // when
+      const result = await delegatorUtils.getDelegatorSummary30RoundsRewards(delegatorAddress)
+      // then
+      expect(result).to.deep.equal(resultExpected)
+      expect(getDelegatorAndDelegateNextRewardStub.called)
+      expect(getDelegatorLastXSharesStub.called)
+      expect(getDelegateLastXPoolsStub.called)
+      expect(getCurrentRoundStub.called)
+      // restore mocks
+      getDelegatorAndDelegateNextRewardStub.restore()
+      getDelegatorLastXSharesStub.restore()
+      getDelegateLastXPoolsStub.restore()
+      getCurrentRoundStub.restore()
     })
   })
 })
