@@ -612,6 +612,196 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
+    it('Should continue if the subscriber is in unbonded state, and lastEmailSentForUnbondedStatus is set', async () => {
+      // given
+      let delegator = createDelegator('0x12312312312')
+
+      const currentRound = 10
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSentForUnbondedStatus = 2
+      const subscribers = [subscriber]
+
+      const constants = getLivepeerDefaultConstants()
+      delegator.status = constants.DELEGATOR_STATUS.Unbonded
+
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because is in Unbonded state and already sent an email in the last ${subscriber.lastEmailSentForUnbondedStatus} round`
+      const logExpectation3 = `[Notificate-Delegators] - Emails subscribers to notify 0`
+      const logExpectation4 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation5 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+
+      // Stubs the return of Subscriber.find to return the list of subscribers
+      subscriberMock = sinon.mock(Subscriber)
+
+      const expectationSubscriber = subscriberMock
+        .expects('find')
+        .once()
+        .resolves(subscribers)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
+
+      const expectationConsole5 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation5)
+
+      // Stubs the return of getCurrentRoundInfo to return an mocked id
+      getCurrentRoundInfoStub = sinon
+        .stub(protocolService, 'getCurrentRoundInfo')
+        .returns(currentRoundInfo)
+
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
+
+      getLivepeerDefaultConstantsStub = sinon
+        .stub(protocolService, 'getLivepeerDefaultConstants')
+        .returns(constants)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationEmail')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+
+      // then
+      consoleLogMock.verify()
+      subscriberMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getLivepeerDefaultConstantsStub.called)
+      expect(getDelegatorNextRewardStub.called)
+      expect(getDidDelegateCalledRewardStub.called)
+      expect(getCurrentRoundInfoStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+
+    it('Should not continue if the subscriber is not in the unbonded state, and lastEmailSentForUnbondedStatus is set', async () => {
+      // given
+      let delegator = createDelegator('0x12312312312')
+
+      const currentRound = 10
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      let subscriberData = createSubscriber()
+      subscriberData.lastEmailSentForUnbondedStatus = 2
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [subscriber]
+
+      const constants = getLivepeerDefaultConstants()
+      delegator.status = constants.DELEGATOR_STATUS.Bonded
+
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify 1`
+      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+
+      // Stubs the return of Subscriber.find to return the list of subscribers
+      subscriberMock = sinon.mock(Subscriber)
+
+      const expectationSubscriber = subscriberMock
+        .expects('find')
+        .once()
+        .resolves(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
+
+      // Stubs the return of getCurrentRoundInfo to return an mocked id
+      getCurrentRoundInfoStub = sinon
+        .stub(protocolService, 'getCurrentRoundInfo')
+        .returns(currentRoundInfo)
+
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
+
+      getLivepeerDefaultConstantsStub = sinon
+        .stub(protocolService, 'getLivepeerDefaultConstants')
+        .returns(constants)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationEmail')
+        .once()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+
+      // then
+      consoleLogMock.verify()
+      subscriberMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getLivepeerDefaultConstantsStub.called)
+      expect(getDelegatorNextRewardStub.called)
+      expect(getDidDelegateCalledRewardStub.called)
+      expect(getCurrentRoundInfoStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
   })
 
   describe('# sendEmailAfterBondingPeriodHasEndedNotificationToDelegators', () => {
