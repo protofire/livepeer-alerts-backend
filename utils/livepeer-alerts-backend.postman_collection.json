@@ -537,7 +537,7 @@
 			"response": []
 		},
 		{
-			"name": "[GET] - /api/delegators/lastRewards/:address",
+			"name": "[GET] - /api/delegators/last-rewards/:address",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -552,7 +552,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:4040/api/delegators/lastRewards/0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
+					"raw": "http://localhost:4040/api/delegators/last-rewards/0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -561,8 +561,40 @@
 					"path": [
 						"api",
 						"delegators",
-						"lastRewards",
+						"last-rewards",
 						"0xE19bf801A681B8Ba37Da23092c0438716D1E3415"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegates/reward-status/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegates/reward-status/0x9e14de5cc84e437518c2c303c88570fe13f0ad15",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegates",
+						"reward-status",
+						"0x9e14de5cc84e437518c2c303c88570fe13f0ad15"
 					]
 				}
 			},
