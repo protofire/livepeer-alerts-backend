@@ -9,6 +9,7 @@ const { getProtocolService } = require('../server/helpers/services/protocolServi
 const { getDelegatorService } = require('../server/helpers/services/delegatorService')
 const subscriberUtils = require('../server/helpers/subscriberUtils')
 const delegatorEmailUtils = require('../server/helpers/sendDelegatorEmail')
+const delegatorTelegramUtils = require('../server/helpers/sendDelegatorTelegram')
 const notificateDelegatorUtils = require('../server/helpers/notification/notificateDelegatorUtils')
 const delegatorsUtils = require('../server/helpers/delegatorUtils')
 const utils = require('../server/helpers/utils')
@@ -31,7 +32,8 @@ describe('## NotificateDelegatorsUtils', () => {
     delegatorEmailUtilsMock,
     getLivepeerDefaultConstantsStub,
     getSubscribersDelegatorsAndDelegatorStub,
-    delegatorsUtilsMock
+    delegatorsUtilsMock,
+    delegatorTelegramUtilsMock
 
   afterEach('Restore all the mocks', () => {
     if (subscriberMock) {
@@ -57,6 +59,9 @@ describe('## NotificateDelegatorsUtils', () => {
     }
     if (delegatorEmailUtilsMock) {
       delegatorEmailUtilsMock.restore()
+    }
+    if (delegatorTelegramUtilsMock) {
+      delegatorTelegramUtilsMock.restore()
     }
     if (getLivepeerDefaultConstantsStub) {
       getLivepeerDefaultConstantsStub.restore()
@@ -612,6 +617,196 @@ describe('## NotificateDelegatorsUtils', () => {
       expect(getCurrentRoundInfoStub.called)
       expect(getSubscriptorRoleStub.called)
     })
+
+    it('Should continue if the subscriber is in unbonded state, and lastEmailSentForUnbondedStatus is set', async () => {
+      // given
+      let delegator = createDelegator('0x12312312312')
+
+      const currentRound = 10
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      const subscriber = createSubscriber()
+      subscriber.lastEmailSentForUnbondedStatus = 2
+      const subscribers = [subscriber]
+
+      const constants = getLivepeerDefaultConstants()
+      delegator.status = constants.DELEGATOR_STATUS.Unbonded
+
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Not sending email to ${subscriber.email} because is in Unbonded state and already sent an email in the last ${subscriber.lastEmailSentForUnbondedStatus} round`
+      const logExpectation3 = `[Notificate-Delegators] - Emails subscribers to notify 0`
+      const logExpectation4 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation5 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+
+      // Stubs the return of Subscriber.find to return the list of subscribers
+      subscriberMock = sinon.mock(Subscriber)
+
+      const expectationSubscriber = subscriberMock
+        .expects('find')
+        .once()
+        .resolves(subscribers)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
+
+      const expectationConsole5 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation5)
+
+      // Stubs the return of getCurrentRoundInfo to return an mocked id
+      getCurrentRoundInfoStub = sinon
+        .stub(protocolService, 'getCurrentRoundInfo')
+        .returns(currentRoundInfo)
+
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
+
+      getLivepeerDefaultConstantsStub = sinon
+        .stub(protocolService, 'getLivepeerDefaultConstants')
+        .returns(constants)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationEmail')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+
+      // then
+      consoleLogMock.verify()
+      subscriberMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getLivepeerDefaultConstantsStub.called)
+      expect(getDelegatorNextRewardStub.called)
+      expect(getDidDelegateCalledRewardStub.called)
+      expect(getCurrentRoundInfoStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+
+    it('Should not continue if the subscriber is not in the unbonded state, and lastEmailSentForUnbondedStatus is set', async () => {
+      // given
+      let delegator = createDelegator('0x12312312312')
+
+      const currentRound = 10
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      let subscriberData = createSubscriber()
+      subscriberData.lastEmailSentForUnbondedStatus = 2
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [subscriber]
+
+      const constants = getLivepeerDefaultConstants()
+      delegator.status = constants.DELEGATOR_STATUS.Bonded
+
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpectation1 = `[Notificate-Delegators] - Start sending email notification to delegators`
+      const logExpectation2 = `[Notificate-Delegators] - Emails subscribers to notify 1`
+      const logExpectation3 = `[Subscribers-utils] - Returning list of email subscribers delegators`
+      const logExpectation4 = `[Subscribers-utils] - Amount of email subscribers delegators: ${subscribers.length}`
+
+      // Stubs the return of Subscriber.find to return the list of subscribers
+      subscriberMock = sinon.mock(Subscriber)
+
+      const expectationSubscriber = subscriberMock
+        .expects('find')
+        .once()
+        .resolves(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation3)
+
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
+
+      // Stubs the return of getCurrentRoundInfo to return an mocked id
+      getCurrentRoundInfoStub = sinon
+        .stub(protocolService, 'getCurrentRoundInfo')
+        .returns(currentRoundInfo)
+
+      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+
+      getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
+
+      getLivepeerDefaultConstantsStub = sinon
+        .stub(protocolService, 'getLivepeerDefaultConstants')
+        .returns(constants)
+
+      delegatorEmailUtilsMock = sinon.mock(delegatorEmailUtils)
+
+      const expectation = delegatorEmailUtilsMock
+        .expects('sendDelegatorNotificationEmail')
+        .once()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendEmailRewardCallNotificationToDelegators(currentRoundInfo)
+
+      // then
+      consoleLogMock.verify()
+      subscriberMock.verify()
+      delegatorEmailUtilsMock.verify()
+      expect(getLivepeerDefaultConstantsStub.called)
+      expect(getDelegatorNextRewardStub.called)
+      expect(getDidDelegateCalledRewardStub.called)
+      expect(getCurrentRoundInfoStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
   })
 
   describe('# sendEmailAfterBondingPeriodHasEndedNotificationToDelegators', () => {
@@ -866,6 +1061,263 @@ describe('## NotificateDelegatorsUtils', () => {
       // then
       consoleLogMock.verify()
       delegatorEmailUtilsMock.verify()
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+  })
+
+  describe('# sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators', () => {
+    it('Should throw an error if no currentRoundInfo received', async () => {
+      // given
+      const currentRoundInfo = null
+      let result = false
+      const resultExpected = true
+      // when
+      try {
+        await notificateDelegatorUtils.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
+          currentRoundInfo
+        )
+      } catch (err) {
+        result = true
+      }
+      // then
+      expect(result).equal(resultExpected)
+    })
+
+    it('If there are no subscribers delegators, should sent no telegrams', async () => {
+      // given
+      const currentRound = 1
+      const currentRoundInfo = {
+        id: currentRound
+      }
+      const delegator = createDelegator()
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+
+      const subscribersDelegators = []
+      const resultExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending telegram notification to delegators`
+      const resultExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Telegrams subscribers to notify 0`
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getTelegramSubscribersDelegators')
+        .returns(subscribersDelegators)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(resultExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorTelegramUtilsMock = sinon.mock(delegatorTelegramUtils)
+
+      const expectation = delegatorTelegramUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      consoleLogMock.verify()
+      delegatorTelegramUtilsMock.verify()
+    })
+
+    it('If there are delegators on the subscribers list which they never received a telegram, should set lastPendingToBondingPeriodTelegramSent', async () => {
+      // given
+      const delegator = createDelegator()
+      let subscriberData = createSubscriber()
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending telegram notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Telegrams subscribers to notify 0`
+      const currentRound = 1
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getTelegramSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorTelegramUtilsMock = sinon.mock(delegatorTelegramUtils)
+
+      const expectation = delegatorTelegramUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      consoleLogMock.verify()
+      delegatorTelegramUtilsMock.verify()
+    })
+
+    it('If there are delegators on the subscribers list which they never received an email, should send an email if property lastPendingToBondingPeriodEmailSent is already set ', async () => {
+      // given
+      const delegator = createDelegator('127351273516735127')
+      let subscriberData = createSubscriber()
+      subscriberData.lastPendingToBondingPeriodTelegramSent = 1
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending telegram notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Telegrams subscribers to notify 1`
+      const currentRound = 1242
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getTelegramSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorTelegramUtilsMock = sinon.mock(delegatorTelegramUtils)
+
+      const expectation = delegatorTelegramUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .once()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      consoleLogMock.verify()
+      delegatorTelegramUtilsMock.verify()
+      expect(getSubscribersDelegatorsAndDelegatorStub.called)
+      expect(getSubscriptorRoleStub.called)
+    })
+
+    it('Should not receive and email if was already sent', async () => {
+      // given
+      const delegator = createDelegator('127351273516735127')
+      let subscriberData = createSubscriber()
+      subscriberData.lastPendingToBondingPeriodTelegramSent = 1242
+      const subscriber = new Subscriber(subscriberData)
+
+      const subscribers = [{ subscriber }]
+
+      const constants = getLivepeerDefaultConstants()
+      const subscriptorRoleReturn = { role: constants.ROLE.DELEGATOR, constants, delegator }
+      const logExpected1 = `[Notificate-After-Bonding-Period-Has-Ended] - Start sending telegram notification to delegators`
+      const logExpected2 = `[Notificate-After-Bonding-Period-Has-Ended] - Not sending a telegram to 1 because already sent a telegram in the 1242 round`
+      const logExpected3 = `[Notificate-After-Bonding-Period-Has-Ended] - Telegrams subscribers to notify 0`
+      const currentRound = 1242
+      const currentRoundInfo = {
+        id: currentRound
+      }
+
+      getSubscribersDelegatorsAndDelegatorStub = sinon
+        .stub(subscriberUtils, 'getTelegramSubscribersDelegators')
+        .returns(subscribers)
+
+      subscriberMockSave = sinon.stub(Subscriber.prototype, 'save').returns(subscriber)
+
+      consoleLogMock = sinon.mock(console)
+
+      const expectationConsole1 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected1)
+
+      const expectationConsole2 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected2)
+
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpected3)
+
+      // Stubs the return of getSubscriptorRole to make the subscriber a delegate
+      getSubscriptorRoleStub = sinon
+        .stub(subscriberUtils, 'getSubscriptorRole')
+        .returns(subscriptorRoleReturn)
+
+      delegatorTelegramUtilsMock = sinon.mock(delegatorTelegramUtils)
+
+      const expectation = delegatorTelegramUtilsMock
+        .expects('sendDelegatorNotificationBondingPeriodHasEnded')
+        .never()
+        .resolves(null)
+
+      // when
+      await notificateDelegatorUtils.sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators(
+        currentRoundInfo
+      )
+
+      // then
+      consoleLogMock.verify()
+      delegatorTelegramUtilsMock.verify()
       expect(getSubscribersDelegatorsAndDelegatorStub.called)
       expect(getSubscriptorRoleStub.called)
     })

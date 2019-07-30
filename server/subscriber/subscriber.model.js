@@ -44,6 +44,11 @@ let SubscriberSchema = new mongoose.Schema({
       return Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     }
   },
+  // References the roundID in which the last email was sent for the unbonded status
+  lastEmailSentForUnbondedStatus: {
+    type: String,
+    default: null
+  },
   // References the roundID in which the last email was sent
   lastEmailSent: {
     type: String,
@@ -56,6 +61,11 @@ let SubscriberSchema = new mongoose.Schema({
   },
   // References the roundID in which the last pending to bonding period email was sent
   lastPendingToBondingPeriodEmailSent: {
+    type: String,
+    default: null
+  },
+  // References the roundID in which the last pending to bonding period email was sent
+  lastPendingToBondingPeriodTelegramSent: {
     type: String,
     default: null
   },

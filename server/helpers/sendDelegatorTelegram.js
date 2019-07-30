@@ -1,5 +1,9 @@
 const config = require('../../config/config')
-const { getDelegatorTelegramBody, getButtonsBySubscriptor } = require('./telegramUtils')
+const {
+  getDelegatorTelegramBody,
+  getDelegatorBondingPeriodHasEndedTelegramBody,
+  getButtonsBySubscriptor
+} = require('./telegramUtils')
 
 const sendDelegatorTelegram = async (chatId, address, body) => {
   if (!['test'].includes(config.env)) {
@@ -37,8 +41,20 @@ const sendDelegatorNotificationTelegram = async (subscriber, currentRound) => {
   return await subscriber.save()
 }
 
+const sendDelegatorNotificationBondingPeriodHasEnded = async (subscriber, currentRound) => {
+  const { body } = await getDelegatorBondingPeriodHasEndedTelegramBody(subscriber)
+  const { telegramChatId, address } = subscriber
+  // Send telegram
+  await sendDelegatorTelegram(telegramChatId, address, body)
+
+  // Save last telegram sent for bonding period
+  subscriber.lastPendingToBondingPeriodTelegramSent = currentRound
+  return await subscriber.save()
+}
+
 const delegatorTelegramUtils = {
-  sendDelegatorNotificationTelegram
+  sendDelegatorNotificationTelegram,
+  sendDelegatorNotificationBondingPeriodHasEnded
 }
 
 module.exports = delegatorTelegramUtils

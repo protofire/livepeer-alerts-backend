@@ -83,6 +83,9 @@ const getBodyAndTemplateIdBasedOnDelegatorStatus = (
   let body = {}
   switch (delegator.status) {
     case constants.DELEGATOR_STATUS.Unbonded:
+      subscriber.lastEmailSentForUnbondedStatus = currentRoundInfo.id
+      subscriber.save().then(doc => {})
+
       templateId = sendgridTemplateIdClaimRewardUnbondedState
       break
     case constants.DELEGATOR_STATUS.Unbonding:
