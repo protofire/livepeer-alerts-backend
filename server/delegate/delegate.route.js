@@ -17,9 +17,9 @@ router
 
   .get(validate(paramValidation.getTopDelegates), topDelegates)
 
-/** GET /api/delegates/rewardStatus/:address - Get delegate reward status*/
+/** GET /api/delegates/reward-status/:address - Get delegate reward status*/
 router
-  .route('/rewardStatus/:address')
+  .route('/reward-status/:address')
   .get(validate(paramValidation.getByAddress), getDelegateRewardStatus)
 
 module.exports = router

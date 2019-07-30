@@ -76,7 +76,7 @@ module.exports = {
   // GET /api/subscribers/address/:address
   // GET /api/delegates/address/:address
   // GET /api/delegates/roi/:address
-  // GET /api/delegates/rewardStatus/:address
+  // GET /api/delegates/reward-status/:address
   // GET /api/delegators/address/:address
   // GET /api/delegators/reward/:address
   getByAddress: {
