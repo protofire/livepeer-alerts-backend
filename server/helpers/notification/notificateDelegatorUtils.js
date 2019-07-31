@@ -8,6 +8,7 @@ const delegatorTelegramUtils = require('../sendDelegatorTelegram')
 const delegatorsUtils = require('../delegatorUtils')
 const Share = require('../../share/share.model')
 const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../../../config/constants')
+const { getDelegateService } = require('../services/delegateService')
 
 const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
@@ -18,6 +19,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   const subscribersDelegators = await subscriberUtils.getEmailSubscribersDelegators()
   let emailsToSend = []
   const protocolService = getProtocolService()
+  const delegateService = getDelegateService()
 
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
@@ -59,7 +61,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         // If daily subscription send normal email
         const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
           return Promise.all([
-            utils.getDidDelegateCalledReward(delegator.delegateAddress),
+            delegateService.getDidDelegateCalledReward(delegator.delegateAddress),
             Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
           ]).catch(err => retry())
         })

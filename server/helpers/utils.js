@@ -130,23 +130,6 @@ const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
 }
 
-const getDidDelegateCalledReward = async delegateAddress => {
-  const { getProtocolService } = require('./services/protocolService')
-  const { getLivepeerDelegateAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
-  const protocolService = getProtocolService()
-
-  const [delegate, currentRoundInfo] = await promiseRetry(retry => {
-    return Promise.all([
-      getLivepeerDelegateAccount(delegateAddress),
-      protocolService.getCurrentRoundInfo()
-    ]).catch(err => retry())
-  })
-
-  // Check if transcoder call reward
-  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
-  return callReward
-}
-
 const getDelegatorRoundsUntilUnbonded = data => {
   const { delegator, constants, currentRoundInfo } = data
   const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
@@ -254,7 +237,6 @@ const utils = {
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getDidDelegateCalledReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,

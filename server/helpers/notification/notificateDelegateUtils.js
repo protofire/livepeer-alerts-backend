@@ -3,6 +3,7 @@ const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const delegateEmailUtils = require('../sendDelegateEmail')
 const delegateTelegramUtils = require('../sendDelegateTelegram')
+const { getDelegateService } = require('../services/delegateService')
 
 const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
   if (!currentRoundInfo) {
@@ -26,8 +27,11 @@ const sendEmailRewardCallNotificationToDelegates = async currentRoundInfo => {
       continue
     }
 
+    const delegateService = getDelegateService()
     // Check if delegate called reward
-    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+      subscriber.address
+    )
     console.log(
       `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
     )
@@ -70,8 +74,11 @@ const sendTelegramRewardCallNotificationToDelegates = async currentRoundInfo => 
       )
       continue
     }
+    const delegateService = getDelegateService()
     // Check if delegate called reward
-    const delegateCalledReward = await utils.getDidDelegateCalledReward(subscriber.address)
+    const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+      subscriber.address
+    )
     console.log(
       `[Notificate-Delegates] - Subscriber delegate ${subscriber.address} called reward?: ${delegateCalledReward}`
     )

@@ -6,12 +6,8 @@ const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
 const Share = require('../share/share.model')
-const {
-  fromBaseUnit,
-  formatPercentage,
-  getDelegatorRoundsUntilUnbonded,
-  getDidDelegateCalledReward
-} = require('../helpers/utils')
+
+const utils = require('../helpers/utils')
 
 const { getSubscriptorRole } = require('../helpers/subscriberUtils')
 
@@ -75,6 +71,7 @@ const create = async (req, res, next) => {
       try {
         // Get round info
         const protocolService = getProtocolService()
+        const delegateService = getDelegateService()
         const currentRoundInfo = await protocolService.getCurrentRoundInfo()
         const currentRound = currentRoundInfo.id
 
@@ -82,7 +79,9 @@ const create = async (req, res, next) => {
         const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
 
         // Check if the delegate didRewardCall
-        const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
+        const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+          delegator.delegateAddress
+        )
 
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
@@ -251,20 +250,24 @@ const summary = async (req, res, next) => {
 
     let returnData = {
       role,
-      balance: fromBaseUnit(balance)
+      balance: utils.fromBaseUnit(balance)
     }
 
     // Check if the delegate didRewardCall
-    const delegateCalledReward = await getDidDelegateCalledReward(delegator.delegateAddress)
+    const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+      delegator.delegateAddress
+    )
 
     switch (role) {
       case constants.ROLE.TRANSCODER:
         let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
         // Format values of the delegate for the frontend
         transcoder.delegateCalledReward = delegateCalledReward
-        transcoder.totalStakeInLPT = fromBaseUnit(transcoder.totalStake)
-        transcoder.pendingRewardCutInPercentage = formatPercentage(transcoder.pendingRewardCut)
-        transcoder.rewardCutInPercentage = formatPercentage(transcoder.rewardCut)
+        transcoder.totalStakeInLPT = utils.fromBaseUnit(transcoder.totalStake)
+        transcoder.pendingRewardCutInPercentage = utils.formatPercentage(
+          transcoder.pendingRewardCut
+        )
+        transcoder.rewardCutInPercentage = utils.formatPercentage(transcoder.rewardCut)
         returnData = {
           ...returnData,
           transcoder
@@ -273,13 +276,13 @@ const summary = async (req, res, next) => {
       case constants.ROLE.DELEGATOR:
         // Format values of the delegator for the frontend
         delegator.delegateCalledReward = delegateCalledReward
-        delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
-        delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
-        delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
-        delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
+        delegator.totalStakeInLPT = utils.fromBaseUnit(delegator.totalStake)
+        delegator.bondedAmountInLPT = utils.fromBaseUnit(delegator.bondedAmount)
+        delegator.pendingRewardCutInPercentage = utils.formatPercentage(delegator.pendingRewardCut)
+        delegator.rewardCutInPercentage = utils.formatPercentage(delegator.rewardCut)
 
         // Calculate rounds until bonded
-        delegator.roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+        delegator.roundsUntilUnbonded = utils.getDelegatorRoundsUntilUnbonded({
           delegator,
           constants,
           currentRoundInfo
