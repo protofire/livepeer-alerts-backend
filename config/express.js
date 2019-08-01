@@ -54,18 +54,6 @@ if (config.env === 'production') {
   )
 }
 
-if (config.env === 'staging') {
-  app.use(
-    hostValidation({
-      hosts: ['livepeer-alerts-backend-stag.herokuapp.com'],
-      referers: [
-        'https://livepeer-alerts-frontend-stag.herokuapp.com',
-        /^https:\/\/livepeer-alerts-frontend-stag\.herokuapp\.com\/.*/
-      ]
-    })
-  )
-}
-
 // enable detailed API logging in dev env
 if (config.env === 'development') {
   expressWinston.requestWhitelist.push('body')
