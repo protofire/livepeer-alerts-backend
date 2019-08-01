@@ -91,9 +91,19 @@ const updateDelegatorsShares = async newRound => {
     return
   }
   const delegators = []
+  // Gets the list of delegators from the subscribers, removes the duplicated ones (could be more than one subscriptor with the same delegator address)
   delegatorsAndSubscribersList.forEach(element => {
-    if (element.delegator) {
-      delegators.push(element.delegator)
+    const { delegator } = element
+    let isAlreadySaved = false
+    // Checks if the array does contains the delegator before adding it
+    for (let delegatorSaved of delegators) {
+      if (delegatorSaved.address === delegator.address) {
+        isAlreadySaved = true
+        break
+      }
+    }
+    if (!isAlreadySaved) {
+      delegators.push(delegator)
     }
   })
   if (!delegators || delegators.length === 0) {
