@@ -240,7 +240,7 @@ class DelegateService {
   }
 
   getDidDelegateCalledReward = async delegateAddress => {
-    const { getLivepeerDelegateAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
+    const { getLivepeerDelegateAccount } = require('../sdk/delegate') // should use delegateService but the value lastRewardRound is not updated
     const protocolService = getProtocolService()
 
     const [delegate, currentRoundInfo] = await promiseRetry(retry => {
