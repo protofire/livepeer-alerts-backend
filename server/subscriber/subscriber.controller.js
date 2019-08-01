@@ -9,7 +9,7 @@ const Share = require('../share/share.model')
 
 const utils = require('../helpers/utils')
 
-const { getSubscriptorRole } = require('../helpers/subscriberUtils')
+const subscriberUtils = require('../helpers/subscriberUtils')
 
 /**
  * Load subscriber and append to req.
@@ -76,7 +76,9 @@ const create = async (req, res, next) => {
         const currentRound = currentRoundInfo.id
 
         // Detect role
-        const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
+        const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(
+          savedSubscriber
+        )
 
         // Check if the delegate didRewardCall
         const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
@@ -228,6 +230,7 @@ const activate = async (req, res, next) => {
  * @returns {Array}
  */
 const summary = async (req, res, next) => {
+  console.log('[SubscriberController] - returning subscriber summary')
   try {
     const { addressWithoutSubscriber = null } = req.params
 
@@ -242,8 +245,9 @@ const summary = async (req, res, next) => {
     let [balance, currentRoundInfo, subscriptorData] = await Promise.all([
       delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
       protocolService.getCurrentRoundInfo(),
-      getSubscriptorRole(subscriptor)
+      subscriberUtils.getSubscriptorRole(subscriptor)
     ])
+    console.log('[SubscriberController] - returned subscriptor data')
 
     // Detect role
     const { constants, role, delegator } = subscriptorData

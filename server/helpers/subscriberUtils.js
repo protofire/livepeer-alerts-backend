@@ -163,7 +163,10 @@ const getSubscriptorRole = async subscriptor => {
     return Promise.all([
       protocolService.getLivepeerDefaultConstants(),
       delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
+    ]).catch(err => {
+      console.error(`[Subscribers-utils] - error on getSubscriptorRole: ${err}`)
+      retry()
+    })
   })
 
   const { status, address, delegateAddress } = delegator
