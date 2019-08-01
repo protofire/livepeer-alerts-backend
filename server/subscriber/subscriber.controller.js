@@ -242,12 +242,13 @@ const summary = async (req, res, next) => {
       address: addressWithoutSubscriber
     }
 
+    console.log('[SubscriberController] - fetching subscriptor data')
     let [balance, currentRoundInfo, subscriptorData] = await Promise.all([
       delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
       protocolService.getCurrentRoundInfo(),
       subscriberUtils.getSubscriptorRole(subscriptor)
     ])
-    console.log('[SubscriberController] - returned subscriptor data')
+    console.log('[SubscriberController] - returned subscription data')
 
     // Detect role
     const { constants, role, delegator } = subscriptorData

@@ -159,6 +159,7 @@ const getSubscriptorRole = async subscriptor => {
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
 
+  console.log(`[Subscribers-utils] - getSubscriptorRole()`)
   let [constants, delegator] = await promiseRetry(retry => {
     return Promise.all([
       protocolService.getLivepeerDefaultConstants(),
