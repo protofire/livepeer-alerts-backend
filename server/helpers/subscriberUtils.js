@@ -162,7 +162,7 @@ const getSubscriptorRole = async subscriptor => {
   try {
     const constants = await protocolService.getLivepeerDefaultConstants()
     console.log(
-      `[Subscribers-utils] - getDelegatorAccount() for subscriptor: ${subscriptor.address}`
+      `[Subscribers-utils] - getDelegatorAccount() for subscriptor: ${subscriptor._id} with delegateAddress: ${subscriptor.address}`
     )
     const delegator = await delegatorService.getDelegatorAccount(subscriptor.address)
     console.log(`[Subscribers-utils] - getDelegatorAccount() finished, detecting role`)
