@@ -153,6 +153,13 @@ describe('## Notification utils test', () => {
         .expects('sendTelegramRewardCallNotificationToDelegators')
         .once()
 
+      const notificateDelegatorExpect3 = notificateDelegatorMock
+        .expects('sendEmailAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
+      const notificateDelegateExpect4 = notificateDelegatorMock
+        .expects('sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
+
       const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
 
       const notificateDelegateExpect1 = notificateDelegateMock
@@ -320,6 +327,12 @@ describe('## Notification utils test', () => {
         .expects('sendTelegramRewardCallNotificationToDelegators')
         .once()
         .resolves(null)
+      const notificateDelegatorExpect3 = notificateDelegatorMock
+        .expects('sendEmailAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
+      const notificateDelegateExpect4 = notificateDelegatorMock
+        .expects('sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
 
       const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
 
@@ -379,6 +392,12 @@ describe('## Notification utils test', () => {
         .expects('sendTelegramRewardCallNotificationToDelegators')
         .once()
         .resolves(null)
+      const notificateDelegatorExpect3 = notificateDelegatorMock
+        .expects('sendEmailAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
+      const notificateDelegateExpect4 = notificateDelegatorMock
+        .expects('sendTelegramAfterBondingPeriodHasEndedNotificationToDelegators')
+        .once()
 
       const notificateDelegateMock = sinon.mock(notificateDelegateUtil)
 

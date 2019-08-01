@@ -7,6 +7,7 @@ const {
 } = require('../server/helpers/test/util')
 const { getProtocolService } = require('../server/helpers/services/protocolService')
 const { getDelegatorService } = require('../server/helpers/services/delegatorService')
+const { getDelegateService } = require('../server/helpers/services/delegateService')
 const subscriberUtils = require('../server/helpers/subscriberUtils')
 const delegatorEmailUtils = require('../server/helpers/sendDelegatorEmail')
 const delegatorTelegramUtils = require('../server/helpers/sendDelegatorTelegram')
@@ -75,6 +76,7 @@ describe('## NotificateDelegatorsUtils', () => {
   })
 
   describe('# sendEmailRewardCallNotificationToDelegators', () => {
+    const delegateService = getDelegateService()
     it('Should throw an error if no currentRoundInfo received', async () => {
       // given
       const currentRoundInfo = null
@@ -118,7 +120,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .once()
         .withArgs(resultExpected2)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getLivepeerDefaultConstantsStub = sinon
         .stub(protocolService, 'getLivepeerDefaultConstants')
@@ -205,7 +209,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -302,7 +308,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -392,7 +400,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -492,7 +502,10 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      const delegateService = getDelegateService()
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -589,7 +602,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -685,7 +700,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 
@@ -779,7 +796,9 @@ describe('## NotificateDelegatorsUtils', () => {
         .stub(protocolService, 'getCurrentRoundInfo')
         .returns(currentRoundInfo)
 
-      getDidDelegateCalledRewardStub = sinon.stub(utils, 'getDidDelegateCalledReward').returns(true)
+      getDidDelegateCalledRewardStub = sinon
+        .stub(delegateService, 'getDidDelegateCalledReward')
+        .returns(true)
 
       getDelegatorNextRewardStub = sinon.stub(delegatorService, 'getDelegatorNextReward').returns(1)
 

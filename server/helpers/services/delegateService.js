@@ -238,6 +238,22 @@ class DelegateService {
       roiPercent
     }
   }
+
+  getDidDelegateCalledReward = async delegateAddress => {
+    const { getLivepeerDelegateAccount } = require('../sdk/delegate') // should use delegateService but the value lastRewardRound is not updated
+    const protocolService = getProtocolService()
+
+    const [delegate, currentRoundInfo] = await promiseRetry(retry => {
+      return Promise.all([
+        getLivepeerDelegateAccount(delegateAddress),
+        protocolService.getCurrentRoundInfo()
+      ]).catch(err => retry())
+    })
+
+    // Check if transcoder call reward
+    const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
+    return callReward
+  }
 }
 module.exports = {
   getDelegateService

@@ -8,16 +8,12 @@ const moment = require('moment')
 const Share = require('../share/share.model')
 const { getDelegatorService } = require('./services/delegatorService')
 const { getProtocolService } = require('./services/protocolService')
+const { getDelegateService } = require('./services/delegateService')
 
 const { NoAddressError } = require('../helpers/JobsErrors')
 const { telegramSubscriptorExists, getSubscriptorRole } = require('../helpers/subscriberUtils')
 
-const {
-  truncateStringInTheMiddle,
-  formatBalance,
-  getDelegatorRoundsUntilUnbonded,
-  getDidDelegateCalledReward
-} = require('../helpers/utils')
+const utils = require('../helpers/utils')
 
 // Message const
 const subscribe = 'Subscribe'
@@ -60,14 +56,14 @@ const findAddressFromChatId = async chatId => {
 const getTelegramBodyBySubscriptor = async subscriptor => {
   // Starting
   let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
-
+  const delegateService = getDelegateService()
   let data
   if (role === constants.ROLE.TRANSCODER) {
     // Check if the delegate didRewardCall
     const [delegateCalledReward] = await promiseRetry(retry => {
-      return Promise.all([getDidDelegateCalledReward(delegator.delegateAddress)]).catch(err =>
-        retry()
-      )
+      return Promise.all([
+        delegateService.getDidDelegateCalledReward(delegator.delegateAddress)
+      ]).catch(err => retry())
     })
 
     // OK, is a delegate, let's send notifications
@@ -84,6 +80,7 @@ const getDelegatorTelegramBody = async subscriber => {
   const { earningDecimals } = config
   const delegatorService = getDelegatorService()
   const protocolService = getProtocolService()
+  const delegateService = getDelegateService()
 
   let [delegator, constants] = await promiseRetry(async retry => {
     return Promise.all([
@@ -101,7 +98,7 @@ const getDelegatorTelegramBody = async subscriber => {
       })
 
       // Check if call reward
-      const callReward = await getDidDelegateCalledReward(delegator.delegateAddress)
+      const callReward = await delegateService.getDidDelegateCalledReward(delegator.delegateAddress)
 
       // Open template file
       const filenameBonded = callReward
@@ -116,7 +113,7 @@ const getDelegatorTelegramBody = async subscriber => {
       )
 
       // Calculate earned lpt
-      const lptEarned = formatBalance(earningNextReturn, earningDecimals, 'wei')
+      const lptEarned = utils.formatBalance(earningNextReturn, earningDecimals, 'wei')
 
       const dateYesterday = moment()
         .subtract(1, 'days')
@@ -129,7 +126,7 @@ const getDelegatorTelegramBody = async subscriber => {
       const templateBonded = Handlebars.compile(sourceBonded)
       body = templateBonded({
         transcoderAddressUrl: `https://explorer.livepeer.org/accounts/${delegateAddress}/transcoding`,
-        transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+        transcoderAddress: utils.truncateStringInTheMiddle(delegateAddress),
         dateYesterday: dateYesterday,
         roundFrom: currentRound - 1,
         roundTo: currentRound,
@@ -173,7 +170,7 @@ const getDelegatorTelegramBody = async subscriber => {
         return Promise.all([protocolService.getCurrentRoundInfo()]).catch(err => retry())
       })
 
-      const roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+      const roundsUntilUnbonded = utils.getDelegatorRoundsUntilUnbonded({
         delegator,
         constants,
         currentRoundInfo

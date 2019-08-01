@@ -1,6 +1,6 @@
 const promiseRetry = require('promise-retry')
 
-const { calculateNextRoundInflationRatio, tokenAmountInUnits, MathBN } = require('../utils')
+const utils = require('../utils')
 
 const {
   CACHE_UPDATE_INTERVAL,
@@ -60,7 +60,7 @@ class ProtocolService {
   getInflationRate = async () => {
     if (!this.inflationRate) {
       const inflation = await this.source.getInflationRate()
-      this.inflationRate = MathBN.div(inflation, PROTOCOL_DIVISION_BASE)
+      this.inflationRate = utils.MathBN.div(inflation, PROTOCOL_DIVISION_BASE)
     }
     return this.inflationRate
   }
@@ -69,7 +69,7 @@ class ProtocolService {
   getInflationChange = async () => {
     if (!this.inflationChange) {
       const inflationChange = await this.source.getInflationChange()
-      this.inflationChange = MathBN.div(inflationChange, PROTOCOL_DIVISION_BASE)
+      this.inflationChange = utils.MathBN.div(inflationChange, PROTOCOL_DIVISION_BASE)
     }
     return this.inflationChange
   }
@@ -110,7 +110,7 @@ class ProtocolService {
   getTargetBondingRate = async () => {
     if (!this.targetBondingRate) {
       const target = await this.source.getTargetBondingRate()
-      this.targetBondingRate = MathBN.div(target, PROTOCOL_DIVISION_BASE)
+      this.targetBondingRate = utils.MathBN.div(target, PROTOCOL_DIVISION_BASE)
     }
     return this.targetBondingRate
   }
@@ -145,10 +145,10 @@ class ProtocolService {
 
     const { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
     const { number } = latestBlock
-    const nextRoundStartBlock = MathBN.add(startBlock, length)
+    const nextRoundStartBlock = utils.MathBN.add(startBlock, length)
 
-    const nextRoundNum = MathBN.add(id, '1')
-    const blocksUntilNextRound = MathBN.sub(nextRoundStartBlock - number)
+    const nextRoundNum = utils.MathBN.add(id, '1')
+    const blocksUntilNextRound = utils.MathBN.sub(nextRoundStartBlock - number)
 
     return {
       id,
@@ -171,8 +171,8 @@ class ProtocolService {
       this.getNextRoundInflation(),
       this.getTokenTotalSupply()
     ])
-    const mintedTokens = MathBN.mul(totalSupply, nextInflation)
-    return tokenAmountInUnits(mintedTokens)
+    const mintedTokens = utils.MathBN.mul(totalSupply, nextInflation)
+    return utils.tokenAmountInUnits(mintedTokens)
   }
 
   // Returns the inflation as a ratio for the next round, the value should be divided by 1.000.000 in order to make it a ratio
@@ -190,7 +190,7 @@ class ProtocolService {
       this.getTotalBonded(),
       this.getTokenTotalSupply()
     ])
-    return calculateNextRoundInflationRatio(
+    return utils.calculateNextRoundInflationRatio(
       inflationRate,
       inflationChange,
       targetBondingRate,
