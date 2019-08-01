@@ -28,12 +28,20 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
 
   // Persists the pools locally
   for (let poolIterator of roundPools) {
+    const poolId = poolIterator.id
     const delegateId = poolIterator.transcoder.id
     if (!delegateId) {
       console.error(
-        `[Update Delegates Pools] - The pool ${poolIterator.id} does not contain a valid delegate`
+        `[Update Delegates Pools] - The pool ${poolId} does not contain a valid delegate`
       )
       continue
+    }
+    // Checks that the pool does not already exists
+    const foundPool = await Pool.findById(poolId)
+    if (foundPool) {
+      console.error(
+        `[Update Delegates Pools] - The pool  ${poolId} already exist on the db, skipping updateDelegatePoolsOfRound`
+      )
     }
     // Fetch the delegate current totalStake and the local delegate related to the pool
     let [totalStakeOnRound, delegate] = await Promise.all([
@@ -43,7 +51,7 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
     if (!delegate) {
       // This should not happen because all the delegates on the db should be updated first
       console.error(
-        `[Update Delegates Pools] - The delegate ${delegateId} of the pool ${poolIterator.id} was not found, did you call the updateDelegatesJob() before?`
+        `[Update Delegates Pools] - The delegate ${delegateId} of the pool ${poolId} was not found, did you call the updateDelegatesJob() before?`
       )
       continue
     }
@@ -52,7 +60,7 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
       const { roundId } = round
       // Creates the pool object
       let newSavedPool = new Pool({
-        _id: poolIterator.id,
+        _id: poolId,
         rewardTokens: poolIterator.rewardTokens,
         totalStakeOnRound,
         delegate: delegateId,
