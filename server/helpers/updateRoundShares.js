@@ -55,7 +55,16 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     delegate: delegatorAddress,
     round: roundId
   })
-
+  // Checks that the share does not already exists
+  const foundShare = await Share.findById(shareId)
+  if (foundShare) {
+    console.error(
+      `[Update Delegators Shares] - Error Updating share: ${shareId} on delegator ${delegatorAddress}, the share already exists, skipping save`
+    )
+    throw new Error(
+      `[Update Delegators Shares] - Error Updating share: ${shareId} on delegator ${delegatorAddress}, the share already exists, skipping save`
+    )
+  }
   try {
     // Saves the share
     console.log(`[Update Delegators Shares] - Saving new share for delegator ${delegatorAddress}`)
