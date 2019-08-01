@@ -21,6 +21,7 @@ Subscriber.find({})
       subscriber.lastEmailSentForUnbondedStatus = currentRoundId
       subscriber.lastPendingToBondingPeriodEmailSent = currentRoundId
       subscriber.lastPendingToBondingPeriodTelegramSent = currentRoundId
+      subscriber.frequency = undefined
 
       await subscriber.save()
 
