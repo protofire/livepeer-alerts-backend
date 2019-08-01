@@ -2,7 +2,11 @@ const promiseRetry = require('promise-retry')
 
 const { calculateNextRoundInflationRatio, tokenAmountInUnits, MathBN } = require('../utils')
 
-const { CACHE_UPDATE_INTERVAL, PROTOCOL_DIVISION_BASE } = require('../../../config/constants')
+const {
+  CACHE_UPDATE_INTERVAL,
+  PROTOCOL_DIVISION_BASE,
+  LIVEPEER_DEFAULT_CONSTANTS
+} = require('../../../config/constants')
 
 const defaultProtocolSource = require('../sdk/protocol')
 let protocolServiceInstance
@@ -19,7 +23,7 @@ class ProtocolService {
     // The source of the functions that fetch data of the protocol, currently we are only supporting SDK
     this.source = source
     this.currentRound = null
-    this.defaultConstants = null
+    this.defaultConstants = LIVEPEER_DEFAULT_CONSTANTS
     this.totalBonded = null
     this.targetBondingRate = null
     this.inflationChange = null
@@ -33,7 +37,6 @@ class ProtocolService {
     // Sets an interval that will reset the cached values periodically
     setInterval(() => {
       this.currentRound = null
-      this.defaultConstants = null
       this.totalBonded = null
       this.targetBondingRate = null
       this.inflationChange = null
