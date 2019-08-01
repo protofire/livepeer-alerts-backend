@@ -60,7 +60,7 @@ if (config.env === 'staging') {
       hosts: ['livepeer-alerts-backend-stag.herokuapp.com'],
       referers: [
         'https://livepeer-alerts-frontend-stag.herokuapp.com',
-        /^https:\/\/livepeer-alerts-frontend-stag\.herokuapp\/.*/
+        /^https:\/\/livepeer-alerts-frontend-stag\.herokuapp\.com\/.*/
       ]
     })
   )
