@@ -148,6 +148,17 @@ const getDelegatorTelegramBody = async subscriber => {
       const templateUnbonded = Handlebars.compile(sourceUnbonded)
       body = templateUnbonded()
       break
+    case constants.DELEGATOR_STATUS.Pending:
+      // Open template file
+      const filenamePending =
+        '../notifications/telegram/delegate-claim-reward-call/notification-state-pending.hbs'
+      const fileTemplatePending = path.join(__dirname, filenamePending)
+      const sourcePending = fs.readFileSync(fileTemplatePending, 'utf8')
+
+      // Create telegram generator
+      const templatePending = Handlebars.compile(sourcePending)
+      body = templatePending()
+      break
 
     case constants.DELEGATOR_STATUS.Unbonding:
       // Open template file
