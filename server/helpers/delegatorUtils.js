@@ -1,6 +1,7 @@
 const Big = require('big.js')
 const mongoose = require('../../config/mongoose')
 const Delegator = require('../delegator/delegator.model')
+const Delegate = require('../delegate/delegate.model')
 const Share = require('../share/share.model')
 const utils = require('./utils')
 const delegateUtils = require('./delegatesUtils')
@@ -57,8 +58,8 @@ const getDelegatorCurrentRewardTokens = async (
   return newShare
 }
 
-// Receives all the delegates that are stored locally and the delegates from the graph
-// If there are delegates who are not stored locally, save them on the db
+// Receives all the delegators that are stored locally and the delegators from the graph
+// If there are delegators who are not stored locally, save them on the db
 const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
   console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Start`)
   if (!fetchedDelegators || fetchedDelegators.length === 0) {
@@ -68,6 +69,7 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
     return
   }
   const updateDelegatorPromises = []
+  const updateDelegatePromises = []
   for (let remoteDelegatorIterator of fetchedDelegators) {
     const remoteId = remoteDelegatorIterator.address
     const delegateAddress = remoteDelegatorIterator.delegateAddress
@@ -92,7 +94,21 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
         totalStake
       })
       updateDelegatorPromises.push(newDelegator.save())
+      console.log(`[Delegator utils] - updating delegate: ${delegateAddress} with new delegator`)
+      // Updates the delegator of the delegate with the delegator address if is not already there
+      const delegate = await Delegate.findById(delegateAddress).populate({ path: 'delegators' })
+      if (delegate) {
+        const { delegators } = delegate
+        if (!delegators.includes(remoteId)) {
+          console.log(
+            `[Delegator utils] - remote delegator ${remoteId} not found on the delegator list of the delegate, adding it`
+          )
+          delegators.push(remoteId)
+          updateDelegatePromises.push(delegate.save())
+        }
+      }
     } else {
+      console.log(`[Delegator utils] - remote delegator ${remoteId} found locally, updating it`)
       // If found, just update it
       const updatedDelegator = new Delegator({
         _id: remoteId,
@@ -105,6 +121,7 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
     }
   }
   await Promise.all(updateDelegatorPromises)
+  await Promise.all(updateDelegatePromises)
   console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Finished`)
 }
 
