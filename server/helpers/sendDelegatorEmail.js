@@ -319,7 +319,7 @@ const sendDelegatorNotificationBondingPeriodHasEnded = async (
     }
 
     let body = {
-      transcoderAddress: truncateStringInTheMiddle(delegateAddress),
+      transcoderAddress: utils.truncateStringInTheMiddle(delegateAddress),
       delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`,
       delegateAddress: delegateAddress,
       templateId: sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
