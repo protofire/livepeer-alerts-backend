@@ -154,32 +154,36 @@ const findTelegramSubscription = async (address, chatId) => {
 }
 
 const getSubscriptorRole = async subscriptor => {
+  console.log(`[Subscribers-utils] - getSubscriptorRole()`)
   const { getProtocolService } = require('./services/protocolService')
   const { getDelegatorService } = require('./services/delegatorService')
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
+  try {
+    const constants = await protocolService.getLivepeerDefaultConstants()
+    console.log(
+      `[Subscribers-utils] - getDelegatorAccount() for subscriptor: ${subscriptor.address}`
+    )
+    const delegator = await delegatorService.getDelegatorAccount(subscriptor.address)
+    console.log(`[Subscribers-utils] - getDelegatorAccount() finished, detecting role`)
+    const { status, address, delegateAddress } = delegator
 
-  let [constants, delegator] = await promiseRetry(retry => {
-    return Promise.all([
-      protocolService.getLivepeerDefaultConstants(),
-      delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
-  })
-
-  const { status, address, delegateAddress } = delegator
-
-  // Detect role
-  const role =
-    delegator &&
-    status === constants.DELEGATOR_STATUS.Bonded &&
-    delegateAddress &&
-    address.toLowerCase() === delegateAddress.toLowerCase()
-      ? constants.ROLE.TRANSCODER
-      : constants.ROLE.DELEGATOR
-  return {
-    role,
-    constants,
-    delegator
+    // Detect role
+    const role =
+      delegator &&
+      status === constants.DELEGATOR_STATUS.Bonded &&
+      delegateAddress &&
+      address.toLowerCase() === delegateAddress.toLowerCase()
+        ? constants.ROLE.TRANSCODER
+        : constants.ROLE.DELEGATOR
+    return {
+      role,
+      constants,
+      delegator
+    }
+  } catch (err) {
+    console.error(`[Subscribers-utils] - error on getSubscriptorRole(): ${err}`)
+    throw err
   }
 }
 
@@ -287,12 +291,16 @@ const filterSubscribersByDelegatorRole = async allSubscribers => {
     throw new Error('No allSubscribersList received on filterSubscribersByDelegatorRole()')
   }
   for (let subscriber of allSubscribers) {
-    const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
-    if (role === constants.ROLE.DELEGATOR) {
-      subscribersList.push({
-        subscriber,
-        delegator
-      })
+    try {
+      const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+      if (role === constants.ROLE.DELEGATOR) {
+        subscribersList.push({
+          subscriber,
+          delegator
+        })
+      }
+    } catch (err) {
+      continue
     }
   }
   return subscribersList
@@ -304,11 +312,15 @@ const filterSubscribersByDelegateRole = async allSubscribers => {
     throw new Error('No allSubscribers list received on filterSubscribersByDelegateRole()')
   }
   for (let subscriber of allSubscribers) {
-    const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
-    if (role === constants.ROLE.TRANSCODER) {
-      subscribersList.push({
-        subscriber
-      })
+    try {
+      const { role, constants, delegator } = await subscriberUtils.getSubscriptorRole(subscriber)
+      if (role === constants.ROLE.TRANSCODER) {
+        subscribersList.push({
+          subscriber
+        })
+      }
+    } catch (e) {
+      continue
     }
   }
   return subscribersList
