@@ -48,17 +48,11 @@ class DelegateService {
   getDelegateProtocolNextReward = async delegateAddress => {
     const protocolService = getProtocolService()
     // FORMULA: mintedTokensForNextRound * delegateParticipationInTotalBonded
-
-    let [totalStake, mintedTokensForNextRound, totalBondedInProtocol] = await promiseRetry(
-      retry => {
-        return Promise.all([
-          this.getDelegateTotalStake(delegateAddress),
-          protocolService.getMintedTokensForNextRound(),
-          protocolService.getTotalBonded()
-        ]).catch(err => retry())
-      }
-    )
-
+    const [totalStake, mintedTokensForNextRound, totalBondedInProtocol] = await Promise.all([
+      this.getDelegateTotalStake(delegateAddress),
+      protocolService.getMintedTokensForNextRound(),
+      protocolService.getTotalBonded()
+    ])
     // FORMULA: delegateTotalStake / protocolTotalBonded
     const participationInTotalBondedRatio = utils.MathBN.div(totalStake, totalBondedInProtocol)
     return utils.MathBN.mul(mintedTokensForNextRound, participationInTotalBondedRatio)
