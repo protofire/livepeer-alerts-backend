@@ -40,8 +40,9 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
     const foundPool = await Pool.findById(poolId)
     if (foundPool) {
       console.error(
-        `[Update Delegates Pools] - The pool  ${poolId} already exist on the db, skipping updateDelegatePoolsOfRound`
+        `[Update Delegates Pools] - The pool  ${poolId} already exist on the db, skipping the update of it on the db`
       )
+      continue
     }
     // Fetch the delegate current totalStake and the local delegate related to the pool
     let [totalStakeOnRound, delegate] = await Promise.all([
