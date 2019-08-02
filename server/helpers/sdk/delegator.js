@@ -1,11 +1,25 @@
 const LivepeerSDK = require('@livepeer/sdk')
+const { CACHE_UPDATE_INTERVAL } = require('../../../config/constants')
+let rpcInstance = null
+
+const getLivepeerRpc = async () => {
+  if (!rpcInstance) {
+    const { rpc } = await LivepeerSDK.default()
+    rpcInstance = rpc
+    // Sets an interval that will reset the cached values periodically
+    setInterval(() => {
+      rpcInstance = null
+    }, CACHE_UPDATE_INTERVAL)
+  }
+  return rpcInstance
+}
+
 const getLivepeerDelegatorAccount = async address => {
   if (!address) {
     return null
   }
-  const { rpc } = await LivepeerSDK.default()
+  const rpc = await getLivepeerRpc()
   const summary = await rpc.getDelegator(address)
-
   summary.totalStake = getTotalStakeFromSummary(summary)
   return summary
 }
