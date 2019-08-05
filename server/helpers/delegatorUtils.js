@@ -296,10 +296,12 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
   delegate7RoundsRewards = utils.tokenAmountInUnits(delegate7RoundsRewards)
   delegate30RoundsRewards = utils.tokenAmountInUnits(delegate30RoundsRewards)
+  // Disabled to test the shares formated values, once severals rounds passed and the results seems ok, this code should be deleted
+  /*
   delegatorLastRoundReward = utils.tokenAmountInUnits(delegatorLastRoundReward)
   delegator7RoundsRewards = utils.tokenAmountInUnits(delegator7RoundsRewards)
   delegator30RoundsRewards = utils.tokenAmountInUnits(delegator30RoundsRewards)
-
+   */
   return {
     nextReward: {
       delegatorReward: delegatorNextReward,
