@@ -15,7 +15,6 @@ const workerCheckRoundChange = async () => {
   const protocolService = getProtocolService()
   const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
   let { id, initialized, lastInitializedRound, length, startBlock, progress } = currentRoundInfo
-
   let actualSavedRound = await Round.findOne({ roundId: id })
 
   if (!initialized) {
@@ -74,11 +73,14 @@ const workerCheckRoundChange = async () => {
   }
 
   console.log(`[Check-Round-Change] - Finish`)
-  process.exit(0)
 }
 
 workerCheckRoundChange()
-  .then()
+  .then(() => {
+    console.log(`[Check-Round-Change] - Finished, closing db connection`)
+    mongoose.connection.close()
+    process.exit(0)
+  })
   .catch(err => {
     console.error(err)
     process.exit(1)
