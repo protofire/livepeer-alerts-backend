@@ -263,9 +263,9 @@ const summary = async (req, res, next) => {
       delegator.delegateAddress
     )
 
+    let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
     switch (role) {
       case constants.ROLE.TRANSCODER:
-        let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
         // Format values of the delegate for the frontend
         transcoder.delegateCalledReward = delegateCalledReward
         transcoder.totalStakeInLPT = utils.fromBaseUnit(transcoder.totalStake)
@@ -281,6 +281,7 @@ const summary = async (req, res, next) => {
       case constants.ROLE.DELEGATOR:
         // Format values of the delegator for the frontend
         delegator.delegateCalledReward = delegateCalledReward
+        delegator.delegateIsActive = transcoder.active
         delegator.totalStakeInLPT = utils.fromBaseUnit(delegator.totalStake)
         delegator.bondedAmountInLPT = utils.fromBaseUnit(delegator.bondedAmount)
         delegator.pendingRewardCutInPercentage = utils.formatPercentage(delegator.pendingRewardCut)
