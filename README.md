@@ -66,6 +66,9 @@ The API is described in details on the [API](https://github.com/protofire/livepe
 * [Livepeer SDK](https://github.com/livepeer/livepeerjs/tree/master/packages/sdk) - A module for interacting with Livepeer's smart contracts.
 * [Mongoose](https://mongoosejs.com/) - MongoDB object modeling
 
+## Notifications
+[Livepeer state machine](https://i.ibb.co/p40HyHc/Livepeer-state-machine2.png) diagram used to send emails.
+
 ## Contributing
 Please read [CONTRIBUTING.md](https://github.com/protofire/livepeer-alerts-backend/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 

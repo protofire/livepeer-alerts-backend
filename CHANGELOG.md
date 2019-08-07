@@ -4,9 +4,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.2](https://github.com/protofire/livepeer-alerts-backend/pull/94/files) - (2019-07-16)
+## [2.0.0](https://github.com/protofire/livepeer-alerts-backend/compare/v1.2.2...v2.0.0) - (2019-08-06)
+### Add
+- My delegate rewards endpoint [#113](https://github.com/protofire/livepeer-alerts-backend/issues/113)
+- My delegate box endpoint support  [#115](https://github.com/protofire/livepeer-alerts-backend/issues/115)
+- Add support to multiple frequencies on the email subscriptions [#78](https://github.com/protofire/livepeer-alerts-backend/issues/78)
+- Endpoint for supporting update of the email frequency [#91](https://github.com/protofire/livepeer-alerts-backend/issues/91)
+- Send notification to subscribers according to their's frequency selected [#98](https://github.com/protofire/livepeer-alerts-backend/issues/98)
+- Be notified when the PENDING > BONDED period has ended [#75](https://github.com/protofire/livepeer-alerts-backend/issues/75)
+- Be notified when the UNBONDING > UNBONDED period has ended [#74](https://github.com/protofire/livepeer-alerts-backend/issues/74)
+- Calculate top delegates based on their ROI values [#58](https://github.com/protofire/livepeer-alerts-backend/issues/58) 
+- Add new weekly mail subscription including summary [#85](https://github.com/protofire/livepeer-alerts-backend/issues/85)
+- Generate weekly summary [#101](https://github.com/protofire/livepeer-alerts-backend/issues/101)
+- Connect sendgrid weekly template Email with backend [#102](https://github.com/protofire/livepeer-alerts-backend/issues/102)
+- Design weekly email subscription with a summary [#95](https://github.com/protofire/livepeer-alerts-backend/issues/95)
+- Apply the same design of weekly email to the rest emails [#105](https://github.com/protofire/livepeer-alerts-backend/issues/105)
+- Save rewards of delegates and delegators from last round [#48](https://github.com/protofire/livepeer-alerts-backend/issues/48)  
+- Increase the number of decimals of earning value [#71](https://github.com/protofire/livepeer-alerts-backend/issues/71) 
+- Notificate Transcoder rules changes to Delegator [#49](https://github.com/protofire/livepeer-alerts-backend/issues/49)
+- Improve Changelog description [#79](https://github.com/protofire/livepeer-alerts-backend/issues/79)
+- Improve logging for debugging [#72](https://github.com/protofire/livepeer-alerts-backend/issues/72) 
+- Add graphql [#37](https://github.com/protofire/livepeer-alerts-backend/issues/37)
+- Sdk graphql refactoring [#42](https://github.com/protofire/livepeer-alerts-backend/issues/42)
+
 ### Fixes
-- Change displayed decimals of earnings to 6
+- Earn values of emails are incorrect [#44](https://github.com/protofire/livepeer-alerts-backend/issues/44)
+- Telegram bot do not support fallback messages [#99](https://github.com/protofire/livepeer-alerts-backend/issues/99)
+- System is sending an email every hour [#64](https://github.com/protofire/livepeer-alerts-backend/issues/64)
+- Livepeer.tools page shows wrong info about transcoder reward call [#65](https://github.com/protofire/livepeer-alerts-backend/issues/65) 
+- Telegram bot is not always sending notifications [#70](https://github.com/protofire/livepeer-alerts-backend/issues/70) 
+- Duplicated pools [#111](https://github.com/protofire/livepeer-alerts-backend/issues/111)
+- Delegators not stored in delegates [#109](https://github.com/protofire/livepeer-alerts-backend/issues/109)
+- Circular dependencies [#108](https://github.com/protofire/livepeer-alerts-backend/issues/108) 
+
+## [1.2.2](https://github.com/protofire/livepeer-alerts-backend/compare/v1.2.1...v1.2.2) - (2019-07-16)
+### Fixes
+- Change displayed decimals of earnings to 6 [#96](https://github.com/protofire/livepeer-alerts-backend/pull/94)
 
 ## [1.2.1](https://github.com/protofire/livepeer-alerts-backend/compare/v1.2.0...v1.2.1) (2019-07-11)
 ### Fixes
