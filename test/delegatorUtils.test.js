@@ -367,14 +367,14 @@ describe('## DelegatorsUtils test', () => {
         delegator
       }
 
-      const shareReward1 = '1000'
-      const shareReward2 = '2000'
-      const shareReward3 = '3000'
-      const shareReward4 = '4000'
-      const shareReward5 = '5000'
-      const shareReward6 = '6000'
-      const shareReward7 = '7000'
-      const delegatorLastRoundReward = shareReward7
+      const shareReward1 = utils.unitAmountInTokenUnits('1000')
+      const shareReward2 = utils.unitAmountInTokenUnits('2000')
+      const shareReward3 = utils.unitAmountInTokenUnits('3000')
+      const shareReward4 = utils.unitAmountInTokenUnits('4000')
+      const shareReward5 = utils.unitAmountInTokenUnits('5000')
+      const shareReward6 = utils.unitAmountInTokenUnits('6000')
+      const shareReward7 = utils.unitAmountInTokenUnits('7000')
+      const delegatorLastRoundReward = utils.tokenAmountInUnits(shareReward7)
 
       const share1 = testUtil.createShare(delegatorAddress, '1', shareReward1)
       const share2 = testUtil.createShare(delegatorAddress, '2', shareReward2)
@@ -385,7 +385,7 @@ describe('## DelegatorsUtils test', () => {
       const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
 
       const delegator7RoundsRewards = '28000'
-      const delegator30RoundsRewards = new Big(0) // Because there are only 7/30 rewards
+      const delegator30RoundsRewards = '0' // Because there are only 7/30 rewards
 
       const poolReward1 = utils.unitAmountInTokenUnits('1000')
       const poolReward2 = utils.unitAmountInTokenUnits('2000')
@@ -478,14 +478,14 @@ describe('## DelegatorsUtils test', () => {
         delegator
       }
 
-      const shareReward1 = '1000'
-      const shareReward2 = '2000'
-      const shareReward3 = '3000'
-      const shareReward4 = '4000'
-      const shareReward5 = '5000'
-      const shareReward6 = '6000'
-      const shareReward7 = '7000'
-      const delegatorLastRoundReward = shareReward7
+      const shareReward1 = utils.unitAmountInTokenUnits('1000')
+      const shareReward2 = utils.unitAmountInTokenUnits('2000')
+      const shareReward3 = utils.unitAmountInTokenUnits('3000')
+      const shareReward4 = utils.unitAmountInTokenUnits('4000')
+      const shareReward5 = utils.unitAmountInTokenUnits('5000')
+      const shareReward6 = utils.unitAmountInTokenUnits('6000')
+      const shareReward7 = utils.unitAmountInTokenUnits('7000')
+      const delegatorLastRoundReward = utils.tokenAmountInUnits(shareReward7)
 
       const share1 = testUtil.createShare(delegatorAddress, '1', shareReward1)
       const share2 = testUtil.createShare(delegatorAddress, '2', shareReward2)
@@ -496,7 +496,7 @@ describe('## DelegatorsUtils test', () => {
       const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
 
       const delegator7RoundsRewards = '28000'
-      const delegator30RoundsRewards = new Big(0) // Because there are only 7/30 rewards
+      const delegator30RoundsRewards = '0' // Because there are only 7/30 rewards
 
       const resultExpected = {
         nextReward: {
@@ -579,14 +579,14 @@ describe('## DelegatorsUtils test', () => {
         delegator
       }
 
-      const shareReward1 = '1000'
-      const shareReward2 = '2000'
-      const shareReward3 = '3000'
-      const shareReward4 = '4000'
-      const shareReward5 = '5000'
-      const shareReward6 = '6000'
-      const shareReward7 = '7000'
-      const delegatorLastRoundReward = shareReward7
+      const shareReward1 = utils.unitAmountInTokenUnits('1000')
+      const shareReward2 = utils.unitAmountInTokenUnits('2000')
+      const shareReward3 = utils.unitAmountInTokenUnits('3000')
+      const shareReward4 = utils.unitAmountInTokenUnits('4000')
+      const shareReward5 = utils.unitAmountInTokenUnits('5000')
+      const shareReward6 = utils.unitAmountInTokenUnits('6000')
+      const shareReward7 = utils.unitAmountInTokenUnits('7000')
+      const delegatorLastRoundReward = utils.tokenAmountInUnits(shareReward7)
 
       const share1 = testUtil.createShare(delegatorAddress, '1', shareReward1)
       const share2 = testUtil.createShare(delegatorAddress, '2', shareReward2)
@@ -596,8 +596,8 @@ describe('## DelegatorsUtils test', () => {
       const share6 = testUtil.createShare(delegatorAddress, '6', shareReward6)
       const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
 
-      const delegator7RoundsRewards = new Big(0) // Because there are only 6/7 rewards
-      const delegator30RoundsRewards = new Big(0) // Because there are only 7/30 rewards
+      const delegator7RoundsRewards = '0' // Because there are only 6/7 rewards
+      const delegator30RoundsRewards = '0' // Because there are only 7/30 rewards
 
       const resultExpected = {
         nextReward: {
