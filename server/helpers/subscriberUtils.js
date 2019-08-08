@@ -5,7 +5,6 @@ const {
   WEEKLY_FREQUENCY,
   DAILY_FREQUENCY
 } = require('../../config/constants')
-const promiseRetry = require('promise-retry')
 
 /**
  * Looks for a subscriptor with the given address and email
