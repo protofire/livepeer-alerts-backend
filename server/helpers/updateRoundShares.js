@@ -39,7 +39,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
   }
 
   // Creates the share object
-  const { totalStake } = delegator
+  const { totalStake, delegate } = delegator
   const shareId = `${delegatorAddress}-${roundId}`
   const rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
     roundId,
@@ -52,7 +52,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     rewardTokens,
     totalStakeOnRound: totalStake,
     delegator: delegatorAddress,
-    delegate: delegatorAddress,
+    delegate: delegate,
     round: roundId
   })
   // Checks that the share does not already exists
