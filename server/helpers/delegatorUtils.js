@@ -263,6 +263,8 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   const lastRoundStartValue = currentRound - 1
   const last7RoundStartValue = currentRound - 7
   const last30RoundStartValue = currentRound - 30
+  let amountOfSharesFor7RoundsAvailable = 0
+  let amountOfSharesFor30RoundsAvailable = 0
 
   delegatorShares.forEach(share => {
     if (share.round === lastRoundStartValue.toString()) {
@@ -270,11 +272,28 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     }
     if (share.round >= last7RoundStartValue.toString()) {
       delegator7RoundsRewards = utils.MathBN.add(delegator7RoundsRewards, share.rewardTokens)
+      amountOfSharesFor7RoundsAvailable++
     }
     if (share.round >= last30RoundStartValue.toString()) {
       delegator30RoundsRewards = utils.MathBN.add(delegator30RoundsRewards, share.rewardTokens)
+      amountOfSharesFor30RoundsAvailable++
     }
   })
+
+  // Only calculates 7 rounds rewards if on every round of the 7 rounds there are shares, otherwise returns 0
+  if (amountOfSharesFor7RoundsAvailable !== 7) {
+    console.log(
+      `[DelegatorUtils] - not enough rounds shares for displaying 7 rounds shares, amount available: ${amountOfSharesFor7RoundsAvailable}`
+    )
+    delegator7RoundsRewards = new Big(0)
+  }
+  // Only calculates 30 rounds rewards if on every round of the 30 rounds there are shares, otherwise returns 0
+  if (amountOfSharesFor30RoundsAvailable !== 30) {
+    console.log(
+      `[DelegatorUtils] - not enough rounds shares for displaying 30 rounds shares, amount available: ${amountOfSharesFor30RoundsAvailable}`
+    )
+    delegator30RoundsRewards = new Big(0)
+  }
 
   let delegateLastRoundReward = new Big(0)
   let delegate7RoundsRewards = new Big(0)
@@ -296,12 +315,7 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
   delegate7RoundsRewards = utils.tokenAmountInUnits(delegate7RoundsRewards)
   delegate30RoundsRewards = utils.tokenAmountInUnits(delegate30RoundsRewards)
-  // Disabled to test the shares formated values, once severals rounds passed and the results seems ok, this code should be deleted
-  /*
-  delegatorLastRoundReward = utils.tokenAmountInUnits(delegatorLastRoundReward)
-  delegator7RoundsRewards = utils.tokenAmountInUnits(delegator7RoundsRewards)
-  delegator30RoundsRewards = utils.tokenAmountInUnits(delegator30RoundsRewards)
-   */
+
   return {
     nextReward: {
       delegatorReward: delegatorNextReward,
