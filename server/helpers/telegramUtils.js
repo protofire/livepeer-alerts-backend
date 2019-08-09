@@ -107,11 +107,18 @@ const getDelegatorTelegramBody = async subscriber => {
       const fileTemplateBonded = path.join(__dirname, filenameBonded)
       const sourceBonded = fs.readFileSync(fileTemplateBonded, 'utf8')
 
-      const earningNextReturn = await Share.getDelegatorShareAmountOnRound(
+      let earningNextReturn = await Share.getDelegatorShareAmountOnRound(
         currentRound,
         delegator.address
       )
-
+      earningNextReturn = utils.tokenAmountInUnits(earningNextReturn)
+      // If there are no shares for that user, return the next delegatorReward as default
+      if (earningNextReturn === '0') {
+        console.error(
+          `[Telegram-utils] - share for round ${currentRound} of delegator ${delegator.address} not found, returning next reward`
+        )
+        earningNextReturn = await delegatorService.getDelegatorNextReward(delegator.address)
+      }
       // Calculate earned lpt
       const lptEarned = utils.formatBalance(earningNextReturn, earningDecimals, 'wei')
 

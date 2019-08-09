@@ -1,6 +1,5 @@
 const promiseRetry = require('promise-retry')
 const mongoose = require('../../../config/mongoose')
-const { getProtocolService } = require('../services/protocolService')
 const utils = require('../utils')
 const subscriberUtils = require('../subscriberUtils')
 const delegatorEmailUtils = require('../sendDelegatorEmail')
@@ -8,8 +7,9 @@ const delegatorTelegramUtils = require('../sendDelegatorTelegram')
 const delegatorsUtils = require('../delegatorUtils')
 const Share = require('../../share/share.model')
 const { DAILY_FREQUENCY, WEEKLY_FREQUENCY } = require('../../../config/constants')
+const { getProtocolService } = require('../services/protocolService')
 const { getDelegateService } = require('../services/delegateService')
-
+const { getDelegatorService } = require('../services/delegatorService')
 const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   if (!currentRoundInfo) {
     throw new Error('No currentRoundInfo provided on sendEmailRewardCallNotificationToDelegators()')
@@ -20,6 +20,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   let emailsToSend = []
   const protocolService = getProtocolService()
   const delegateService = getDelegateService()
+  const delegatorService = getDelegatorService()
 
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
@@ -59,13 +60,20 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
 
       if (subscriber.emailFrequency === DAILY_FREQUENCY) {
         // If daily subscription send normal email
-        const [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
+        let [delegateCalledReward, delegatorRoundReward] = await promiseRetry(retry => {
           return Promise.all([
             delegateService.getDidDelegateCalledReward(delegator.delegateAddress),
             Share.getDelegatorShareAmountOnRound(currentRoundInfo.id, delegator.address)
           ]).catch(err => retry())
         })
-
+        delegatorRoundReward = utils.tokenAmountInUnits(delegatorRoundReward)
+        // If there are no shares for that user, return the next delegatorReward as default
+        if (delegatorRoundReward === '0') {
+          console.error(
+            `[Notificate-Delegators] - share for round ${currentRoundId} of delegator ${delegator.address} not found, returning next reward`
+          )
+          delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegator.address)
+        }
         delegatorTemplateData = {
           delegateCalledReward,
           delegatorRoundReward

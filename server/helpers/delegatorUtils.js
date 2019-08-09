@@ -356,19 +356,21 @@ const getWeeklySharesPerRound = async (delegatorAddress, currentRound) => {
     new Big('0')
   )
 
-  const totalDelegatorShares = new Big(totalDelegatorSharesWithoutDecimals).toFixed(
-    TO_FIXED_VALUES_DECIMALS
-  )
-
-  const averageShares = utils.MathBN.divAsBig(totalDelegatorShares, 7).toFixed(
-    TO_FIXED_VALUES_DECIMALS
-  )
-
-  // Formats shares to 4 decimals
+  let totalDelegatorShares = new Big(totalDelegatorSharesWithoutDecimals)
+  let averageShares = utils.MathBN.divAsBig(totalDelegatorShares, 7)
+  // Format totalDelegatorShares in token units
+  totalDelegatorShares = utils.tokenAmountInUnits(totalDelegatorShares)
+  totalDelegatorShares = new Big(totalDelegatorShares).toFixed(TO_FIXED_VALUES_DECIMALS)
+  // Formats average shares in token units
+  averageShares = utils.tokenAmountInUnits(averageShares)
+  averageShares = new Big(averageShares).toFixed(TO_FIXED_VALUES_DECIMALS)
+  // Formats shares to 4 decimals and in token units
   delegatorShares.forEach(shareElement => {
-    const newReward = new Big(shareElement.rewardTokens)
-    shareElement.rewardTokens = newReward.toFixed(TO_FIXED_VALUES_DECIMALS)
+    let newReward = utils.tokenAmountInUnits(shareElement.rewardTokens)
+    newReward = new Big(newReward).toFixed(TO_FIXED_VALUES_DECIMALS)
+    shareElement.rewardTokens = newReward
   })
+
   return {
     weekRoundShares: delegatorShares,
     averageShares,
