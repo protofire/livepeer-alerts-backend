@@ -20,7 +20,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
   let emailsToSend = []
   const protocolService = getProtocolService()
   const delegateService = getDelegateService()
-  const delegatorService = getDelegatorService
+  const delegatorService = getDelegatorService()
 
   const [constants] = await promiseRetry(retry => {
     return Promise.all([protocolService.getLivepeerDefaultConstants()]).catch(err => retry())
