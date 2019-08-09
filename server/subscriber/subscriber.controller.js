@@ -72,6 +72,7 @@ const create = async (req, res, next) => {
         // Get round info
         const protocolService = getProtocolService()
         const delegateService = getDelegateService()
+        const delegatorService = getDelegatorService()
         const currentRoundInfo = await protocolService.getCurrentRoundInfo()
         const currentRound = currentRoundInfo.id
 
@@ -94,10 +95,18 @@ const create = async (req, res, next) => {
         if (role === constants.ROLE.DELEGATOR) {
           const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
 
-          const delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
+          let delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
             currentRound,
             delegator.address
           )
+          delegatorRoundReward = utils.tokenAmountInUnits(delegatorRoundReward)
+          // If there are no shares for that user, return the next delegatorReward as default
+          if (delegatorRoundReward === '0') {
+            console.error(
+              `[Notificate-Delegators] - share for round ${currentRound} of delegator ${delegator.address} not found, returning next reward`
+            )
+            delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegator.address)
+          }
 
           const delegatorTemplateData = {
             delegateCalledReward,
