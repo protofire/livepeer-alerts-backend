@@ -69,6 +69,18 @@ The API is described in details on the [API](https://github.com/protofire/livepe
 ## Notifications
 [Livepeer state machine](https://i.ibb.co/p40HyHc/Livepeer-state-machine2.png) diagram used to send emails.
 
+| Notification  |   Sended to   |   Sended at   |
+| ------------- | ------------- | ------------- |
+| Delegate claim reward call | Delegator, needs to be bonded | The subscription and at the beginning of the round  |
+| Delegate not claim reward call | Delegator, needs to be bonded | The subscription and at the beginning of the round |
+| Delegator is in unbonded state | Delegator | The subscription and at the beginning of the round |
+| Delegator is in unbonding state, notify rounds left to bond | Delegator | At the beginning of the round |
+| Delegate change the rules | Delegator | When the delegate change the rules |
+| Delegator is ready to bond | Delegator | When the status change from pending to bonded |
+| Delegate did reward call | Delegate | The subscription and at the beginning of the round  |
+| Delegate not did reward call | Delegate | The subscription and at the beginning of the round  |
+| Weekly earned LPT | Delegator | The subscription and after 7 rounds  |
+
 ## Contributing
 Please read [CONTRIBUTING.md](https://github.com/protofire/livepeer-alerts-backend/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
