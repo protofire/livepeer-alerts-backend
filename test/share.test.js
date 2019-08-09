@@ -100,12 +100,12 @@ describe('## Share static methods test', () => {
       // then
       expect(expectedThrow).equal(throwedError)
     })
-    it('If the delegator has no shares on the last round, should return the delegatorNextReward', async () => {
+    it('If the delegator has no shares on the last round, should return null', async () => {
       // given
       const roundId = '1'
       const delegatorAddress = '1'
       const currentDelegatorTotalStake = '1000'
-      const resultExpected = 0
+      const resultExpected = null
 
       const shareMock = sinon.mock(Share)
 
