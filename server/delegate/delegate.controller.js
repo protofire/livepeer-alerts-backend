@@ -1,4 +1,4 @@
-/**
+/**
  * Handler for delegates
  * @returns {Delegate}
  */
