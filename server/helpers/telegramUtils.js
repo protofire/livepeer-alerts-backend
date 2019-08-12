@@ -161,7 +161,9 @@ const getDelegatorTelegramBody = async subscriber => {
 
       // Create telegram generator
       const templatePending = Handlebars.compile(sourcePending)
-      body = templatePending()
+      body = templatePending({
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+      })
       break
 
     case constants.DELEGATOR_STATUS.Unbonding:
