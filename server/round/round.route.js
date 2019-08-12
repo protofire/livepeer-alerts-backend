@@ -9,7 +9,7 @@ router
   .get(list)
 router
   .route('/protocol')
-  /** GET /api/rounds - Get list of rounds */
+  /** GET /api/rounds/protocol - Get round info */
   .get(protocolInfo)
 
 module.exports = router
