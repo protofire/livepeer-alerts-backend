@@ -255,6 +255,8 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
   const last30RoundStartValue = currentRound - 30
   let amountOfSharesFor7RoundsAvailable = 0
   let amountOfSharesFor30RoundsAvailable = 0
+  let amountOfPoolsFor7RoundsAvailable = 0
+  let amountOfPoolsFor30RoundsAvailable = 0
 
   delegatorShares.forEach(share => {
     if (share.round === lastRoundStartValue.toString()) {
@@ -295,11 +297,28 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     }
     if (pool.round >= last7RoundStartValue.toString()) {
       delegate7RoundsRewards = utils.MathBN.add(delegate7RoundsRewards, pool.rewardTokens)
+      amountOfPoolsFor7RoundsAvailable++
     }
     if (pool.round >= last30RoundStartValue.toString()) {
       delegate30RoundsRewards = utils.MathBN.add(delegate30RoundsRewards, pool.rewardTokens)
+      amountOfPoolsFor30RoundsAvailable++
     }
   })
+
+  // Only calculates 7 rounds rewards if on every round of the 7 rounds there are pools, otherwise returns 0
+  if (amountOfPoolsFor7RoundsAvailable !== 7) {
+    console.log(
+      `[DelegatorUtils] - not enough rounds pools for displaying 7 rounds pools, amount available: ${amountOfPoolsFor7RoundsAvailable}`
+    )
+    delegate7RoundsRewards = new Big(0)
+  }
+  // Only calculates 30 rounds rewards if on every round of the 30 rounds there are pools, otherwise returns 0
+  if (amountOfPoolsFor30RoundsAvailable !== 30) {
+    console.log(
+      `[DelegatorUtils] - not enough rounds pools for displaying 30 rounds pools, amount available: ${amountOfPoolsFor30RoundsAvailable}`
+    )
+    delegate30RoundsRewards = new Big(0)
+  }
 
   // Formats the values to token units
   delegateLastRoundReward = utils.tokenAmountInUnits(delegateLastRoundReward)
