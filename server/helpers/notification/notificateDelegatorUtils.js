@@ -91,13 +91,13 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
       }
 
       emailsToSend.push(
-        delegatorEmailUtils.sendDelegatorNotificationEmail(
+        delegatorEmailUtils.sendDelegatorNotificationEmail({
           subscriber,
           delegator,
           currentRoundInfo,
           constants,
           delegatorTemplateData
-        )
+        })
       )
 
       // If weekly subscription, send summary email

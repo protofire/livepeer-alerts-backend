@@ -15,6 +15,7 @@ const {
   sendgridTemplateIdClaimRewardCallPayAttention,
   sendgridTemplateIdClaimRewardUnbondedState,
   sendgridTemplateIdClaimRewardUnbondingState,
+  sendgridTemplateIdClaimRewardPendingState,
   sendgridTemplateIdNotificationDelegateChangeRules,
   sendgrindTemplateIdDelegatorWeeklySummary,
   sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
@@ -52,13 +53,16 @@ const sendEmail = async (email, templateId, dynamicTemplateData) => {
   return
 }
 
-const getBodyAndTemplateIdBasedOnDelegatorStatus = (
-  subscriber,
-  delegator,
-  constants,
-  currentRoundInfo,
-  delegatorTemplateData
-) => {
+const getBodyAndTemplateIdBasedOnDelegatorStatus = data => {
+  const {
+    subscriber,
+    delegator,
+    constants,
+    currentRoundInfo,
+    delegatorTemplateData,
+    isNewSubscriber = false
+  } = data
+
   if (!subscriber) {
     throw new Error(
       `[SendDelegatorEmail] - subscriber not received on getBodyAndTemplateIdBasedOnDelegatorStatus()`
@@ -88,6 +92,13 @@ const getBodyAndTemplateIdBasedOnDelegatorStatus = (
 
       templateId = sendgridTemplateIdClaimRewardUnbondedState
       break
+    case constants.DELEGATOR_STATUS.Pending:
+      body = {
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+      }
+
+      templateId = sendgridTemplateIdClaimRewardPendingState
+      break
     case constants.DELEGATOR_STATUS.Unbonding:
       templateId = sendgridTemplateIdClaimRewardUnbondingState
 
@@ -103,17 +114,17 @@ const getBodyAndTemplateIdBasedOnDelegatorStatus = (
       }
       break
     case constants.DELEGATOR_STATUS.Bonded:
-      if (subscriber.emailFrequency === DAILY_FREQUENCY) {
-        const result = getDailyTemplate(
+      if (subscriber.emailFrequency === DAILY_FREQUENCY || isNewSubscriber) {
+        const result = getDailyTemplate({
           subscriber,
           delegator,
-          currentRoundInfo.id,
+          currentRound: currentRoundInfo.id,
           delegatorTemplateData
-        )
+        })
         body = result.body
         templateId = result.templateId
       }
-      if (subscriber.emailFrequency === WEEKLY_FREQUENCY) {
+      if (subscriber.emailFrequency === WEEKLY_FREQUENCY && !isNewSubscriber) {
         const result = getWeeklyTemplate(delegatorTemplateData)
         body = result.body
         templateId = result.templateId
@@ -125,7 +136,9 @@ const getBodyAndTemplateIdBasedOnDelegatorStatus = (
   return { templateId, body }
 }
 
-const getDailyTemplate = (subscriber, delegator, currentRound, delegatorTemplateData) => {
+const getDailyTemplate = data => {
+  const { subscriber, delegator, currentRound, delegatorTemplateData } = data
+
   if (!subscriber) {
     throw new Error(`[SendDelegatorEmail] - subscriber not received on getDailyTemplate()`)
   }
@@ -193,13 +206,23 @@ const getWeeklyTemplate = delegatorTemplateData => {
     totalDelegatorShares,
     averageShares,
     missedRewardCalls,
-    weekRoundShares,
+    weekRoundShares = [],
     fromDateCardinal,
     toDateCardinal,
     startRoundDate,
     endRoundDate
   } = delegatorTemplateData
-  const [share1, share2, share3, share4, share5, share6, share7] = weekRoundShares
+
+  const [
+    share1 = 0,
+    share2 = 0,
+    share3 = 0,
+    share4 = 0,
+    share5 = 0,
+    share6 = 0,
+    share7 = 0
+  ] = weekRoundShares
+
   const body = {
     totalRounds,
     totalDelegatePools,
@@ -218,6 +241,7 @@ const getWeeklyTemplate = delegatorTemplateData => {
     startRoundDate,
     endRoundDate
   }
+
   return {
     body,
     templateId: sendgrindTemplateIdDelegatorWeeklySummary
@@ -258,21 +282,10 @@ const getRulesChangedTemplate = (subscriberAddress, delegateAddress, propertiesC
   return body
 }
 
-const sendDelegatorNotificationEmail = async (
-  subscriber,
-  delegator,
-  currentRoundInfo,
-  constants,
-  delegatorTemplateData
-) => {
+const sendDelegatorNotificationEmail = async data => {
+  const { subscriber, currentRoundInfo } = data
   try {
-    const { templateId, body } = getBodyAndTemplateIdBasedOnDelegatorStatus(
-      subscriber,
-      delegator,
-      constants,
-      currentRoundInfo,
-      delegatorTemplateData
-    )
+    const { templateId, body } = getBodyAndTemplateIdBasedOnDelegatorStatus(data)
 
     await sendEmail(subscriber.email, templateId, body)
 
