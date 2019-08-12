@@ -41,11 +41,18 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
   // Creates the share object
   const { totalStake, delegate } = delegator
   const shareId = `${delegatorAddress}-${roundId}`
-  const rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
+  let rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
     roundId,
     delegatorAddress,
     totalStake
   )
+  if (!rewardTokens) {
+    // If the delegate has no shares for the given round, the reward tokens should be 0
+    console.log(
+      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving 0 instead`
+    )
+    rewardTokens = '0'
+  }
 
   let newSavedShared = new Share({
     _id: shareId,

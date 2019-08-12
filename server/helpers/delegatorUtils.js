@@ -43,12 +43,9 @@ const getDelegatorCurrentRewardTokens = async (
   const lastRoundId = currentRoundId - 1
   const lastDelegatorShareId = `${delegatorAddress}-${lastRoundId}`
   const lastDelegatorShare = await Share.findById(lastDelegatorShareId)
-  // The first time we register the delegator on the db, he won't have any shares, we save as default value, the delegatorNextReward (an approximation of how much the delegator has obtained)
+  // The first time we register the delegator on the db, he won't have any shares
   if (!lastDelegatorShare) {
-    const { getDelegatorService } = require('../helpers/services/delegatorService')
-    const delegatorService = getDelegatorService()
-    console.error('[Delegator utils] - last share not found')
-    return await delegatorService.getDelegatorNextReward(delegatorAddress)
+    return null
   }
   const newShare = utils.MathBN.sub(
     currentDelegatorTotalStake,
