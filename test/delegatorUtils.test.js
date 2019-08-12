@@ -421,7 +421,7 @@ describe('## DelegatorsUtils test', () => {
       const pool7 = testUtil.createShare(delegateAddress, '7', poolReward7)
       const delegateLastRoundReward = utils.tokenAmountInUnits(poolReward7)
       const delegate7RoundsRewards = '28000'
-      const delegate30RoundsRewards = '28000' // Because there are only 7 rewards, should be the same as 7 rounds rewards
+      const delegate30RoundsRewards = '0' // Because there are only 7/30 rewards
 
       const resultExpected = {
         nextReward: {
@@ -478,6 +478,7 @@ describe('## DelegatorsUtils test', () => {
       getDelegateLastXPoolsStub.restore()
       getCurrentRoundStub.restore()
     })
+
     it('Returns delegatorSummary with 0 on delegator last30RoundsRewards if there are no at least more than 30 shares to calculate it', async () => {
       // given
       const delegatorAddress = 1
@@ -513,7 +514,6 @@ describe('## DelegatorsUtils test', () => {
       const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
 
       const delegator7RoundsRewards = '28000'
-      const delegator30RoundsRewards = '0' // Because there are only 7/30 rewards
 
       const resultExpected = {
         nextReward: {
@@ -530,13 +530,12 @@ describe('## DelegatorsUtils test', () => {
         },
 
         last30RoundsReward: {
-          delegatorReward: delegator30RoundsRewards,
-          delegateReward: delegateMockReward
+          delegatorReward: '0',
+          delegateReward: '0'
         }
       }
 
       const delegatorShares = [share1, share2, share3, share4, share5, share6, share7]
-      const logExpectation1 = `[DelegatorUtils] - not enough rounds shares for displaying 30 rounds shares, amount available: ${delegatorShares.length}`
       const delegatePools = []
       const delegatorService = getDelegatorService()
       const protocolService = getProtocolService()
@@ -556,18 +555,11 @@ describe('## DelegatorsUtils test', () => {
       const getCurrentRoundStub = sinon
         .stub(protocolService, 'getCurrentRound')
         .resolves(currentRound)
-      // Mocks console
-      const consoleLogMock = sinon.mock(console)
-      const expectationConsole1 = consoleLogMock
-        .expects('log')
-        .once()
-        .withArgs(logExpectation1)
 
       // when
       const result = await delegatorUtils.getDelegatorSummary30RoundsRewards(delegatorAddress)
       // then
       expect(result).to.deep.equal(resultExpected)
-      consoleLogMock.verify()
       expect(getDelegatorAndDelegateNextRewardStub.called)
       expect(getDelegatorLastXSharesStub.called)
       expect(getDelegateLastXPoolsStub.called)
@@ -577,8 +569,8 @@ describe('## DelegatorsUtils test', () => {
       getDelegatorLastXSharesStub.restore()
       getDelegateLastXPoolsStub.restore()
       getCurrentRoundStub.restore()
-      consoleLogMock.restore()
     })
+
     it('Returns delegatorSummary with 0 on delegator last7RoundsRewards if there are no at least more than 7 shares to calculate it', async () => {
       // given
       const delegatorAddress = 1
@@ -613,9 +605,6 @@ describe('## DelegatorsUtils test', () => {
       const share6 = testUtil.createShare(delegatorAddress, '6', shareReward6)
       const share7 = testUtil.createShare(delegatorAddress, '7', shareReward7)
 
-      const delegator7RoundsRewards = '0' // Because there are only 6/7 rewards
-      const delegator30RoundsRewards = '0' // Because there are only 7/30 rewards
-
       const resultExpected = {
         nextReward: {
           delegatorReward: delegatorNextReward,
@@ -626,19 +615,21 @@ describe('## DelegatorsUtils test', () => {
           delegateReward: delegateMockReward
         },
         last7RoundsReward: {
-          delegatorReward: delegator7RoundsRewards,
-          delegateReward: delegateMockReward
+          delegatorReward: '0',
+          delegateReward: '0'
         },
 
         last30RoundsReward: {
-          delegatorReward: delegator30RoundsRewards,
-          delegateReward: delegateMockReward
+          delegatorReward: '0',
+          delegateReward: '0'
         }
       }
 
       const delegatorShares = [share1, share2, share3, share4, share6, share7]
-      const logExpectation1 = `[DelegatorUtils] - not enough rounds shares for displaying 30 rounds shares, amount available: ${delegatorShares.length}`
-      const logExpectation2 = `[DelegatorUtils] - not enough rounds shares for displaying 7 rounds shares, amount available: ${delegatorShares.length}`
+      const logExpectation1 = `[DelegatorUtils] - not enough rounds shares for displaying 7 rounds shares, amount available: 6`
+      const logExpectation2 = `[DelegatorUtils] - not enough rounds shares for displaying 30 rounds shares, amount available: 6`
+      const logExpectation3 = `[DelegatorUtils] - not enough rounds pools for displaying 7 rounds pools, amount available: 0`
+      const logExpectation4 = `[DelegatorUtils] - not enough rounds pools for displaying 30 rounds pools, amount available: 0`
       const delegatePools = []
       const delegatorService = getDelegatorService()
       const protocolService = getProtocolService()
@@ -668,6 +659,14 @@ describe('## DelegatorsUtils test', () => {
         .expects('log')
         .once()
         .withArgs(logExpectation2)
+      const expectationConsole3 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation3)
+      const expectationConsole4 = consoleLogMock
+        .expects('log')
+        .once()
+        .withArgs(logExpectation4)
 
       // when
       const result = await delegatorUtils.getDelegatorSummary30RoundsRewards(delegatorAddress)
