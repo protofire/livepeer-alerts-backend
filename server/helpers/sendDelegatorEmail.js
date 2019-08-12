@@ -15,6 +15,7 @@ const {
   sendgridTemplateIdClaimRewardCallPayAttention,
   sendgridTemplateIdClaimRewardUnbondedState,
   sendgridTemplateIdClaimRewardUnbondingState,
+  sendgridTemplateIdClaimRewardPendingState,
   sendgridTemplateIdNotificationDelegateChangeRules,
   sendgrindTemplateIdDelegatorWeeklySummary,
   sendgridTemplateIdNotificationDelegatorBondingPeriodHasEnded,
@@ -90,6 +91,13 @@ const getBodyAndTemplateIdBasedOnDelegatorStatus = data => {
       subscriber.save().then(doc => {})
 
       templateId = sendgridTemplateIdClaimRewardUnbondedState
+      break
+    case constants.DELEGATOR_STATUS.Pending:
+      body = {
+        delegatingStatusUrl: `https://explorer.livepeer.org/accounts/${subscriber.address}/delegating`
+      }
+
+      templateId = sendgridTemplateIdClaimRewardPendingState
       break
     case constants.DELEGATOR_STATUS.Unbonding:
       templateId = sendgridTemplateIdClaimRewardUnbondingState
