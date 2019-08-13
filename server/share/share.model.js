@@ -55,7 +55,7 @@ ShareSchema.statics = {
   async getDelegatorShareAmountOnRound(roundId, delegatorAddress) {
     if (!roundId || !delegatorAddress) {
       console.error('[ShareSchema] - the roundId or delegatorAddress provided are not defined')
-      return null
+      return 0
     }
     const roundShare = await this.findOne({ delegator: delegatorAddress, round: roundId })
     // If there are no shares for that user, returns 0

@@ -68,7 +68,7 @@ const sendEmailRewardCallNotificationToDelegators = async currentRoundInfo => {
         })
         delegatorRoundReward = utils.tokenAmountInUnits(delegatorRoundReward)
         // If there are no shares for that user, return the next delegatorReward as default
-        if (delegatorRoundReward === '0') {
+        if (!delegatorRoundReward || delegatorRoundReward === '0') {
           console.error(
             `[Notificate-Delegators] - share for round ${currentRoundId} of delegator ${delegator.address} not found, returning next reward`
           )

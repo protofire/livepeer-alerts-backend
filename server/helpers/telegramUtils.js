@@ -113,7 +113,7 @@ const getDelegatorTelegramBody = async subscriber => {
       )
       earningNextReturn = utils.tokenAmountInUnits(earningNextReturn)
       // If there are no shares for that user, return the next delegatorReward as default
-      if (earningNextReturn === '0') {
+      if (!earningNextReturn || earningNextReturn === '0') {
         console.error(
           `[Telegram-utils] - share for round ${currentRound} of delegator ${delegator.address} not found, returning next reward`
         )
