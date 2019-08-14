@@ -1,3 +1,5 @@
+const { DAILY_FREQUENCY } = require('../../config/constants')
+
 const mongoose = require('mongoose')
 const httpStatus = require('http-status')
 const APIError = require('../helpers/APIError')
@@ -15,9 +17,15 @@ let SubscriberSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  frequency: {
+  emailFrequency: {
     type: String,
-    required: true
+    required: true,
+    default: DAILY_FREQUENCY
+  },
+  telegramFrequency: {
+    type: String,
+    required: false,
+    default: DAILY_FREQUENCY
   },
   telegramChatId: {
     type: String,
@@ -36,12 +44,29 @@ let SubscriberSchema = new mongoose.Schema({
       return Math.floor(Math.random() * 900000000300000000000) + 1000000000000000
     }
   },
-  lastEmailSent: {
-    type: Date,
+  // References the roundID in which the last email was sent for the unbonded status
+  lastEmailSentForUnbondedStatus: {
+    type: String,
     default: null
   },
+  // References the roundID in which the last email was sent
+  lastEmailSent: {
+    type: String,
+    default: null
+  },
+  // References the roundID in which the last telegram was sent
   lastTelegramSent: {
-    type: Date,
+    type: String,
+    default: null
+  },
+  // References the roundID in which the last pending to bonding period email was sent
+  lastPendingToBondingPeriodEmailSent: {
+    type: String,
+    default: null
+  },
+  // References the roundID in which the last pending to bonding period email was sent
+  lastPendingToBondingPeriodTelegramSent: {
+    type: String,
     default: null
   },
   createdAt: {
@@ -124,20 +149,6 @@ SubscriberSchema.statics = {
       .exec()
   },
 
-  /**
-   * Get subscribers to notify
-   * @param {number} skip - Number of subscribers to be skipped.
-   * @param {number} limit - Limit number of subscribers to be returned.
-   * @returns {Promise<Subscriber[]>}
-   */
-  getSubscribers(frequency) {
-    return this.find({ frequency: frequency, activated: 1 })
-      .exec()
-      .then(subscribers => {
-        return subscribers
-      })
-  },
-
   removeAll() {
     return this.remove({})
       .exec()
@@ -147,44 +158,6 @@ SubscriberSchema.statics = {
         }
         return Promise.reject(new Error('Cant remove subscribers'))
       })
-  },
-
-  async getDelegatorSubscribers() {
-    const { getSubscriptorRole } = require('../helpers/utils')
-    const delegatorsList = []
-    const rolesCheckPromise = []
-    const allSubscribers = await this.find()
-    if (allSubscribers) {
-      for (let subscriberIterator of allSubscribers) {
-        const newRolePromise = getSubscriptorRole(subscriberIterator).then(result => {
-          const { constants, role, delegator } = result
-          if (role === constants.ROLE.DELEGATOR) {
-            delegatorsList.push({
-              subscriber: subscriberIterator,
-              delegator
-            })
-          }
-        })
-        rolesCheckPromise.push(newRolePromise)
-      }
-      await Promise.all(rolesCheckPromise)
-    }
-    return delegatorsList
-  },
-
-  async getListOfDelegateAddressAndDelegatorAddress() {
-    const subscribersDelegators = await this.getDelegatorSubscribers()
-    const list = []
-    for (let subscriberIterator of subscribersDelegators) {
-      const { delegator, subscriber } = subscriberIterator
-      const item = {
-        subscriber,
-        delegatorAddress: delegator.address,
-        delegateAddress: delegator.delegateAddress
-      }
-      list.push(item)
-    }
-    return list
   }
 }
 

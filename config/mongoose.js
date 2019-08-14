@@ -1,14 +1,18 @@
 const mongoose = require('mongoose')
 const config = require('./config')
 
-Promise = require('bluebird') // eslint-disable-line no-global-assign
-
-// plugin bluebird promise in mongoose
-mongoose.Promise = Promise
-
 // connect to mongo db
 const mongoUri = config.mongo.host
-mongoose.connect(mongoUri, { useNewUrlParser: true, keepAlive: true, useCreateIndex: true })
+mongoose.connect(mongoUri, {
+  useNewUrlParser: true,
+  keepAlive: true,
+  useCreateIndex: true,
+  writeConcern: {
+    w: 0
+  },
+  // MongoDB findAndModify is deprecated, this should be used to disable it
+  useFindAndModify: false
+})
 mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${mongoUri}`)
 })

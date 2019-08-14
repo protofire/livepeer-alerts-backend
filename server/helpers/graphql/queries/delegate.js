@@ -4,7 +4,7 @@ const gql = require('graphql-tag')
 const _ = require('lodash')
 
 // Returns the delegate summary, does not include rewards, ROI, missed reward calls or any calculated data
-const getDelegateSummary = async delegateAddress => {
+const getLivepeerDelegateAccount = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
       {
@@ -69,6 +69,31 @@ const getDelegateRewards = async delegateAddress => {
   return _.get(queryResult, 'data.rewards', null)
 }
 
+// TODO - Once integrated with Adam's graph, 'rewards' should be replaced with 'pools'
+const getPoolsPerRound = async roundNumber => {
+  const queryResult = await client.query({
+    query: gql`
+      {
+        rounds(orderBy: id, orderDirection: desc, where: { id: "${roundNumber}" }) {
+          id
+          initialized
+          length
+          lastInitializedRound
+          startBlock
+          rewards {
+            id
+            transcoder {
+              id
+            }
+            rewardTokens
+          }
+        }
+      }
+    `
+  })
+  return _.get(queryResult, 'data.rounds[0]', null)
+}
+
 const getDelegateTotalStake = async delegateAddress => {
   const queryResult = await client.query({
     query: gql`
@@ -83,7 +108,7 @@ const getDelegateTotalStake = async delegateAddress => {
   return _.get(queryResult, 'data.transcoder.totalStake', null)
 }
 
-const getLivepeerTranscoders = async () => {
+const getLivepeerDelegates = async () => {
   const queryResult = await client.query({
     query: gql`
       {
@@ -108,9 +133,10 @@ const getLivepeerTranscoders = async () => {
 }
 
 module.exports = {
-  getDelegateSummary,
+  getLivepeerDelegateAccount,
   getRegisteredDelegates,
   getDelegateRewards,
   getDelegateTotalStake,
-  getLivepeerTranscoders
+  getLivepeerDelegates,
+  getPoolsPerRound
 }

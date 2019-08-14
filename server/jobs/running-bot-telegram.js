@@ -1,25 +1,20 @@
-const Promise = require('bluebird')
-Promise.config({
-  cancellation: true
-})
-
 const TelegramBot = require('node-telegram-bot-api')
-const promiseRetry = require('promise-retry')
 const path = require('path')
 const mongoose = require('../../config/mongoose')
 const config = require('../../config/config')
-const { getTelegramClaimRewardCallBody } = require('../helpers/sendTelegramClaimRewardCall')
-const { getTelegramDidRewardCallBody } = require('../helpers/sendTelegramDidRewardCall')
+
 const {
-  subscribe,
-  unsubscribe,
-  getInstantAlert,
   getButtonsBySubscriptor,
-  subscriptionRemove,
-  subscriptionSave,
-  getSubscriptorRole,
-  getDidDelegateCallReward
-} = require('../helpers/utils')
+  findAddressFromChatId,
+  getTelegramBodyBySubscriptor,
+  getInstantAlert,
+  subscribe,
+  unsubscribe
+} = require('../helpers/telegramUtils')
+const {
+  createTelegramSubscriptor,
+  removeTelegramSubscription
+} = require('../helpers/subscriberUtils')
 
 const { NoAddressError } = require('../helpers/JobsErrors')
 const TelegramModel = require('../telegram/telegram.model')
@@ -30,39 +25,9 @@ const { telegramBotKey } = config
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(telegramBotKey, { polling: true })
 
-const findAddress = async chatId => {
-  const telegramModel = await TelegramModel.findOne({ chatId: chatId }).exec()
-  if (!telegramModel || !telegramModel.address) {
-    throw new NoAddressError()
-  }
-  return telegramModel.address
-}
-
-const getBodyBySubscriber = async subscriptor => {
-  // Starting
-  let { constants, delegator, role } = await getSubscriptorRole(subscriptor)
-
-  let data
-  if (role === constants.ROLE.TRANSCODER) {
-    // Check if the delegate didRewardCall
-    const [delegateCalledReward] = await promiseRetry(retry => {
-      return Promise.all([getDidDelegateCallReward(delegator.delegateAddress)]).catch(err =>
-        retry()
-      )
-    })
-
-    // OK, is a delegate, let's send notifications
-    data = getTelegramDidRewardCallBody({ delegateCalledReward })
-  } else {
-    // OK, is a delegator, let's send notifications
-    data = await getTelegramClaimRewardCallBody(subscriptor)
-  }
-
-  return data && data.body
-}
-
 // Start process
 bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
+  const telegramChatId = msg.chat.id
   try {
     const address = command
 
@@ -71,31 +36,23 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       throw new NoAddressError()
     }
 
-    // Save address an chatId
-    const subscriptorData = {
-      address: address,
-      chatId: msg.chat.id
-    }
-
     // Must exist only one subscriber object
-    let subscriberObject = await SubscriberModel.findOne({ telegramChatId: msg.chat.id }).exec()
+    let subscriberObject = await SubscriberModel.findOne({ telegramChatId }).exec()
     if (subscriberObject) {
       subscriberObject.address = address
       await subscriberObject.save()
     }
 
     // Clean all existing telegrams objects
-    await TelegramModel.deleteMany({ chatId: msg.chat.id })
-
+    await TelegramModel.deleteMany({ chatId: telegramChatId })
     // Create new telegram object
-    const telegramModel = new TelegramModel(subscriptorData)
+    const telegramModel = new TelegramModel({ address, chatId: telegramChatId })
     await telegramModel.save()
-
-    const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
+    const { buttons, welcomeText } = await getButtonsBySubscriptor(telegramChatId)
 
     // Buttons setup for telegram
     bot
-      .sendMessage(msg.chat.id, welcomeText, {
+      .sendMessage(telegramChatId, welcomeText, {
         reply_markup: {
           keyboard: buttons,
           resize_keyboard: true,
@@ -104,120 +61,162 @@ bot.onText(/^\/start ([\w-]+)$/, async (msg, [, command]) => {
       })
       .catch(function(error) {
         if (error.response && error.response.statusCode === 403) {
-          console.log(`[Telegram bot] - BOT blocked by the user with chatId ${msg.chat.id}`)
+          console.log(`[Telegram bot] - BOT blocked by the user with chatId ${telegramChatId}`)
         }
       })
   } catch (e) {
-    bot.sendMessage(msg.chat.id, e.message)
+    await bot.sendMessage(telegramChatId, e.message)
   }
 })
 
 // Capture messages
 bot.on('message', async msg => {
+  const telegramChatId = msg.chat.id
   // Subscribe process
   if (msg.text.toString().indexOf(subscribe) === 0) {
-    try {
-      const address = await findAddress(msg.chat.id)
-
-      bot.sendMessage(msg.chat.id, `Waiting for subscription...`)
-
-      // Subscribe user
-      const subscriptorData = { address: address, chatId: msg.chat.id }
-      const subscriptor = await subscriptionSave(subscriptorData)
-
-      const body = await getBodyBySubscriber(subscriptor)
-      const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
-
-      // Buttons resetup for telegram, only show unsubscribe and get instant alert
-      bot.sendMessage(
-        msg.chat.id,
-        `The subscription was successful, your wallet address is ${address}. 
-        
-${body}`,
-        {
-          reply_markup: {
-            keyboard: buttons,
-            resize_keyboard: true,
-            one_time_keyboard: true
-          },
-          parse_mode: 'HTML'
-        }
-      )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
-    } catch (e) {
-      console.error(e)
-      bot.sendMessage(
-        msg.chat.id,
-        'There was a problem when you try to subscribe, try it again later'
-      )
-    }
+    await subscribeTelegramCallBack(bot, telegramChatId)
   }
 
   // Unsubscribe message
   if (msg.text.toString().indexOf(unsubscribe) === 0) {
-    try {
-      const address = await findAddress(msg.chat.id)
-
-      bot.sendMessage(msg.chat.id, `Waiting for unsubscription...`)
-
-      // Remove subscribe
-      const subscriptorData = { address: address, chatId: msg.chat.id }
-      await subscriptionRemove(subscriptorData)
-
-      const { buttons, welcomeText } = await getButtonsBySubscriptor(subscriptorData)
-
-      // Buttons resetup for telegram, only show subscribe and get instant alert
-      bot.sendMessage(
-        msg.chat.id,
-        `The unsubscription was successful, your wallet address is ${address}.`,
-        {
-          reply_markup: {
-            keyboard: buttons,
-            resize_keyboard: true,
-            one_time_keyboard: true
-          }
-        }
-      )
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
-    } catch (e) {
-      console.error(e)
-      bot.sendMessage(
-        msg.chat.id,
-        'There was a problem when you try to unsubscribe, try it again later'
-      )
-    }
+    await unsubscribeTelegramCallBack(bot, telegramChatId)
   }
 
   // Get instant alert
   if (msg.text.toString().indexOf(getInstantAlert) === 0) {
-    try {
-      const address = await findAddress(msg.chat.id)
+    await getInstantAlertTelegramCallBack(bot, telegramChatId)
+  }
+})
 
-      bot.sendMessage(msg.chat.id, `Waiting for alert notification...`)
+// Action callbacks
+const getInstantAlertTelegramCallBack = async (bot, telegramChatId) => {
+  if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
+    return
+  }
+  if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
+    return
+  }
+  try {
+    console.log(`[Telegram bot] - Sending instant alert to ${telegramChatId}`)
+    const address = await findAddressFromChatId(telegramChatId)
 
-      const body = await getBodyBySubscriber({ address: address, telegramChatId: msg.chat.id })
+    await bot.sendMessage(telegramChatId, `Waiting for alert notification...`)
 
-      const { buttons, welcomeText } = await getButtonsBySubscriptor({
-        address: address,
-        chatId: msg.chat.id
-      })
+    const body = await getTelegramBodyBySubscriptor({ address, telegramChatId })
 
-      // Buttons resetup for telegram, only show subscribe and get instant alert
-      bot.sendMessage(msg.chat.id, body, {
+    const { buttons, welcomeText } = await getButtonsBySubscriptor(telegramChatId)
+
+    // Buttons resetup for telegram, only show subscribe and get instant alert
+    await bot.sendMessage(telegramChatId, body, {
+      reply_markup: {
+        keyboard: buttons,
+        resize_keyboard: true,
+        one_time_keyboard: true
+      },
+      parse_mode: 'HTML'
+    })
+    console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+  } catch (e) {
+    console.error(e)
+    await bot.sendMessage(
+      telegramChatId,
+      'There was a problem when you try to get the instant alert, try it again later'
+    )
+  }
+}
+
+const unsubscribeTelegramCallBack = async (bot, telegramChatId) => {
+  if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
+    return
+  }
+  if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
+    return
+  }
+  try {
+    console.log(`[Telegram bot] - Unsubscribe user: ${telegramChatId}`)
+    const address = await findAddressFromChatId(telegramChatId)
+
+    await bot.sendMessage(telegramChatId, `Waiting for unsubscription...`)
+
+    // Remove subscribe
+    await removeTelegramSubscription(address, telegramChatId)
+    console.log(
+      `[Telegram bot] - Subscriptor removed successfully - Address ${address} - ChatId: ${telegramChatId}`
+    )
+
+    const { buttons, welcomeText } = await getButtonsBySubscriptor(telegramChatId)
+
+    // Buttons resetup for telegram, only show subscribe and get instant alert
+    await bot.sendMessage(
+      telegramChatId,
+      `The unsubscription was successful, your wallet address is ${address}.`,
+      {
+        reply_markup: {
+          keyboard: buttons,
+          resize_keyboard: true,
+          one_time_keyboard: true
+        }
+      }
+    )
+    console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+  } catch (e) {
+    console.error(e)
+    await bot.sendMessage(
+      telegramChatId,
+      'There was a problem when you try to unsubscribe, try it again later'
+    )
+  }
+}
+
+const subscribeTelegramCallBack = async (bot, telegramChatId) => {
+  if (!bot) {
+    console.log(`[Telegram bot] - No bot instance provided`)
+    return
+  }
+  if (!telegramChatId) {
+    console.log(`[Telegram bot] - No telegramChatId provided`)
+    return
+  }
+  try {
+    const address = await findAddressFromChatId(telegramChatId)
+    console.log(`[Telegram bot] - Subscribe user: ${telegramChatId}, address : ${address}`)
+
+    await bot.sendMessage(telegramChatId, `Waiting for subscription...`)
+
+    // Subscribe user
+    const subscriptor = await createTelegramSubscriptor(address, telegramChatId, 'daily')
+    console.log(
+      `[Telegram bot] - Subscriptor saved successfully - Address ${subscriptor.address} - ChatId: ${subscriptor.telegramChatId}`
+    )
+
+    const body = await getTelegramBodyBySubscriptor(subscriptor)
+    const { buttons, welcomeText } = await getButtonsBySubscriptor(telegramChatId)
+
+    // Buttons resetup for telegram, only show unsubscribe and get instant alert
+    await bot.sendMessage(
+      telegramChatId,
+      `The subscription was successful, your wallet address is ${address}. 
+        
+${body}`,
+      {
         reply_markup: {
           keyboard: buttons,
           resize_keyboard: true,
           one_time_keyboard: true
         },
         parse_mode: 'HTML'
-      })
-      console.log(`[Telegram bot] - Telegram sended to chatId ${msg.chat.id} successfully`)
-    } catch (e) {
-      console.error(e)
-      bot.sendMessage(
-        msg.chat.id,
-        'There was a problem when you try to get the instant alert, try it again later'
-      )
-    }
+      }
+    )
+    console.log(`[Telegram bot] - Telegram sended to chatId ${telegramChatId} successfully`)
+  } catch (e) {
+    console.error(e)
+    await bot.sendMessage(
+      telegramChatId,
+      'There was a problem when you try to subscribe, try it again later'
+    )
   }
-})
+}

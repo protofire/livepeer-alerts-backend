@@ -1,8 +1,3 @@
-const _ = require('lodash')
-
-const { getDelegateService } = require('./delegateService')
-const { MathBN } = require('../utils')
-
 let delegatorServiceInstance
 // The delegate information comes from the SDK as default, graphql is not implemented
 const defaultSource = require('../sdk/delegator')
@@ -34,9 +29,33 @@ class DelegatorService {
     return await getLivepeerDelegatorStake(address)
   }
 
+  /**
+   * Returns both the delegator and delegate next reward
+   * Also returns the delegator account
+   * @param delegatorAddress
+   * @returns {Promise<{delegatorNextReward: *, delegator: *, delegateNextReward: *}>}
+   */
+  getDelegatorAndDelegateNextReward = async delegatorAddress => {
+    const { getDelegateService } = require('./delegateService')
+    const delegator = await this.getDelegatorAccount(delegatorAddress)
+    const { delegateAddress } = delegator
+    const delegateService = getDelegateService()
+    const [delegateNextReward, delegatorNextReward] = await Promise.all([
+      delegateService.getDelegateProtocolNextReward(delegateAddress),
+      this.getDelegatorNextReward(delegatorAddress)
+    ])
+    return {
+      delegateNextReward,
+      delegatorNextReward,
+      delegator
+    }
+  }
+
   // Returns the delegator's next round-reward
   getDelegatorNextReward = async delegatorAddress => {
     try {
+      const { getDelegateService } = require('./delegateService')
+      const { MathBN } = require('../utils')
       const delegateService = getDelegateService()
       // FORMULA: rewardToDelegators * delegatorParticipationInTotalStake
       const delegator = await this.getDelegatorAccount(delegatorAddress)

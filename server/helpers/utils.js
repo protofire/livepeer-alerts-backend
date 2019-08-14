@@ -6,8 +6,6 @@ const promiseRetry = require('promise-retry')
 const moment = require('moment')
 
 const { TOKEN_DECIMAL_UNITS } = require('../../config/constants')
-const Subscriber = require('../subscriber/subscriber.model')
-const { NotSubscribedError, AlreadySubscribedError } = require('./JobsErrors')
 
 const MathBN = {
   sub: (a, b) => {
@@ -19,6 +17,11 @@ const MathBN = {
     const aBN = new Big(a || '0')
     const bBN = new Big(b || '0')
     return aBN.add(bBN).toString(10)
+  },
+  addAsBN: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    return aBN.add(bBN)
   },
   gt: (a, b) => {
     const aBN = new BN(a || '0')
@@ -50,6 +53,16 @@ const MathBN = {
     const bBN = new Big(b || '0')
     try {
       return aBN.div(bBN).toString()
+    } catch (err) {
+      console.error(err)
+      return 0
+    }
+  },
+  divAsBig: (a, b) => {
+    const aBN = new Big(a || '0')
+    const bBN = new Big(b || '0')
+    try {
+      return aBN.div(bBN)
     } catch (err) {
       console.error(err)
       return 0
@@ -89,93 +102,6 @@ const truncateStringInTheMiddle = (
   return str
 }
 
-// Message const
-const subscribe = 'Subscribe'
-const unsubscribe = 'Unsubscribe'
-const getInstantAlert = 'Get instant alert'
-
-// Subscription method that save data
-const subscriptionSave = async data => {
-  const checkSubscriptorExist = await subscriptionExist(data)
-  if (checkSubscriptorExist) {
-    throw new AlreadySubscribedError()
-  }
-
-  const { address, chatId } = data
-
-  // Create new subscriber on button press
-  let subscriber = new Subscriber({
-    address: address,
-    frequency: 'daily',
-    telegramChatId: chatId
-  })
-  const subscriberCreated = await subscriber.save()
-
-  console.log(
-    `[Telegram bot] - Subscriptor saved successfully - Address ${address} - ChatId: ${chatId}`
-  )
-
-  return subscriberCreated
-}
-
-// Check for existing subscription user
-const subscriptionExist = async data => {
-  const { address, chatId } = data
-  if (!chatId) {
-    return false
-  }
-  const count = await Subscriber.countDocuments({ telegramChatId: chatId })
-  console.log(
-    `[Telegram bot] - Subscriptor exist ${!!count} - Address ${address} - ChatId: ${chatId}`
-  )
-  return count > 0
-}
-
-// Delete existing subscription user
-const subscriptionRemove = async data => {
-  const { address, chatId } = data
-  const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
-  if (!subscriber) {
-    throw new NotSubscribedError()
-  }
-  const subscriptorRemoved = await subscriber.remove()
-  console.log(
-    `[Telegram bot] - Subscriptor removed successfully - Address ${address} - ChatId: ${chatId}`
-  )
-  return subscriptorRemoved
-}
-
-// Get subscription user by address
-const subscriptionFind = async data => {
-  const { address, chatId } = data
-  const subscriber = await Subscriber.findOne({ address: address, telegramChatId: chatId }).exec()
-  if (!subscriber) {
-    throw new NotSubscribedError()
-  }
-  console.log(`[Telegram bot] - Subscriptor found - Address ${address} - ChatId: ${chatId}`)
-  return subscriber
-}
-
-const getButtonsBySubscriptor = async subscriptor => {
-  let buttons = []
-  let welcomeText
-  const checkSubscriptorExist = await subscriptionExist(subscriptor)
-  if (checkSubscriptorExist) {
-    buttons.push([unsubscribe])
-    welcomeText = `Choose the following options to continue:
-1. Unsubscribe for alerts
-2. Get instant alert`
-  } else {
-    buttons.push([subscribe])
-    welcomeText = `Welcome to Livepeer Tools, choose the following options to continue:
-1. Subscribe for alerts
-2. Get instant alert`
-  }
-
-  buttons.push([getInstantAlert])
-  return { welcomeText, buttons }
-}
-
 const formatPercentage = (x, decimals) => {
   return !x
     ? '0'
@@ -204,53 +130,6 @@ const fromBaseUnit = x => {
   return !x ? '' : formatBalance(x, 4)
 }
 
-const getSubscriptorRole = async subscriptor => {
-  const { getProtocolService } = require('./services/protocolService')
-  const { getDelegatorService } = require('./services/delegatorService')
-  const protocolService = getProtocolService()
-  const delegatorService = getDelegatorService()
-
-  let [constants, delegator] = await promiseRetry(retry => {
-    return Promise.all([
-      protocolService.getLivepeerDefaultConstants(),
-      delegatorService.getDelegatorAccount(subscriptor.address)
-    ]).catch(err => retry())
-  })
-
-  const { status, address, delegateAddress } = delegator
-
-  // Detect role
-  const role =
-    delegator &&
-    status === constants.DELEGATOR_STATUS.Bonded &&
-    delegateAddress &&
-    address.toLowerCase() === delegateAddress.toLowerCase()
-      ? constants.ROLE.TRANSCODER
-      : constants.ROLE.DELEGATOR
-  return {
-    role,
-    constants,
-    delegator
-  }
-}
-
-const getDidDelegateCalledReward = async delegateAddress => {
-  const { getProtocolService } = require('./services/protocolService')
-  const { getLivepeerTranscoderAccount } = require('./sdk') // should use delegateService but the value lastRewardRound is not updated
-  const protocolService = getProtocolService()
-
-  const [delegate, currentRoundInfo] = await promiseRetry(retry => {
-    return Promise.all([
-      getLivepeerTranscoderAccount(delegateAddress),
-      protocolService.getCurrentRoundInfo()
-    ]).catch(err => retry())
-  })
-
-  // Check if transcoder call reward
-  const callReward = delegate && delegate.lastRewardRound === currentRoundInfo.id
-  return callReward
-}
-
 const getDelegatorRoundsUntilUnbonded = data => {
   const { delegator, constants, currentRoundInfo } = data
   const isUnbonding = delegator.status === constants.DELEGATOR_STATUS.Unbonding
@@ -272,7 +151,7 @@ const unitAmountInTokenUnits = (amount, decimals = TOKEN_DECIMAL_UNITS) => {
   return MathBN.mul(amount, decimalsPerToken)
 }
 
-const calculateMissedRewardCalls = (rewards, currentRound) => {
+const calculateMissedRewardCalls = (rewards, currentRound, roundsPeriod = 30) => {
   if (!currentRound || !rewards) {
     return 0
   }
@@ -281,7 +160,7 @@ const calculateMissedRewardCalls = (rewards, currentRound) => {
     .filter(
       reward =>
         reward.rewardTokens === null &&
-        reward.round.id >= currentRound.id - 30 &&
+        reward.round.id >= currentRound.id - roundsPeriod &&
         reward.round.id !== currentRound.id
     ).length
 }
@@ -326,28 +205,46 @@ const calculateIntervalAsMinutes = dateEnd => {
   return minutes
 }
 
-module.exports = {
+const getStartAndFinishDateOfWeeklySummary = finishDay => {
+  if (!finishDay) {
+    throw new Error('[Utils] - FinishDay not received')
+  }
+  if (!(finishDay instanceof Date)) {
+    throw new Error('[Utils] - FinishDay received is not a valid date')
+  }
+  const finishDate = moment(finishDay)
+  const finishDateCopy = finishDate.clone()
+  const startDate = finishDateCopy.subtract(7, 'days')
+
+  const fromDateCardinal = startDate.format('MMMM Do')
+
+  const toDateCardinal = finishDate.format('MMMM Do')
+  const startRoundDate = startDate.format('MMM D')
+  const endRoundDate = finishDate.format('MMM D, YYYY')
+
+  return {
+    fromDateCardinal,
+    toDateCardinal,
+    startRoundDate,
+    endRoundDate
+  }
+}
+
+const utils = {
   MathBN,
   truncateStringInTheMiddle,
-  subscribe,
-  unsubscribe,
-  getInstantAlert,
-  getButtonsBySubscriptor,
-  subscriptionFind,
-  subscriptionRemove,
-  subscriptionExist,
-  subscriptionSave,
   fromBaseUnit,
   toBaseUnit,
   formatBalance,
   formatPercentage,
-  getSubscriptorRole,
-  getDidDelegateCallReward: getDidDelegateCalledReward,
   getDelegatorRoundsUntilUnbonded,
   tokenAmountInUnits,
   unitAmountInTokenUnits,
   calculateMissedRewardCalls,
   calculateNextRoundInflationRatio,
   calculateCurrentBondingRate,
-  calculateIntervalAsMinutes
+  calculateIntervalAsMinutes,
+  getStartAndFinishDateOfWeeklySummary
 }
+
+module.exports = utils

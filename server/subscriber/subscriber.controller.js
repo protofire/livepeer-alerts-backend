@@ -5,13 +5,11 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
-const {
-  fromBaseUnit,
-  formatPercentage,
-  getDelegatorRoundsUntilUnbonded,
-  getSubscriptorRole,
-  getDidDelegateCallReward
-} = require('../helpers/utils')
+const Share = require('../share/share.model')
+
+const utils = require('../helpers/utils')
+
+const subscriberUtils = require('../helpers/subscriberUtils')
 
 /**
  * Load subscriber and append to req.
@@ -52,7 +50,7 @@ const get = (req, res) => {
  */
 const create = async (req, res, next) => {
   try {
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, telegramFrequency, emailFrequency, telegramChatId } = req.body
     const count = await Subscriber.countDocuments({ address: address, email: email })
     if (count) {
       throw new APIError('Subscriptor already exist', httpStatus.UNPROCESSABLE_ENTITY, true)
@@ -61,7 +59,8 @@ const create = async (req, res, next) => {
     const subscriber = new Subscriber({
       email: email,
       address: address,
-      frequency: frequency,
+      emailFrequency,
+      telegramFrequency,
       telegramChatId: telegramChatId
     })
 
@@ -70,40 +69,58 @@ const create = async (req, res, next) => {
     // Send email notification promise
     let sendNotificationPromise = new Promise(async (resolve, reject) => {
       try {
+        // Get round info
+        const protocolService = getProtocolService()
+        const delegateService = getDelegateService()
+        const delegatorService = getDelegatorService()
+        const currentRoundInfo = await protocolService.getCurrentRoundInfo()
+        const currentRound = currentRoundInfo.id
+
         // Detect role
-        const { constants, role, delegator } = await getSubscriptorRole(savedSubscriber)
+        const { constants, role, delegator } = await subscriberUtils.getSubscriptorRole(
+          savedSubscriber
+        )
 
         // Check if the delegate didRewardCall
-        const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+        const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+          delegator.delegateAddress
+        )
 
         // Send email notification
         if (role === constants.ROLE.TRANSCODER) {
           const { sendDelegateNotificationEmail } = require('../helpers/sendDelegateEmail')
-          const data = {
-            subscriber: savedSubscriber,
-            delegateCalledReward: delegateCalledReward
-          }
-          await sendDelegateNotificationEmail(data)
+          await sendDelegateNotificationEmail(subscriber, delegateCalledReward, currentRound)
         }
 
         if (role === constants.ROLE.DELEGATOR) {
           const { sendDelegatorNotificationEmail } = require('../helpers/sendDelegatorEmail')
-          const protocolService = getProtocolService()
-          const delegatorService = getDelegatorService()
-          const [currentRound, currentRoundInfo, delegatorNextReward] = await Promise.all([
-            protocolService.getCurrentRound(),
-            protocolService.getCurrentRoundInfo(),
-            delegatorService.getDelegatorNextReward(delegator.address)
-          ])
-          await sendDelegatorNotificationEmail(
+
+          let delegatorRoundReward = await Share.getDelegatorShareAmountOnRound(
+            currentRound,
+            delegator.address
+          )
+          delegatorRoundReward = utils.tokenAmountInUnits(delegatorRoundReward)
+          // If there are no shares for that user, return the next delegatorReward as default
+          if (!delegatorRoundReward || delegatorRoundReward === '0') {
+            console.error(
+              `[Notificate-Delegators] - share for round ${currentRound} of delegator ${delegator.address} not found, returning next reward`
+            )
+            delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegator.address)
+          }
+
+          const delegatorTemplateData = {
+            delegateCalledReward,
+            delegatorRoundReward
+          }
+
+          await sendDelegatorNotificationEmail({
             subscriber,
             delegator,
-            delegateCalledReward,
-            delegatorNextReward,
-            currentRound,
             currentRoundInfo,
-            constants
-          )
+            constants,
+            delegatorTemplateData,
+            isNewSubscriber: true
+          })
         }
         resolve()
       } catch (err) {
@@ -129,7 +146,7 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const subscriber = req.subscriber
-    const { email, address, frequency, telegramChatId } = req.body
+    const { email, address, emailFrequency, telegramFrequency, telegramChatId } = req.body
 
     // Check for existing subscriber
     const differentEmail = email !== subscriber.email
@@ -150,8 +167,11 @@ const update = async (req, res, next) => {
     if (address) {
       subscriber.address = address
     }
-    if (frequency) {
-      subscriber.frequency = frequency
+    if (emailFrequency) {
+      subscriber.emailFrequency = emailFrequency
+    }
+    if (telegramFrequency) {
+      subscriber.telegramFrecuency = telegramFrequency
     }
     if (telegramChatId) {
       subscriber.telegramChatId = telegramChatId
@@ -220,6 +240,7 @@ const activate = async (req, res, next) => {
  * @returns {Array}
  */
 const summary = async (req, res, next) => {
+  console.log('[SubscriberController] - returning subscriber summary')
   try {
     const { addressWithoutSubscriber = null } = req.params
 
@@ -231,31 +252,37 @@ const summary = async (req, res, next) => {
       address: addressWithoutSubscriber
     }
 
+    console.log('[SubscriberController] - fetching subscriptor data')
     let [balance, currentRoundInfo, subscriptorData] = await Promise.all([
       delegatorService.getDelegatorTokenBalance(addressWithoutSubscriber),
       protocolService.getCurrentRoundInfo(),
-      getSubscriptorRole(subscriptor)
+      subscriberUtils.getSubscriptorRole(subscriptor)
     ])
+    console.log('[SubscriberController] - returned subscription data')
 
     // Detect role
     const { constants, role, delegator } = subscriptorData
 
     let returnData = {
       role,
-      balance: fromBaseUnit(balance)
+      balance: utils.fromBaseUnit(balance)
     }
 
     // Check if the delegate didRewardCall
-    const delegateCalledReward = await getDidDelegateCallReward(delegator.delegateAddress)
+    const delegateCalledReward = await delegateService.getDidDelegateCalledReward(
+      delegator.delegateAddress
+    )
 
+    let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
     switch (role) {
       case constants.ROLE.TRANSCODER:
-        let transcoder = await delegateService.getDelegate(delegator.delegateAddress)
         // Format values of the delegate for the frontend
         transcoder.delegateCalledReward = delegateCalledReward
-        transcoder.totalStakeInLPT = fromBaseUnit(transcoder.totalStake)
-        transcoder.pendingRewardCutInPercentage = formatPercentage(transcoder.pendingRewardCut)
-        transcoder.rewardCutInPercentage = formatPercentage(transcoder.rewardCut)
+        transcoder.totalStakeInLPT = utils.fromBaseUnit(transcoder.totalStake)
+        transcoder.pendingRewardCutInPercentage = utils.formatPercentage(
+          transcoder.pendingRewardCut
+        )
+        transcoder.rewardCutInPercentage = utils.formatPercentage(transcoder.rewardCut)
         returnData = {
           ...returnData,
           transcoder
@@ -264,13 +291,14 @@ const summary = async (req, res, next) => {
       case constants.ROLE.DELEGATOR:
         // Format values of the delegator for the frontend
         delegator.delegateCalledReward = delegateCalledReward
-        delegator.totalStakeInLPT = fromBaseUnit(delegator.totalStake)
-        delegator.bondedAmountInLPT = fromBaseUnit(delegator.bondedAmount)
-        delegator.pendingRewardCutInPercentage = formatPercentage(delegator.pendingRewardCut)
-        delegator.rewardCutInPercentage = formatPercentage(delegator.rewardCut)
+        delegator.delegateIsActive = transcoder.active
+        delegator.totalStakeInLPT = utils.fromBaseUnit(delegator.totalStake)
+        delegator.bondedAmountInLPT = utils.fromBaseUnit(delegator.bondedAmount)
+        delegator.pendingRewardCutInPercentage = utils.formatPercentage(delegator.pendingRewardCut)
+        delegator.rewardCutInPercentage = utils.formatPercentage(delegator.rewardCut)
 
         // Calculate rounds until bonded
-        delegator.roundsUntilUnbonded = getDelegatorRoundsUntilUnbonded({
+        delegator.roundsUntilUnbonded = utils.getDelegatorRoundsUntilUnbonded({
           delegator,
           constants,
           currentRoundInfo

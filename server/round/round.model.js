@@ -4,6 +4,10 @@ const mongoose = require('mongoose')
  * Round Schema
  */
 const RoundSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true
+  },
   roundId: {
     type: String,
     required: true
@@ -34,16 +38,18 @@ const RoundSchema = new mongoose.Schema({
   },
   pools: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Pool',
-      required: false
+      required: false,
+      default: []
     }
   ],
   shares: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Share',
-      required: false
+      required: false,
+      default: []
     }
   ]
 })

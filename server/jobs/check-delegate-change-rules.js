@@ -8,7 +8,7 @@ const { getDelegateService } = require('../helpers/services/delegateService')
 const Delegate = require('../delegate/delegate.model')
 const {
   notifyDelegatorsWhenDelegateChangeTheRules
-} = require('../helpers/notifyDelegatorsWhenDelegateChangeTheRules')
+} = require('../helpers/notification/notificationUtils')
 
 const workerCheckDelegateChangeRules = async () => {
   console.log(`[Check-Delegate-Change-Rules] - Start`)
@@ -37,11 +37,19 @@ const workerCheckDelegateChangeRules = async () => {
     console.log(
       `[Check-Delegate-Change-Rules] - Finish, changed delegates: ${updatedDelegates.length}`
     )
-    process.exit(0)
   } catch (err) {
     console.error(`[Check-Delegate-Change-Rules] - Error: ${err}`)
-    process.exit(1)
+    throw new Error(`[Check-Delegate-Change-Rules] - Error: ${err}`)
   }
 }
 
-return workerCheckDelegateChangeRules()
+workerCheckDelegateChangeRules()
+  .then(() => {
+    console.log(`[Check-Delegate-Change-Rules] - Finished, closing db connection`)
+    mongoose.connection.close()
+    process.exit(0)
+  })
+  .catch(err => {
+    console.error(err)
+    process.exit(1)
+  })

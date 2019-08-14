@@ -1,3 +1,5 @@
+const { DAILY_FREQUENCY } = require('../../../config/constants')
+
 const { unitAmountInTokenUnits } = require('../utils')
 
 const createRewardObject = (transcoderId, roundId, rewardAmount) => {
@@ -80,15 +82,90 @@ const createDelegator = delegatorId => {
   return mockDelegator
 }
 
+const createSubscriber = (
+  email = 'test@subscriber.com',
+  address = '1',
+  emailFrequency = DAILY_FREQUENCY,
+  telegramFrequency = DAILY_FREQUENCY,
+  telegramChatId = '1',
+  activated = 1,
+  lastEmailSent = '1',
+  lastTelegramSent = '1',
+  createdAt = Date.now()
+) => {
+  return {
+    email,
+    address,
+    emailFrequency,
+    telegramFrequency,
+    telegramChatId,
+    activated,
+    lastEmailSent,
+    lastTelegramSent,
+    createdAt
+  }
+}
+
 const createTotalStake = (min, max) => {
   const stakeInUnits = Math.floor(Math.random() * max) + min
   return unitAmountInTokenUnits(stakeInUnits)
 }
 
-module.exports = {
+const createPool = (
+  delegate = '1',
+  round = '10',
+  rewardTokens = '1000000',
+  totalStakeOnRound = '5000000'
+) => {
+  return {
+    _id: `${delegate}-${round}`,
+    rewardTokens,
+    totalStakeOnRound,
+    delegate,
+    round
+  }
+}
+
+const createShare = (
+  delegator = '1',
+  round = '10',
+  rewardTokens = '1000000',
+  totalStakeOnRound = '5000000'
+) => {
+  return {
+    _id: `${delegator}-${round}`,
+    rewardTokens,
+    totalStakeOnRound,
+    delegator,
+    round
+  }
+}
+
+const getLivepeerDefaultConstants = () => {
+  return {
+    DELEGATOR_STATUS: {
+      Bonded: 'Bonded',
+      Pending: 'Pending',
+      Unbonded: 'Unbonded',
+      Unbonding: 'Unbonding'
+    },
+    ROLE: {
+      DELEGATOR: 'Delegator',
+      TRANSCODER: 'Transcoder'
+    }
+  }
+}
+
+const utils = {
   createRewardObject,
   createRoundObject,
   createTranscoder,
   createDelegator,
-  createTotalStake
+  createTotalStake,
+  createSubscriber,
+  createPool,
+  createShare,
+  getLivepeerDefaultConstants
 }
+
+module.exports = utils

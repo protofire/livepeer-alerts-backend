@@ -1,5 +1,9 @@
-const Delegate = require('../delegate/delegate.model')
+const { TO_FIXED_VALUES_DECIMALS } = require('../../config/constants')
 const mongoose = require('../../config/mongoose')
+const Delegate = require('../delegate/delegate.model')
+const Pool = require('../pool/pool.model')
+const utils = require('./utils')
+const Big = require('big.js')
 
 const hasDelegateChangedRules = (oldDelegate, newDelegate) => {
   const { feeShare, pendingFeeShare, rewardCut, pendingRewardCut, active } = oldDelegate
@@ -68,7 +72,10 @@ const getListOfUpdatedDelegates = (oldDelegates, newDelegates) => {
       continue
     }
     // Then checks if the rules between the old and new version of the delegate did changed
-    const propertiesChanged = getDelegateRulesChanged(oldDelegateIterator, newDelegateIterator)
+    const propertiesChanged = delegateUtils.getDelegateRulesChanged(
+      oldDelegateIterator,
+      newDelegateIterator
+    )
     if (propertiesChanged.hasChanged) {
       oldDelegateIterator = {
         _id: oldDelegateIterator._id,
@@ -186,10 +193,67 @@ const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   await Promise.all(updateDelegatePromises)
 }
 
-module.exports = {
+const getDelegateLastXPools = async (delegateAddress, currentRound, lastXRoundPools) => {
+  console.log(`[DelegatesUtils] - Getting delegate last ${lastXRoundPools} pools`)
+  const startRound = currentRound - lastXRoundPools
+  let delegate = await Delegate.findById(delegateAddress)
+    .populate({
+      path: 'pools',
+      model: Pool,
+      options: {
+        sort: {
+          round: -1 // Sorts the delegatePools in descending order based on roundId
+        }
+      },
+      match: {
+        round: { $gte: startRound, $lte: currentRound }
+      }
+    })
+    .exec()
+
+  let delegatePools = []
+
+  if (delegate) {
+    delegatePools = delegate.pools
+  }
+  console.log(`[DelegatesUtils] - Pools found: ${delegatePools.length}`)
+  return delegatePools
+}
+
+const getDelegateLastWeekRoundsPools = async (delegateAddress, currentRound) => {
+  if (!delegateAddress) {
+    throw new Error(
+      '[DelegatesUtils] - No delegateAddress provided on getDelegateLastWeekRoundsPools()'
+    )
+  }
+  if (!currentRound) {
+    throw new Error(
+      '[DelegatesUtils] - No currentRound provided on getDelegateLastWeekRoundsPools()'
+    )
+  }
+
+  // Gets all the pools within 7 the last 7 rounds
+  const delegatePools = await getDelegateLastXPools(delegateAddress, currentRound, 7)
+  // Sums all the pools in a unique reward
+  let totalDelegatePools = delegatePools.reduce((totalDelegatePools, currentPool) => {
+    if (currentPool.rewardTokens) {
+      const rewardTokensToTokenUnits = utils.tokenAmountInUnits(currentPool.rewardTokens)
+      return utils.MathBN.addAsBN(totalDelegatePools, rewardTokensToTokenUnits)
+    }
+    return totalDelegatePools
+  }, new Big('0'))
+  totalDelegatePools = totalDelegatePools.toFixed(TO_FIXED_VALUES_DECIMALS)
+  return totalDelegatePools
+}
+
+const delegateUtils = {
   getListOfUpdatedDelegates,
   hasDelegateChangedRules,
   updateDelegatesLocally,
   checkAndUpdateMissingLocalDelegates,
-  getDelegateRulesChanged
+  getDelegateRulesChanged,
+  getDelegateLastWeekRoundsPools,
+  getDelegateLastXPools
 }
+
+module.exports = delegateUtils

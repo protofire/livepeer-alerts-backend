@@ -54,7 +54,7 @@ describe('## Misc', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).to.equal(
-            '"email" is required and "address" is required and "frequency" is required'
+            '"email" is required and "address" is required and "emailFrequency" is required'
           )
           done()
         })

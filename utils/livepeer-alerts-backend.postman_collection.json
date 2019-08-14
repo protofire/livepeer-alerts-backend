@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "57a8f6cc-574a-4168-9238-50fc0ba10bb6",
+		"_postman_id": "7c9e3188-3772-4549-8171-ef323943ac72",
 		"name": "livepeer-alerts-backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -352,6 +352,44 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/rounds/protocol",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"type": "text",
+						"value": "http://localhost:3000"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/rounds/protocol",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"rounds",
+						"protocol"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[DELETE] - /api/telegrams/:address",
 			"request": {
 				"method": "DELETE",
@@ -498,6 +536,103 @@
 						"delegators",
 						"reward",
 						"0xda43d85b8d419a9c51bbf0089c9bd5169c23f2f9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegators/address/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegators/address/0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegators",
+						"address",
+						"0x155cCf41305F5fE3FAae64eCea8a1E2cAd08F085"
+					]
+				},
+				"description": "Gets information about a delegator"
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegators/last-rewards/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegators/last-rewards/0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegators",
+						"last-rewards",
+						"0xE19bf801A681B8Ba37Da23092c0438716D1E3415"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/delegates/reward-status/:address",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"value": "http://localhost:3000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:4040/api/delegates/reward-status/0x9e14de5cc84e437518c2c303c88570fe13f0ad15",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4040",
+					"path": [
+						"api",
+						"delegates",
+						"reward-status",
+						"0x9e14de5cc84e437518c2c303c88570fe13f0ad15"
 					]
 				}
 			},
