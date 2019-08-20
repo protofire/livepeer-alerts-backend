@@ -81,7 +81,7 @@ const updateDelegatePoolsOfRound = async (round, roundPools) => {
     } catch (err) {
       console.error(`[Update Delegates Pools] - Error Updating pools on delegate ${delegateId}`)
       console.error(err)
-      throw err
+      continue
     }
   }
 }
