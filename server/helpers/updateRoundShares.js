@@ -63,7 +63,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
   if (!rewardTokens) {
     // If the delegate has no shares for the given round, the reward tokens should be 0
     console.log(
-      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving 0 instead`
+      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving next reward instead`
     )
 
     const { getDelegatorService } = require('./services/delegatorService')

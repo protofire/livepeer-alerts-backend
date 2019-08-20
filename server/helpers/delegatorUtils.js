@@ -56,7 +56,7 @@ const getDelegatorCurrentRewardTokens = async (
     `[Delegator utils] - Current delegator total stake ${currentDelegatorTotalStake} - last delegator total stake ${lastDelegatorShare.totalStakeOnRound} - Difference ${newShare}`
   )
   console.log(`[Delegator utils] - returning new share: ${newShare}`)
-  return newShare
+  return +newShare !== 0 ? newShare : null
 }
 
 // Receives a list of delegators, if they already exists locally, updates them, otherwise, creates new ones locally
@@ -263,11 +263,11 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     if (share.round === lastRoundStartValue.toString()) {
       delegatorLastRoundReward = utils.MathBN.add(delegatorLastRoundReward, share.rewardTokens)
     }
-    if (share.round >= last7RoundStartValue.toString()) {
+    if (share.round > last7RoundStartValue.toString()) {
       delegator7RoundsRewards = utils.MathBN.add(delegator7RoundsRewards, share.rewardTokens)
       amountOfSharesFor7RoundsAvailable++
     }
-    if (share.round >= last30RoundStartValue.toString()) {
+    if (share.round > last30RoundStartValue.toString()) {
       delegator30RoundsRewards = utils.MathBN.add(delegator30RoundsRewards, share.rewardTokens)
       amountOfSharesFor30RoundsAvailable++
     }
@@ -296,11 +296,11 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     if (pool.round === lastRoundStartValue.toString()) {
       delegateLastRoundReward = utils.MathBN.add(delegateLastRoundReward, pool.rewardTokens)
     }
-    if (pool.round >= last7RoundStartValue.toString()) {
+    if (pool.round > last7RoundStartValue.toString()) {
       delegate7RoundsRewards = utils.MathBN.add(delegate7RoundsRewards, pool.rewardTokens)
       amountOfPoolsFor7RoundsAvailable++
     }
-    if (pool.round >= last30RoundStartValue.toString()) {
+    if (pool.round > last30RoundStartValue.toString()) {
       delegate30RoundsRewards = utils.MathBN.add(delegate30RoundsRewards, pool.rewardTokens)
       amountOfPoolsFor30RoundsAvailable++
     }
