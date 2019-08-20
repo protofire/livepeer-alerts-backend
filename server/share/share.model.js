@@ -63,6 +63,20 @@ ShareSchema.statics = {
       return 0
     }
     return roundShare.rewardTokens
+  },
+
+  /**
+   * List shares in descending order of 'createdAt' timestamp.
+   * @param {number} skip - Number of shares to be skipped.
+   * @param {number} limit - Limit number of shares to be returned.
+   * @returns {Promise<Shares[]>}
+   */
+  list({ skip = 0, limit = 50 } = {}) {
+    return this.find()
+      .sort({ createdAt: -1 })
+      .skip(+skip)
+      .limit(+limit)
+      .exec()
   }
 }
 
