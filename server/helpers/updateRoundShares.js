@@ -69,7 +69,7 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     const { getDelegatorService } = require('./services/delegatorService')
     const delegatorService = getDelegatorService()
     const delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegatorAddress)
-    rewardTokens = utils.unitAmountInTokenUnits(delegatorRoundReward) || '0'
+    rewardTokens = utils.unitAmountInTokenUnits(delegatorRoundReward, 18) || '0'
   }
 
   try {
