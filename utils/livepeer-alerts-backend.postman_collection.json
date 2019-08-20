@@ -352,6 +352,43 @@
 			"response": []
 		},
 		{
+			"name": "[GET] - /api/pools",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Referer",
+						"type": "text",
+						"value": "http://localhost:3000"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/pools",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"pools"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "[GET] - /api/rounds",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
