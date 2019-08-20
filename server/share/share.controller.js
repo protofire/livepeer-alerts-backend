@@ -2,8 +2,8 @@ const Share = require('./share.model')
 
 /**
  * Get shares list.
- * @property {number} req.query.skip - Number of rounds to be skipped.
- * @property {number} req.query.limit - Limit number of rounds to be returned.
+ * @property {number} req.query.skip - Number of shares to be skipped.
+ * @property {number} req.query.limit - Limit number of shares to be returned.
  * @returns {Round[]}
  */
 const list = (req, res, next) => {
