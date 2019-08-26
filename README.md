@@ -8,9 +8,9 @@ Provide pro-active alert notifications that will help LPT token holders to be up
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/protofire/livepeer-alerts-backend/master/LICENSE)
 
 
-### Demo
+### Application
 
-[API Live Version](https://livepeer-alerts-backend.herokuapp.com/)
+[APP Live Version](https://livepeer.tools/)
 
 ## Getting Started
 
@@ -25,7 +25,8 @@ In order to develop livepeer-alerts-backend, you'll need:
 - [MongoDB](https://www.mongodb.com/download-center/community) v4.0.4
 - [Sendgrid API KEY] 
 
-
+## Frontend
+You can take a look at the frontend right [here](https://github.com/protofire/livepeer-alerts-frontend)
 
 ## Get Started
 - To run server, simply execute ```$ npm run start```
@@ -67,7 +68,10 @@ The API is described in details on the [API](https://github.com/protofire/livepe
 * [Mongoose](https://mongoosejs.com/) - MongoDB object modeling
 
 ## Notifications
-[Livepeer state machine](https://i.ibb.co/p40HyHc/Livepeer-state-machine2.png) diagram used to send emails.
+Livepeer state machine diagram used to send emails.
+<p align="center">
+  <img src="./img/livepeer_notifications.png">
+</p>
 
 | Notification  |   Sended to   |   Sended at   |
 | ------------- | ------------- | ------------- |
