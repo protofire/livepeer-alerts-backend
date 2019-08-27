@@ -79,6 +79,7 @@
     "cross-env": "5.1.4",
     "cz-conventional-changelog": "1.2.0",
     "eslint": "5.6.0",
+    "eslint-utils": ">=1.4.1",
     "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-import": "1.16.0",
     "eslint-plugin-prettier": "^3.0.0",
