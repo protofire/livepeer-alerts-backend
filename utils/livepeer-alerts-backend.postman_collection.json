@@ -254,7 +254,7 @@
 					},
 					{
 						"key": "Referer",
-						"value": "http://localhost:3000",
+						"value": "{{referer}}",
 						"type": "text"
 					}
 				],
@@ -263,7 +263,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/subscribers/summary/0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781",
+					"raw": "{{host}}/api/subscribers/summary/0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4",
 					"host": [
 						"{{host}}"
 					],
@@ -271,7 +271,7 @@
 						"api",
 						"subscribers",
 						"summary",
-						"0xbd91c9df3c30f0e43b19b1dd05888cf9b647b781"
+						"0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4"
 					]
 				}
 			},
@@ -331,7 +331,7 @@
 					{
 						"key": "Referer",
 						"type": "text",
-						"value": "http://localhost:3000"
+						"value": "{{referer}}"
 					}
 				],
 				"body": {
@@ -339,13 +339,19 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/shares",
+					"raw": "{{host}}/api/shares?delegator=0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"shares"
+					],
+					"query": [
+						{
+							"key": "delegator",
+							"value": "0xE19bf801A681B8Ba37Da23092c0438716D1E3415"
+						}
 					]
 				}
 			},
@@ -701,6 +707,35 @@
 						"delegates",
 						"reward-status",
 						"0x9e14de5cc84e437518c2c303c88570fe13f0ad15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] - /api/subscribers/stats",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Referer",
+						"type": "text",
+						"value": "{{referer}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/subscribers/stats",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"subscribers",
+						"stats"
 					]
 				}
 			},
