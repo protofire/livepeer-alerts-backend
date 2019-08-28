@@ -34,4 +34,4 @@ let apiPromises = new Promise(async (resolve, reject) => {
   }
 })
 
-apiPromises.then(() => {})
+apiPromises.then(() => process.exit(0)).catch(err => process.exit(1))
