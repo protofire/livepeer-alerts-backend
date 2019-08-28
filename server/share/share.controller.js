@@ -7,8 +7,8 @@ const Share = require('./share.model')
  * @returns {Round[]}
  */
 const list = (req, res, next) => {
-  const { limit = 50, skip = 0 } = req.query
-  Share.list({ limit, skip })
+  const { limit = 50, skip = 0, delegator, delegate } = req.query
+  Share.list({ limit, skip, delegator, delegate })
     .then(shares => res.json(shares))
     .catch(e => next(e))
 }

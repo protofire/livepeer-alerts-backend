@@ -71,8 +71,16 @@ ShareSchema.statics = {
    * @param {number} limit - Limit number of shares to be returned.
    * @returns {Promise<Shares[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
-    return this.find()
+  list({ skip = 0, limit = 50, delegator, delegate } = {}) {
+    let find
+    if (delegator) {
+      find = this.find({ delegator })
+    } else if (delegate) {
+      find = this.find({ delegate })
+    } else {
+      find = this.find()
+    }
+    return find
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
