@@ -19,13 +19,19 @@ const users = [
 let apiPromises = new Promise(async (resolve, reject) => {
   try {
     const protocolService = getProtocolService()
-    const currentRound = await protocolService.getCurrentRound()
+    const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
+    let { id, initialized, lastInitializedRound, length, startBlock, progress } = currentRoundInfo
+
     for (let user of users) {
       const response = await axios.post(
         'https://apis.fabrx.io/v1.0/network/livepeer/getDelegator',
         { addr: user.address }
       )
-      console.log(`CurrentRound: ${currentRound}`, `Username: ${user.username}`, response.data)
+      console.log(
+        `CurrentRound: ${id} , Initialized: ${initialized}, Last Initialized Round: ${lastInitializedRound}, Length ${length}, Start block ${startBlock}, Progress ${progress}`,
+        `Username: ${user.username}`,
+        response.data
+      )
     }
     resolve()
   } catch (err) {
