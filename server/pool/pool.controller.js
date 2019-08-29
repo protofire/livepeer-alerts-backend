@@ -7,8 +7,8 @@ const Pool = require('./pool.model')
  * @returns {Round[]}
  */
 const list = (req, res, next) => {
-  const { limit = 50, skip = 0 } = req.query
-  Pool.list({ limit, skip })
+  const { limit = 50, skip = 0, delegate } = req.query
+  Pool.list({ limit, skip, delegate })
     .then(shares => res.json(shares))
     .catch(e => next(e))
 }

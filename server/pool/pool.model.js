@@ -49,8 +49,15 @@ PoolSchema.statics = {
    * @param {number} limit - Limit number of pools to be returned.
    * @returns {Promise<Pools[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
-    return this.find()
+  list({ skip = 0, limit = 50, delegate } = {}) {
+    let find
+    if (delegate) {
+      find = this.find({ delegate })
+    } else {
+      find = this.find()
+    }
+
+    return find
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
