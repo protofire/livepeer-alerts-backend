@@ -339,7 +339,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{host}}/api/shares?delegator=0xE19bf801A681B8Ba37Da23092c0438716D1E3415",
+					"raw": "{{host}}/api/shares?delegator=0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4",
 					"host": [
 						"{{host}}"
 					],
@@ -350,7 +350,7 @@
 					"query": [
 						{
 							"key": "delegator",
-							"value": "0xE19bf801A681B8Ba37Da23092c0438716D1E3415"
+							"value": "0xABC04058E20c9CBA4f360244648FEDF30CeBc3B4"
 						}
 					]
 				}
@@ -374,7 +374,7 @@
 					{
 						"key": "Referer",
 						"type": "text",
-						"value": "http://localhost:3000"
+						"value": "{{referer}}"
 					}
 				],
 				"body": {
