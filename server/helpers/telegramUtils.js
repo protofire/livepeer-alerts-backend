@@ -125,7 +125,7 @@ const getDelegatorTelegramBody = async subscriber => {
       const dateYesterday = moment()
         .subtract(1, 'days')
         .startOf('day')
-        .format('dddd DD, YYYY hh:mm A')
+        .format('MMMM Do YYYY, hh:mm A')
 
       const { delegateAddress } = delegator
 

@@ -6,6 +6,8 @@ const APIError = require('../helpers/APIError')
 const httpStatus = require('http-status')
 const Subscriber = require('./subscriber.model')
 const Share = require('../share/share.model')
+const moment = require('moment')
+const _ = require('lodash')
 
 const utils = require('../helpers/utils')
 
@@ -326,6 +328,37 @@ const getByAddress = (req, res, next) => {
   return res.json(req.subscriber)
 }
 
+const stats = async (req, res, next) => {
+  try {
+    const stats = []
+    const subscribers = await Subscriber.find()
+    const delegatorService = getDelegatorService()
+
+    const delegatorsPromises = []
+    for (let subscriber of subscribers) {
+      delegatorsPromises.push(delegatorService.getDelegatorAccount(subscriber.address))
+    }
+    const delegators = await Promise.all(delegatorsPromises)
+
+    for (let subscriber of subscribers) {
+      const sharesCount = await Share.countDocuments({ delegator: subscriber.address })
+      const delegator = _.find(delegators, ['address', subscriber.address])
+
+      let item = {
+        address: subscriber.address,
+        createdAt: moment(subscriber.createdAt).format('DD/MM/YYYY'),
+        shares: sharesCount,
+        status: delegator.status
+      }
+      stats.push(item)
+    }
+
+    res.json(stats)
+  } catch (e) {
+    next(e)
+  }
+}
+
 module.exports = {
   loadBySubscriberId,
   loadByAddress,
@@ -336,5 +369,6 @@ module.exports = {
   remove,
   activate,
   summary,
-  getByAddress
+  getByAddress,
+  stats
 }

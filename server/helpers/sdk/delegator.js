@@ -44,6 +44,7 @@ const getLivepeerDelegatorStake = async address => {
 const getTotalStakeFromSummary = summary => {
   const { bondedAmount = 0, pendingStake = 0 } = summary
   const { MathBN } = require('../utils')
+  console.log('Calculate total stake', bondedAmount, pendingStake)
   return MathBN.max(bondedAmount, pendingStake)
 }
 

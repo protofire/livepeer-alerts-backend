@@ -5,6 +5,7 @@
 
 const { getDelegatorService } = require('../helpers/services/delegatorService')
 const delegatorUtils = require('../helpers/delegatorUtils')
+const utils = require('../helpers/utils')
 
 // Return the next-round-reward
 const getNextReward = async (req, res, next) => {
@@ -12,7 +13,10 @@ const getNextReward = async (req, res, next) => {
   try {
     const delegatorService = getDelegatorService()
     const nextReward = await delegatorService.getDelegatorNextReward(address)
-    res.json({ nextReward })
+    res.json({
+      nextReward: nextReward,
+      nextRewardToUnits: utils.unitAmountInTokenUnits(nextReward, 18)
+    })
   } catch (error) {
     next(error)
   }

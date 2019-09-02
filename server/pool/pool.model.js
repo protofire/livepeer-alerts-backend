@@ -42,6 +42,29 @@ PoolSchema.index({ delegate: 1, round: 1 }, { unique: true })
  */
 PoolSchema.method({})
 
+PoolSchema.statics = {
+  /**
+   * List pools in descending order of 'createdAt' timestamp.
+   * @param {number} skip - Number of pools to be skipped.
+   * @param {number} limit - Limit number of pools to be returned.
+   * @returns {Promise<Pools[]>}
+   */
+  list({ skip = 0, limit = 50, delegate } = {}) {
+    let find
+    if (delegate) {
+      find = this.find({ delegate })
+    } else {
+      find = this.find()
+    }
+
+    return find
+      .sort({ createdAt: -1 })
+      .skip(+skip)
+      .limit(+limit)
+      .exec()
+  }
+}
+
 /**
  * @typedef Pool
  */
