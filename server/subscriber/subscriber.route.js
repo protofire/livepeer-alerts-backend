@@ -11,7 +11,8 @@ const {
   update,
   loadByAddress,
   loadBySubscriberId,
-  remove
+  remove,
+  stats
 } = require('./subscriber.controller')
 
 const router = express.Router() // eslint-disable-line new-cap
@@ -29,6 +30,12 @@ router
 
   /** POST /api/subscribers/activate - Activate new subscriber */
   .post(validate(paramValidation.activateSubscriber), activate)
+
+router
+  .route('/stats')
+
+  /** GET /api/subscribers/stats  */
+  .get(stats)
 
 router
   .route('/summary/:addressWithoutSubscriber')

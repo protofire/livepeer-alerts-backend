@@ -57,11 +57,15 @@ const workerCheckRoundChange = async () => {
   try {
     console.log(`[Check-Round-Change] Updating delegates pools`)
     await roundPoolsUtils.updateDelegatesPools(roundCreated)
+  } catch (err) {
+    // TODO - This should be inside a transaction, because if some of those two fails, the round will be already saved and the information of the pools/shares wont be saved for that round
+    throw new Error(`[Check-Round-Change] - Error updating pools: ${err}`)
+  }
+  try {
     console.log(`[Check-Round-Change] Updating delegators shares`)
     await roundSharesUtils.updateDelegatorsShares(roundCreated)
   } catch (err) {
-    // TODO - This should be inside a transaction, because if some of those two fails, the round will be already saved and the information of the pools/shares wont be saved for that round
-    throw new Error(`[Check-Round-Change] - Error updating pools or shares: ${err}`)
+    throw new Error(`[Check-Round-Change] - Error updating shares: ${err}`)
   }
 
   // Finally send notifications

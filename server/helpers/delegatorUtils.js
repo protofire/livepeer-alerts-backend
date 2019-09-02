@@ -47,12 +47,16 @@ const getDelegatorCurrentRewardTokens = async (
   if (!lastDelegatorShare) {
     return null
   }
+
   const newShare = utils.MathBN.sub(
     currentDelegatorTotalStake,
     lastDelegatorShare.totalStakeOnRound
   )
+  console.log(
+    `[Delegator utils] - Current delegator total stake ${currentDelegatorTotalStake} - last delegator total stake ${lastDelegatorShare.totalStakeOnRound} - Difference ${newShare}`
+  )
   console.log(`[Delegator utils] - returning new share: ${newShare}`)
-  return newShare
+  return +newShare !== 0 ? newShare : null
 }
 
 // Receives a list of delegators, if they already exists locally, updates them, otherwise, creates new ones locally
@@ -64,13 +68,10 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
     )
     return
   }
-  const updateDelegatorPromises = []
-  const updateDelegatePromises = []
+
   for (let remoteDelegatorIterator of fetchedDelegators) {
     const remoteId = remoteDelegatorIterator.address
     const delegateAddress = remoteDelegatorIterator.delegateAddress
-      ? remoteDelegatorIterator.delegateAddress
-      : remoteDelegatorIterator.delegate
     if (!remoteId) {
       console.error(`[Delegator utils] - delegator ${remoteDelegatorIterator} has not id, skipped`)
       continue
@@ -89,7 +90,8 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
         startRound,
         totalStake
       })
-      updateDelegatorPromises.push(newDelegator.save())
+      await newDelegator.save()
+
       console.log(`[Delegator utils] - updating delegate: ${delegateAddress} with new delegator`)
       // Updates the delegator of the delegate with the delegator address if is not already there
       const delegate = await Delegate.findById(delegateAddress).populate({ path: 'delegators' })
@@ -100,18 +102,17 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
             `[Delegator utils] - remote delegator ${remoteId} not found on the delegator list of the delegate, adding it`
           )
           delegators.push(remoteId)
-          updateDelegatePromises.push(delegate.save())
+          await delegate.save()
         }
       }
     } else {
       console.log(`[Delegator utils] - remote delegator ${remoteId} found locally, updating it`)
       // If found, just update the current total stake value
       localFound.totalStake = remoteDelegatorIterator.totalStake
-      updateDelegatorPromises.push(localFound.save())
+      await localFound.save()
     }
   }
-  await Promise.all(updateDelegatorPromises)
-  await Promise.all(updateDelegatePromises)
+
   console.log(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Finished`)
 }
 
@@ -262,11 +263,11 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     if (share.round === lastRoundStartValue.toString()) {
       delegatorLastRoundReward = utils.MathBN.add(delegatorLastRoundReward, share.rewardTokens)
     }
-    if (share.round >= last7RoundStartValue.toString()) {
+    if (share.round > last7RoundStartValue.toString()) {
       delegator7RoundsRewards = utils.MathBN.add(delegator7RoundsRewards, share.rewardTokens)
       amountOfSharesFor7RoundsAvailable++
     }
-    if (share.round >= last30RoundStartValue.toString()) {
+    if (share.round > last30RoundStartValue.toString()) {
       delegator30RoundsRewards = utils.MathBN.add(delegator30RoundsRewards, share.rewardTokens)
       amountOfSharesFor30RoundsAvailable++
     }
@@ -295,11 +296,11 @@ const getDelegatorSummary30RoundsRewards = async delegatorAddress => {
     if (pool.round === lastRoundStartValue.toString()) {
       delegateLastRoundReward = utils.MathBN.add(delegateLastRoundReward, pool.rewardTokens)
     }
-    if (pool.round >= last7RoundStartValue.toString()) {
+    if (pool.round > last7RoundStartValue.toString()) {
       delegate7RoundsRewards = utils.MathBN.add(delegate7RoundsRewards, pool.rewardTokens)
       amountOfPoolsFor7RoundsAvailable++
     }
-    if (pool.round >= last30RoundStartValue.toString()) {
+    if (pool.round > last30RoundStartValue.toString()) {
       delegate30RoundsRewards = utils.MathBN.add(delegate30RoundsRewards, pool.rewardTokens)
       amountOfPoolsFor30RoundsAvailable++
     }

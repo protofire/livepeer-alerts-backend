@@ -171,9 +171,9 @@ const updateDelegatesLocally = async listOfDelegatesToUpdate => {
 const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
   if (!fetchedDelegates || fetchedDelegates.length === 0) {
     console.error(
-      '[Check-And-Update-Missing-Local-Delegates] - there were no remote delegates received'
+      '[Check-And-Update-Missing-Local-Delegates] - there were no remote delegates received on checkAndUpdateMissingLocalDelegates'
     )
-    process.exit(1)
+    return
   }
   const updateDelegatePromises = []
   for (let remoteDelegateIterator of fetchedDelegates) {

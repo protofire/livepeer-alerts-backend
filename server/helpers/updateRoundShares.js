@@ -4,6 +4,7 @@ const subscriberUtils = require('./subscriberUtils')
 const Share = require('../share/share.model')
 const Round = require('../round/round.model')
 const Delegator = require('../delegator/delegator.model')
+const utils = require('./utils')
 
 const updateDelegatorSharesOfRound = async (round, delegator) => {
   console.log('[Update Delegators Shares] - Starts updating delegator shares')
@@ -38,30 +39,8 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
     throw new Error('[Update Delegators Shares] - The round provided does not exists')
   }
 
-  // Creates the share object
-  const { totalStake, delegate } = delegator
   const shareId = `${delegatorAddress}-${roundId}`
-  let rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
-    roundId,
-    delegatorAddress,
-    totalStake
-  )
-  if (!rewardTokens) {
-    // If the delegate has no shares for the given round, the reward tokens should be 0
-    console.log(
-      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving 0 instead`
-    )
-    rewardTokens = '0'
-  }
 
-  let newSavedShared = new Share({
-    _id: shareId,
-    rewardTokens,
-    totalStakeOnRound: totalStake,
-    delegator: delegatorAddress,
-    delegate: delegate,
-    round: roundId
-  })
   // Checks that the share does not already exists
   const foundShare = await Share.findById(shareId)
   if (foundShare) {
@@ -72,7 +51,37 @@ const updateDelegatorSharesOfRound = async (round, delegator) => {
       `[Update Delegators Shares] - Error Updating share: ${shareId} on delegator ${delegatorAddress}, the share already exists, skipping save`
     )
   }
+
+  // Creates the share object
+  const { totalStake, delegate } = delegator
+  let rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
+    roundId,
+    delegatorAddress,
+    totalStake
+  )
+
+  if (!rewardTokens) {
+    // If the delegate has no shares for the given round, the reward tokens should be 0
+    console.log(
+      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving next reward instead`
+    )
+
+    const { getDelegatorService } = require('./services/delegatorService')
+    const delegatorService = getDelegatorService()
+    const delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegatorAddress)
+    rewardTokens = utils.unitAmountInTokenUnits(delegatorRoundReward, 18) || '0'
+  }
+
   try {
+    let newSavedShared = new Share({
+      _id: shareId,
+      rewardTokens: rewardTokens,
+      totalStakeOnRound: totalStake,
+      delegator: delegatorAddress,
+      delegate: delegate,
+      round: roundId
+    })
+
     // Saves the share
     console.log(`[Update Delegators Shares] - Saving new share for delegator ${delegatorAddress}`)
     newSavedShared = await newSavedShared.save()
