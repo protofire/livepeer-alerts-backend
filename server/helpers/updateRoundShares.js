@@ -8,7 +8,7 @@ const { MathBN, unitAmountInTokenUnits } = require('./utils')
 const updateDelegatorSharesOfRound = async (round, delegator) => {
   const { address, totalStake, delegateAddress } = delegator
   if (!address || !totalStake || !delegateAddress) {
-    throw new Error(`Delegator ${delegator} missing property`)
+    throw new Error(`Delegator ${JSON.stringify(delegator)} missing property`)
   }
 
   const { roundId } = round
