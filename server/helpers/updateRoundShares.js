@@ -2,155 +2,125 @@ const mongoose = require('../../config/mongoose')
 const delegatorUtils = require('./delegatorUtils')
 const subscriberUtils = require('./subscriberUtils')
 const Share = require('../share/share.model')
-const Round = require('../round/round.model')
 const Delegator = require('../delegator/delegator.model')
-const utils = require('./utils')
+const { MathBN, unitAmountInTokenUnits } = require('./utils')
 
 const updateDelegatorSharesOfRound = async (round, delegator) => {
-  console.log('[Update Delegators Shares] - Starts updating delegator shares')
-  if (!round) {
-    console.error('[Update Delegators Shares] - No round shares were provided')
-    throw new Error('[Update Delegators Shares] - No round shares were provided')
+  const { address, totalStake, delegateAddress } = delegator
+  if (!address || !totalStake || !delegateAddress) {
+    throw new Error(`Delegator ${delegator} missing property`)
   }
-  if (!delegator) {
-    console.error('[Update Delegators Shares] - No delegator was provided')
-    throw new Error('[Update Delegators Shares] - No delegator was provided')
-  }
-  const delegatorAddress = delegator.address
-  if (!delegatorAddress) {
-    console.error(`[Update Delegators Shares] - delegator ${delegator} has not address`)
-    throw new Error(`[Update Delegators Shares] - delegator ${delegator} has not address`)
-  }
-  // Checks that the delegator exists before continue
-  delegator = await Delegator.findById(delegatorAddress)
-  if (!delegator) {
-    console.error(
-      `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
-    )
-    throw new Error(
-      `[Update Delegators Shares] - Delegator ${delegatorAddress} not found, did you called checkAndUpdateMissingLocalDelegators() before?`
-    )
-  }
-  // Checks that the round exists before continue
+
   const { roundId } = round
-  round = await Round.findById(roundId)
-  if (!round) {
-    console.error('[Update Delegators Shares] - The round provided does not exists')
-    throw new Error('[Update Delegators Shares] - The round provided does not exists')
-  }
+  const shareId = `${address}-${roundId}`
 
-  const shareId = `${delegatorAddress}-${roundId}`
-
-  // Checks that the share does not already exists
-  const foundShare = await Share.findById(shareId)
-  if (foundShare) {
-    console.error(
-      `[Update Delegators Shares] - Error Updating share: ${shareId} on delegator ${delegatorAddress}, the share already exists, skipping save`
-    )
-    throw new Error(
-      `[Update Delegators Shares] - Error Updating share: ${shareId} on delegator ${delegatorAddress}, the share already exists, skipping save`
-    )
-  }
-
-  // Creates the share object
-  const { totalStake, delegate } = delegator
+  // Get reward tokens
   let rewardTokens = await delegatorUtils.getDelegatorCurrentRewardTokens(
     roundId,
-    delegatorAddress,
+    address,
     totalStake
   )
 
-  if (!rewardTokens) {
-    // If the delegate has no shares for the given round, the reward tokens should be 0
-    console.log(
-      `[Update Delegators Shares] - The delegator ${delegatorAddress} has no shares for the round ${roundId}, saving next reward instead`
-    )
-
-    const { getDelegatorService } = require('./services/delegatorService')
-    const delegatorService = getDelegatorService()
-    const delegatorRoundReward = await delegatorService.getDelegatorNextReward(delegatorAddress)
-    rewardTokens = utils.unitAmountInTokenUnits(delegatorRoundReward, 18) || '0'
+  const checkRewardTokens = async rewardTokens => {
+    // Check if is the first one, detect reward
+    if (!rewardTokens) {
+      const lastRoundId = roundId - 1
+      const lastDelegatorShareId = `${address}-${lastRoundId}`
+      const lastDelegatorShare = await Share.findById(lastDelegatorShareId)
+      if (!lastDelegatorShare) {
+        const { getDelegatorService } = require('./services/delegatorService')
+        const delegatorService = getDelegatorService()
+        const rewardTokensInAmount = await delegatorService.getDelegatorNextReward(address)
+        rewardTokens = unitAmountInTokenUnits(rewardTokensInAmount, 18)
+      }
+    }
+    return rewardTokens
   }
 
-  try {
-    let newSavedShared = new Share({
+  rewardTokens = await checkRewardTokens(rewardTokens)
+
+  const share = await Share.findById(shareId)
+  if (share) {
+    let shareModified = false
+    if (
+      share.rewardTokens !== rewardTokens &&
+      rewardTokens !== null &&
+      MathBN.gte(rewardTokens, share.rewardTokens)
+    ) {
+      share.rewardTokens = rewardTokens
+      shareModified = true
+    }
+    if (
+      share.totalStakeOnRound !== totalStake &&
+      totalStake !== null &&
+      MathBN.gte(totalStake, share.totalStakeOnRound)
+    ) {
+      share.totalStakeOnRound = totalStake
+      shareModified = true
+    }
+    if (shareModified) {
+      await share.save()
+    }
+  } else {
+    let newShare = await Share.create({
       _id: shareId,
       rewardTokens: rewardTokens,
       totalStakeOnRound: totalStake,
-      delegator: delegatorAddress,
-      delegate: delegate,
+      delegator: address,
+      delegate: delegateAddress,
       round: roundId
     })
 
-    // Saves the share
-    console.log(`[Update Delegators Shares] - Saving new share for delegator ${delegatorAddress}`)
-    newSavedShared = await newSavedShared.save()
-    // Updates the pool with the share
-    round.shares.push(newSavedShared)
-    console.log('[Update Delegators Shares] - Updating round with share')
-    round = await round.save()
-    // Finally updates the delegator with the new share
-    delegator.shares.push(newSavedShared)
-    delegator = await delegator.save()
-  } catch (err) {
-    console.error(
-      `[Update Delegators Shares] - Error Updating share on delegator ${delegatorAddress}`
-    )
-    console.error(err)
-    throw err
+    round.shares.push(newShare)
+    await round.save()
+
+    delegator = await Delegator.findById(address)
+    if (delegator) {
+      delegator.shares.push(newShare)
+      await delegator.save()
+    }
   }
 }
 
 // Executed on round changed, only executes for the delegators which are subscribed
 const updateDelegatorsShares = async newRound => {
-  console.log('[Update Delegator shares] - Start')
-  if (!newRound) {
-    throw new Error('[Update Delegator shares] - No round was provided')
-  }
-
-  // Fetch all the delegators that are subscribed
-  console.log('[Update Delegator shares] - Getting delegators subscribers')
-  const delegatorsAndSubscribersList = await subscriberUtils.getDelegatorSubscribers()
-  if (!delegatorsAndSubscribersList || delegatorsAndSubscribersList.length === 0) {
-    console.log('[Update Delegator shares] - No delegators subscribers found')
+  const delegatorsAndSubscribers = await subscriberUtils.getDelegatorSubscribers()
+  if (!delegatorsAndSubscribers || delegatorsAndSubscribers.length === 0) {
+    console.log('No delegators subscribers found, stop updating shares')
     return
   }
+
   const delegators = []
-  // Gets the list of delegators from the subscribers, removes the duplicated ones (could be more than one subscriptor with the same delegator address)
-  delegatorsAndSubscribersList.forEach(element => {
-    const { delegator } = element
-    let isAlreadySaved = false
-    // Checks if the array does contains the delegator before adding it
-    for (let delegatorSaved of delegators) {
-      if (delegatorSaved.address === delegator.address) {
-        isAlreadySaved = true
-        break
-      }
+  for (let delegatorAndSubscriber of delegatorsAndSubscribers) {
+    const { delegator } = delegatorAndSubscriber
+    delegators.push(delegator)
+  }
+
+  const delegatorsUnique = delegators.reduce((acc, current) => {
+    const x = acc.find(item => item.address === current.address)
+    if (!x) {
+      return acc.concat([current])
+    } else {
+      return acc
     }
-    if (!isAlreadySaved) {
-      delegators.push(delegator)
-    }
-  })
-  if (!delegators || delegators.length === 0) {
-    console.log('[Update Delegator shares] - No delegators subscribers found')
+  }, [])
+
+  if (!delegatorsUnique || delegatorsUnique.length === 0) {
+    console.log('No delegators subscribers found, stop updating shares')
     return
   }
 
-  // Then checks if all the fetched delegators exists locally, otherwise, add the ones that are missing
-  await delegatorUtils.checkAndUpdateMissingLocalDelegators(delegators)
-
-  // Then updates the delegators shares on the current round
-  for (let delegatorIterator of delegators) {
+  for (let delegator of delegatorsUnique) {
     try {
-      await service.updateDelegatorSharesOfRound(newRound, delegatorIterator)
+      const shareId = `${delegator.address}-${newRound.roundId}`
+      console.log(`Updating share ${shareId} for round ${newRound.roundId}`)
+      await service.updateDelegatorSharesOfRound(newRound, delegator)
     } catch (err) {
-      console.error(
-        `[Update Delegators Share] - Error when updating delegators shares: ${err}, continue updating next delegator`
-      )
+      console.error(`Error when updating delegators shares: continue updating next delegator`, err)
       continue
     }
   }
-  console.log('[Update Delegators Share] - Finished')
+  console.log('Finished, stop updating shares')
 }
 
 const service = {

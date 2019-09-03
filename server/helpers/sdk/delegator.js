@@ -20,6 +20,7 @@ const getLivepeerDelegatorAccount = async address => {
   }
   const rpc = await getLivepeerRpc()
   const summary = await rpc.getDelegator(address)
+  console.log(`Calculate summary for address ${address}`)
   summary.totalStake = getTotalStakeFromSummary(summary)
   return summary
 }
@@ -38,6 +39,7 @@ const getLivepeerDelegatorStake = async address => {
   }
   const { rpc } = await LivepeerSDK.default()
   const summary = await rpc.getDelegator(address)
+  console.log(`Calculate summary for address ${address}`)
   return getTotalStakeFromSummary(summary)
 }
 

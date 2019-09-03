@@ -60,32 +60,31 @@ const getDelegatorCurrentRewardTokens = async (
 }
 
 // Receives a list of delegators, if they already exists locally, updates them, otherwise, creates new ones locally
-const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
-  console.error(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Start`)
-  if (!fetchedDelegators || fetchedDelegators.length === 0) {
+const checkAndUpdateMissingLocalDelegators = async delegators => {
+  console.log(`[Delegator utils] - checkAndUpdateMissingLocalDelegators Start`)
+  if (!delegators || delegators.length === 0) {
     console.error(
       '[Delegator utils] - there were no remote delegators received on checkAndUpdateMissingLocalDelegators()'
     )
     return
   }
 
-  for (let remoteDelegatorIterator of fetchedDelegators) {
-    const remoteId = remoteDelegatorIterator.address
-    const delegateAddress = remoteDelegatorIterator.delegateAddress
-    if (!remoteId) {
-      console.error(`[Delegator utils] - delegator ${remoteDelegatorIterator} has not id, skipped`)
+  for (let delegator of delegators) {
+    const { address, delegateAddress } = delegator
+    if (!address) {
+      console.error(`[Delegator utils] - delegator ${delegator} has not id, skipped`)
       continue
     }
     if (!delegateAddress) {
-      console.error(`[Delegator utils] - delegator ${remoteId} has not delegate address, skipped`)
+      console.error(`[Delegator utils] - delegator ${address} has not delegate address, skipped`)
       continue
     }
-    const localFound = await Delegator.findById(remoteId)
+    const localFound = await Delegator.findById(address)
     if (!localFound) {
-      console.log(`[Delegator utils] - remote delegator ${remoteId} not found locally, adding it`)
-      const { startRound, totalStake } = remoteDelegatorIterator
+      console.log(`[Delegator utils] - remote delegator ${address} not found locally, adding it`)
+      const { startRound, totalStake } = delegator
       const newDelegator = new Delegator({
-        _id: remoteId,
+        _id: address,
         delegate: delegateAddress,
         startRound,
         totalStake
@@ -97,18 +96,18 @@ const checkAndUpdateMissingLocalDelegators = async fetchedDelegators => {
       const delegate = await Delegate.findById(delegateAddress).populate({ path: 'delegators' })
       if (delegate) {
         const { delegators } = delegate
-        if (!delegators.includes(remoteId)) {
+        if (!delegators.includes(address)) {
           console.log(
-            `[Delegator utils] - remote delegator ${remoteId} not found on the delegator list of the delegate, adding it`
+            `[Delegator utils] - remote delegator ${address} not found on the delegator list of the delegate, adding it`
           )
-          delegators.push(remoteId)
+          delegators.push(address)
           await delegate.save()
         }
       }
     } else {
-      console.log(`[Delegator utils] - remote delegator ${remoteId} found locally, updating it`)
+      console.log(`[Delegator utils] - remote delegator ${address} found locally, updating it`)
       // If found, just update the current total stake value
-      localFound.totalStake = remoteDelegatorIterator.totalStake
+      localFound.totalStake = delegator.totalStake
       await localFound.save()
     }
   }

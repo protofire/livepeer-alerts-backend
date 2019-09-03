@@ -1,118 +1,101 @@
-const delegateUtils = require('./delegatesUtils')
-
-const { getDelegateService } = require('../helpers/services/delegateService')
 const mongoose = require('../../config/mongoose')
+const { getDelegateService } = require('../helpers/services/delegateService')
+const { getProtocolService } = require('../helpers/services/protocolService')
 const Delegate = require('../delegate/delegate.model')
 const Pool = require('../pool/pool.model')
-const Round = require('../round/round.model')
+const { MathBN } = require('./utils')
 
-const updateDelegatePoolsOfRound = async (round, roundPools) => {
-  console.log('[Update Delegates Pools] - Starts updating delegate pools')
-  if (!round) {
-    console.error('[Update Delegates Pools] - No round pools was provided')
-    throw new Error('[Update Delegates Pools] - No round pools was provided')
-  }
-  if (!roundPools) {
-    console.error('[Update Delegates Pools] - No round pools were provided')
-    throw new Error('[Update Delegates Pools] - No round pools were provided')
-  }
-  // Checks that the round exists before continue
-  const { roundId } = round
-  round = await Round.findById(roundId)
-  if (!round) {
-    console.error('[Update Delegates Pools] - The round provided does not exists')
-    throw new Error('[Update Delegates Pools] - The round provided does not exists')
-  }
-
+const updateDelegatePoolsOfRound = async (round, pool) => {
   const delegateService = getDelegateService()
 
-  // Persists the pools locally
-  for (let poolIterator of roundPools) {
-    const poolId = poolIterator.id
-    const delegateId = poolIterator.transcoder.id
-    if (!delegateId) {
-      console.error(
-        `[Update Delegates Pools] - The pool ${poolId} does not contain a valid delegate`
-      )
-      continue
-    }
-    // Checks that the pool does not already exists
-    const foundPool = await Pool.findById(poolId)
-    if (foundPool) {
-      console.error(
-        `[Update Delegates Pools] - The pool  ${poolId} already exist on the db, skipping the update of it on the db`
-      )
-      continue
-    }
-    // Fetch the delegate current totalStake and the local delegate related to the pool
-    let [totalStakeOnRound, delegate] = await Promise.all([
-      delegateService.getDelegateTotalStake(delegateId),
-      Delegate.findById(delegateId)
-    ])
-    if (!delegate) {
-      // This should not happen because all the delegates on the db should be updated first
-      console.error(
-        `[Update Delegates Pools] - The delegate ${delegateId} of the pool ${poolId} was not found, did you call the updateDelegatesJob() before?`
-      )
-      continue
+  const { id, rewardTokens, transcoder } = pool
+  const delegateId = transcoder && transcoder.id
+  if (!delegateId) {
+    throw new Error(`The pool ${id} does not contain a valid delegate address`)
+  }
+
+  const { roundId } = round
+  const foundPool = await Pool.findById(id)
+
+  let [totalStakeOnRound, delegate] = await Promise.all([
+    delegateService.getDelegateTotalStake(delegateId),
+    Delegate.findById(delegateId)
+  ])
+
+  const isActualRoundPromise = async () => {
+    const protocolService = getProtocolService()
+    const currentRound = await protocolService.getCurrentRound()
+    return currentRound === roundId
+  }
+
+  if (foundPool) {
+    let poolModified = false
+
+    const mustUpdateRewards =
+      rewardTokens !== foundPool.rewardTokens &&
+      rewardTokens !== null &&
+      MathBN.gte(rewardTokens, foundPool.rewardTokens)
+
+    if (mustUpdateRewards) {
+      foundPool.rewardTokens = rewardTokens
+      poolModified = true
     }
 
-    try {
-      const { roundId } = round
-      // Creates the pool object
-      let newSavedPool = new Pool({
-        _id: poolId,
-        rewardTokens: poolIterator.rewardTokens,
-        totalStakeOnRound,
-        delegate: delegateId,
-        round: roundId
-      })
-      // Saves the pool
-      console.log(
-        `[Update Delegates Pools] - Saving new pool - Delegate Address ${delegateId} - Reward ${poolIterator.rewardTokens}`
-      )
-      newSavedPool = await newSavedPool.save()
-      // Also updates the round with the pool
-      round.pools.push(newSavedPool)
-      console.log('[Update Delegates Pools] - Updating round with pool')
-      round = await round.save()
-      // Finally Updates the delegate with the new pool
-      console.log('[Update Delegates Pools] - Updating delegate with pool')
-      delegate.pools.push(newSavedPool)
-      delegate = await delegate.save()
-    } catch (err) {
-      console.error(`[Update Delegates Pools] - Error Updating pools on delegate ${delegateId}`)
-      console.error(err)
-      continue
+    const isActualRound = await isActualRoundPromise()
+    const mustUpdateTotalStakeOnRound =
+      isActualRound &&
+      totalStakeOnRound !== foundPool.totalStakeOnRound &&
+      totalStakeOnRound !== null &&
+      MathBN.gte(totalStakeOnRound, foundPool.totalStakeOnRound)
+
+    if (mustUpdateTotalStakeOnRound) {
+      foundPool.totalStakeOnRound = totalStakeOnRound
+      poolModified = true
+    }
+
+    if (poolModified) {
+      await foundPool.save()
+    }
+  } else {
+    let newPool = await Pool.create({
+      _id: id,
+      rewardTokens,
+      totalStakeOnRound,
+      delegate: delegateId,
+      round: roundId
+    })
+
+    round.pools.push(newPool)
+    await round.save()
+
+    if (delegate) {
+      delegate.pools.push(newPool)
+      await delegate.save()
     }
   }
 }
 
-// Executed on round changed
 const updateDelegatesPools = async newRound => {
-  console.log('[Update Delegates Pools] - Start')
-  if (!newRound) {
-    throw new Error('[Update Delegates Pools] - No round was provided')
-  }
-
-  // Updates local delegates with the new version provided from graphql
   const delegateService = getDelegateService()
-  // Gets the last version of the delegates from graphql
-  const delegatesFetched = await delegateService.getDelegates()
-  // Then checks if all the fetched delegates exists locally, otherwise, add the ones that are missing
-  await delegateUtils.checkAndUpdateMissingLocalDelegates(delegatesFetched)
-
-  // Fetch the pool data for the given round
   const roundWithPoolsData = await delegateService.getPoolsPerRound(newRound.roundId)
-  if (!roundWithPoolsData || !roundWithPoolsData.rewards) {
-    throw new Error('[Update Delegates Pools] - Pools per round not found')
+  if (
+    !roundWithPoolsData ||
+    !roundWithPoolsData.rewards ||
+    roundWithPoolsData.rewards.length === 0
+  ) {
+    console.log('Pools per round not found')
+    return
   }
   const roundPools = roundWithPoolsData.rewards
-
-  // Then updates the delegates on the current round
-  await service.updateDelegatePoolsOfRound(newRound, roundPools)
-
-  console.log('[Update Delegates Pools] - Finish')
+  for (let pool of roundPools) {
+    try {
+      console.log(`Updating pool ${pool.id} for round ${newRound.roundId}`)
+      await service.updateDelegatePoolsOfRound(newRound, pool)
+    } catch (err) {
+      console.error(`Error when updating pool ${pool.id}: continue updating next`, err)
+      continue
+    }
+  }
 }
 
 const service = {

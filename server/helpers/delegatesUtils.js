@@ -167,25 +167,24 @@ const updateDelegatesLocally = async listOfDelegatesToUpdate => {
 
 // Receives all the delegates that are stored locally and the delegates from the graph
 // If there are delegates who are not stored locally, save them on the db
-// TODO -- Maybe this could be an always-running proccess with it's subscribed to the graph
-const checkAndUpdateMissingLocalDelegates = async fetchedDelegates => {
-  if (!fetchedDelegates || fetchedDelegates.length === 0) {
+const checkAndUpdateMissingLocalDelegates = async delegates => {
+  if (!delegates || delegates.length === 0) {
     console.error(
       '[Check-And-Update-Missing-Local-Delegates] - there were no remote delegates received on checkAndUpdateMissingLocalDelegates'
     )
     return
   }
   const updateDelegatePromises = []
-  for (let remoteDelegateIterator of fetchedDelegates) {
-    const remoteId = remoteDelegateIterator.id
-    const localFound = await Delegate.findById(remoteId)
+  for (let delegate of delegates) {
+    const delegateId = delegate.id
+    const localFound = await Delegate.findById(delegateId)
     if (!localFound) {
       console.log(
-        `[Check-And-Update-Missing-Local-Delegates] - remote delegate ${remoteId} not found locally, adding it`
+        `[Check-And-Update-Missing-Local-Delegates] - remote delegate ${delegateId} not found locally, adding it`
       )
       const newDelegate = new Delegate({
-        _id: remoteId,
-        ...remoteDelegateIterator
+        _id: delegateId,
+        ...delegate
       })
       updateDelegatePromises.push(newDelegate.save())
     }

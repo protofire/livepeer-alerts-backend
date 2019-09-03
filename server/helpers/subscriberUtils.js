@@ -153,18 +153,13 @@ const findTelegramSubscription = async (address, chatId) => {
 }
 
 const getSubscriptorRole = async subscriptor => {
-  console.log(`[Subscribers-utils] - getSubscriptorRole()`)
   const { getProtocolService } = require('./services/protocolService')
   const { getDelegatorService } = require('./services/delegatorService')
   const protocolService = getProtocolService()
   const delegatorService = getDelegatorService()
   try {
     const constants = await protocolService.getLivepeerDefaultConstants()
-    console.log(
-      `[Subscribers-utils] - getDelegatorAccount() for subscriptor: ${subscriptor._id} with delegateAddress: ${subscriptor.address}`
-    )
     const delegator = await delegatorService.getDelegatorAccount(subscriptor.address)
-    console.log(`[Subscribers-utils] - getDelegatorAccount() finished, detecting role`)
     const { status, address, delegateAddress } = delegator
 
     // Detect role
@@ -330,13 +325,11 @@ const filterSubscribersByDelegateRole = async allSubscribers => {
  * @returns {Promise<array>}
  */
 const getDelegatorSubscribers = async () => {
-  console.log('[Subscribers-utils] - Returning list of subscribers delegators')
   let subscribersList = []
   const allSubscribers = await Subscriber.find({})
   if (allSubscribers && allSubscribers.length > 0) {
     subscribersList = await subscriberUtils.filterSubscribersByDelegatorRole(allSubscribers)
   }
-  console.log(`[Subscribers-utils] - Amount of subscribers delegators: ${subscribersList.length}`)
   return subscribersList
 }
 

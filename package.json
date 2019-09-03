@@ -16,6 +16,8 @@
     "start:check-round-change": "node --harmony ./server/jobs/check-round-change.js",
     "start:check-delegate-change-rules": "node --harmony ./server/jobs/check-delegate-change-rules.js",
     "start:debug-total-stake": "node --harmony ./server/jobs/debug-total-stake.js",
+    "start:update-pools-shares": "node --harmony ./server/jobs/update-pools-and-shares.js",
+    "start:update-delegates-delegators-data": "node --harmony ./server/jobs/update-delegates-delegators-data.js",
     "lint": "esw *.js server config --color",
     "lint:watch": "npm run lint -- --watch",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha  test/*.test.js --timeout=1200000 --ui bdd --reporter spec --colors server --harmony --exit",

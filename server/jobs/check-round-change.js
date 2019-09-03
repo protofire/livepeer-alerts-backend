@@ -8,80 +8,56 @@ const roundSharesUtils = require('../helpers/updateRoundShares')
 
 const Round = require('../round/round.model')
 
-const workerCheckRoundChange = async () => {
+const workerCheckRoundChange = new Promise(async (resolve, reject) => {
   console.log(`[Check-Round-Change] - Start`)
 
   const { thresholdSendNotification } = config
   const protocolService = getProtocolService()
   const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
   let { id, initialized, lastInitializedRound, length, startBlock, progress } = currentRoundInfo
-  let actualSavedRound = await Round.findOne({ roundId: id })
 
   if (!initialized) {
-    console.log(`[Check-Round-Change] - The round is not initialized. skipping checkRoundChange`)
-    process.exit(0)
+    resolve(`The round is not initialized. skipping checkRoundChange`)
   }
 
+  let actualSavedRound = await Round.findOne({ roundId: id })
   if (actualSavedRound) {
-    console.log(`[Check-Round-Change] - The round did not changed, sending notifications if needed`)
     try {
+      console.log(`The round did not changed, sending notifications if needed`)
       await sendRoundNotifications(progress, actualSavedRound, thresholdSendNotification)
+      resolve(`Notifications sent, finish check round change`)
     } catch (err) {
-      throw new Error(`[Check-Round-Change] - Error sending notifications: ${err}`)
+      const message = err && err.message
+      reject(`Error sending notifications: ${message}`)
     }
-    console.log(`[Check-Round-Change] - Notifications sent, finish check round change`)
-    process.exit(0)
-  }
+  } else {
+    // There is a new round, creates it on the db, updates pools, shares and send notifications
+    try {
+      console.log(
+        `The round did changed, the new actual round is ${id}, sending round notifications`
+      )
 
-  // There is a new round, creates it on the db, updates pools, shares and send notifications
-  console.log(`[Check-Round-Change] - The round did changed, the new actual round is ${id}`)
-
-  // Saves the new round locally
-  const data = {
-    _id: id,
-    roundId: id,
-    initialized,
-    lastInitializedRound,
-    length,
-    startBlock
+      const data = {
+        _id: id,
+        roundId: id,
+        initialized,
+        lastInitializedRound,
+        length,
+        startBlock
+      }
+      let roundCreated = await Round.create(data)
+      await sendRoundNotifications(progress, roundCreated, thresholdSendNotification)
+      resolve(`Notifications sent, finish check round change`)
+    } catch (err) {
+      const message = err && err.message
+      reject(`Error sending notifications: ${message}`)
+    }
   }
-  let roundCreated = new Round(data)
-  // TODO -- as enhancement, this operation should be inside a transaction and rollbacked if an error appears
-  try {
-    await roundCreated.save()
-  } catch (err) {
-    throw new Error(`[Check-Round-Change] - Error saving new round: ${err}`)
-  }
+})
 
-  // Once the round was created, updates the shares and pools of the current round
-  try {
-    console.log(`[Check-Round-Change] Updating delegates pools`)
-    await roundPoolsUtils.updateDelegatesPools(roundCreated)
-  } catch (err) {
-    // TODO - This should be inside a transaction, because if some of those two fails, the round will be already saved and the information of the pools/shares wont be saved for that round
-    throw new Error(`[Check-Round-Change] - Error updating pools: ${err}`)
-  }
-  try {
-    console.log(`[Check-Round-Change] Updating delegators shares`)
-    await roundSharesUtils.updateDelegatorsShares(roundCreated)
-  } catch (err) {
-    throw new Error(`[Check-Round-Change] - Error updating shares: ${err}`)
-  }
-
-  // Finally send notifications
-  try {
-    console.log(`[Check-Round-Change] Sending round notifications`)
-    await sendRoundNotifications(progress, roundCreated, thresholdSendNotification)
-  } catch (err) {
-    throw new Error(`[Check-Round-Change] - Error sending notifications: ${err}`)
-  }
-
-  console.log(`[Check-Round-Change] - Finish`)
-}
-
-workerCheckRoundChange()
-  .then(() => {
-    console.log(`[Check-Round-Change] - Finished, closing db connection`)
+workerCheckRoundChange
+  .then(message => {
+    console.log(message)
     mongoose.connection.close()
     process.exit(0)
   })
