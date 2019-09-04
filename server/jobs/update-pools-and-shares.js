@@ -14,7 +14,7 @@ const updatePoolsAndShares = new Promise(async (resolve, reject) => {
   const currentRoundInfo = await protocolService.getLivepeerRoundProgress()
   let { id, initialized, lastInitializedRound, length, startBlock } = currentRoundInfo
 
-  const roundsToCheck = [id, `${id - 1}`, `${id - 2}`, `${id - 3}`]
+  const roundsToCheck = [id, `${id - 1}`, `${id - 2}`, `${id - 3}`, `${id - 4}`]
 
   for (let roundId of roundsToCheck) {
     try {
