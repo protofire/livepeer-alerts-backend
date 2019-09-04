@@ -55,8 +55,7 @@ const getDelegatorCurrentRewardTokens = async (
   console.log(
     `[Delegator utils] - Current delegator total stake ${currentDelegatorTotalStake} - last delegator total stake ${lastDelegatorShare.totalStakeOnRound} - Difference ${newShare}`
   )
-  console.log(`[Delegator utils] - returning new share: ${newShare}`)
-  return +newShare !== 0 ? newShare : null
+  return newShare
 }
 
 // Receives a list of delegators, if they already exists locally, updates them, otherwise, creates new ones locally
