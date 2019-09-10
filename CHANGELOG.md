@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0](https://github.com/protofire/livepeer-alerts-backend/compare/v2.0.0...v2.1.0) - (2019-09-10)
+### Add
+- Split work in two new workers, one for update pools and shares, another one for update delegates and delegators
+- Improvement in calculation for earning rewards shares and pools
+
 ## [2.0.0](https://github.com/protofire/livepeer-alerts-backend/compare/v1.2.2...v2.0.0) - (2019-08-06)
 ### Add
 - My delegate rewards endpoint [#113](https://github.com/protofire/livepeer-alerts-backend/issues/113)
