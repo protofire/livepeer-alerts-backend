@@ -4,7 +4,7 @@ let rpcInstance = null
 
 const getLivepeerRpc = async () => {
   if (!rpcInstance) {
-    const { rpc } = await LivepeerSDK.default()
+    const { rpc } = await LivepeerSDK.default({gas: 2.1 * 1000000})
     rpcInstance = rpc
     // Sets an interval that will reset the cached values periodically
     setInterval(() => {
@@ -29,7 +29,8 @@ const getLivepeerDelegatorTokenBalance = async address => {
   if (!address) {
     return null
   }
-  const { rpc } = await LivepeerSDK.default()
+
+  const rpc = await getLivepeerRpc()
   return await rpc.getTokenBalance(address)
 }
 
@@ -37,7 +38,8 @@ const getLivepeerDelegatorStake = async address => {
   if (!address) {
     return null
   }
-  const { rpc } = await LivepeerSDK.default()
+
+  const rpc = await getLivepeerRpc()
   const summary = await rpc.getDelegator(address)
   console.log(`Calculate summary for address ${address}`)
   return getTotalStakeFromSummary(summary)

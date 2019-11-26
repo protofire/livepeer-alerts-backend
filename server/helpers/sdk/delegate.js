@@ -1,7 +1,11 @@
 const LivepeerSDK = require('@livepeer/sdk')
 
+const getLivepeerSDKInstance = () =>{
+  return LivepeerSDK.default({gas: 2.1 * 1000000})
+}
+
 const getLivepeerDelegates = async () => {
-  const { rpc } = await LivepeerSDK.default()
+  const { rpc } = await getLivepeerSDKInstance()
   return await rpc.getTranscoders()
 }
 
@@ -9,7 +13,7 @@ const getLivepeerDelegateAccount = async address => {
   if (!address) {
     return null
   }
-  const { rpc } = await LivepeerSDK.default()
+  const { rpc } = await getLivepeerSDKInstance()
   return await rpc.getTranscoder(address)
 }
 
