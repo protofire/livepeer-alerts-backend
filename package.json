@@ -62,7 +62,7 @@
     "http-status": "1.0.1",
     "joi": "10.6.0",
     "lerna": "^3.19.0",
-    "lodash": ">=4.17.13",
+    "lodash": ">=4.17.19",
     "method-override": "^2.3.10",
     "minimist": "^1.2.0",
     "moment": "^2.24.0",
