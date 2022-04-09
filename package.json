@@ -65,7 +65,7 @@
     "lodash": ">=4.17.19",
     "method-override": "^2.3.10",
     "minimist": "^1.2.3",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
     "node-fetch": "^2.6.1",
