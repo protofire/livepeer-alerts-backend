@@ -64,7 +64,7 @@
     "lerna": "^3.19.0",
     "lodash": ">=4.17.19",
     "method-override": "^2.3.10",
-    "minimist": "^1.2.3",
+    "minimist": "^1.2.6",
     "moment": "^2.24.0",
     "mongoose": "^5.4.0",
     "morgan": "^1.9.1",
